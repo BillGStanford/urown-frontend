@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.tier-silver { background-color: #d1d5db; }
+.tier-gold { background-color: #facc15; }
+.tier-platinum { background-color: #93c5fd; }
+.tier-diamond { background-color: #c084fc; }
