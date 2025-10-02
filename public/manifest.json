@@ -1,0 +1,67 @@
+{
+  "short_name": "UROWN",
+  "name": "UROWN - Opinion Platform",
+  "description": "A powerful platform for sharing opinions and engaging in meaningful conversations",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "scope": ".",
+  "lang": "en",
+  "orientation": "portrait-primary",
+  "categories": ["social", "news", "opinion"],
+  "shortcuts": [
+    {
+      "name": "New Article",
+      "short_name": "Write",
+      "description": "Create a new opinion article",
+      "url": "/write",
+      "icons": [{ "src": "/write-icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Profile",
+      "short_name": "Profile",
+      "description": "View your user profile",
+      "url": "/profile",
+      "icons": [{ "src": "/profile-icon.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshots/mobile.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
+}

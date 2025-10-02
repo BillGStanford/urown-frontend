@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: white;
+  color: black;
+  font-weight: bold;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.btn-primary {
+  @apply bg-black text-white px-8 py-4 text-2xl font-bold border-2 border-black hover:bg-white hover:text-black transition-colors duration-200;
+}
+
+.btn-secondary {
+  @apply bg-white text-black px-8 py-4 text-2xl font-bold border-2 border-black hover:bg-black hover:text-white transition-colors duration-200;
+}
+
+.input-field {
+  @apply w-full p-4 text-xl font-bold border-2 border-black bg-white text-black focus:outline-none focus:ring-0;
+}
+
+.form-label {
+  @apply text-2xl font-bold mb-2 block;
+}
+
+.error-message {
+  @apply text-red-600 text-lg font-bold mt-2;
+}
+
+.success-message {
+  @apply text-green-600 text-lg font-bold mt-2;
+}
