@@ -24,7 +24,7 @@ import ReportedArticlesDashboard from './pages/ReportedArticlesDashboard';
 import GlobalError from './components/GlobalError';
 
 const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-backend-url.herokuapp.com/api'  // We'll update this later
+  ? 'https://urown-backend.onrender.com/api'  // Your Render backend URL
   : 'http://localhost:5000/api';
 
 // Configure axios defaults
