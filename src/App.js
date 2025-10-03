@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import { UserProvider, useUser } from './context/UserContext';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import SignupPage from './pages/SignupPage';
 import LoginPage from './pages/LoginPage';
@@ -21,6 +22,7 @@ import EditorialBoard from './pages/EditorialBoard';
 import ContactPage from './pages/ContactPage';
 import ContactDashboard from './pages/ContactDashboard';
 import ReportedArticlesDashboard from './pages/ReportedArticlesDashboard';
+import CommunityGuidelines from './pages/important/CommunityGuidelines';
 import GlobalError from './components/GlobalError';
 
 const API_URL = process.env.NODE_ENV === 'production' 
@@ -53,62 +55,66 @@ function AppRoutes() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="flex flex-col min-h-screen bg-white text-black">
       <GlobalError />
       <Header user={user} onLogout={logout} />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/browse" element={<BrowseArticles />} />
-        <Route path="/article/:id/:slug?" element={<ArticlePage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/debate/:id" element={<DebateCategoryPage />} />
-        <Route path="/debate/:id/write" element={<WriteDebateOpinion />} />
-        <Route 
-          path="/signup" 
-          element={user ? <Navigate to="/dashboard" /> : <SignupPage />} 
-        />
-        <Route 
-          path="/login" 
-          element={user ? <Navigate to="/dashboard" /> : <LoginPage />} 
-        />
-        <Route 
-          path="/dashboard" 
-          element={user ? <Dashboard /> : <Navigate to="/login" />} 
-        />
-        <Route 
-        path="/settings" 
-        element={user ? <SettingsPage /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/write" 
-          element={user ? <WriteArticle /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/write-counter" 
-          element={user ? <WriteCounterPage /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/admin" 
-          element={user && (user.role === 'admin' || user.role === 'super-admin') ? <AdminDashboard /> : <Navigate to="/" />} 
-        />
-        <Route 
-          path="/admin/contacts" 
-          element={user && user.role === 'super-admin' ? <ContactDashboard /> : <Navigate to="/" />} 
-        />
-        <Route 
-  path="/admin/reported-articles" 
-  element={user && (user.role === 'admin' || user.role === 'super-admin') ? <ReportedArticlesDashboard /> : <Navigate to="/" />} 
-/>
-        <Route 
-          path="/editorial" 
-          element={user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') ? <EditorialBoard /> : <Navigate to="/" />} 
-        />
-        <Route 
-          path="/editorial/create-debate" 
-          element={user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') ? <CreateDebateTopic /> : <Navigate to="/" />} 
-        />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+      <main className="flex-grow">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/browse" element={<BrowseArticles />} />
+          <Route path="/article/:id/:slug?" element={<ArticlePage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/debate/:id" element={<DebateCategoryPage />} />
+          <Route path="/debate/:id/write" element={<WriteDebateOpinion />} />
+          <Route 
+            path="/signup" 
+            element={user ? <Navigate to="/dashboard" /> : <SignupPage />} 
+          />
+          <Route 
+            path="/login" 
+            element={user ? <Navigate to="/dashboard" /> : <LoginPage />} 
+          />
+          <Route 
+            path="/dashboard" 
+            element={user ? <Dashboard /> : <Navigate to="/login" />} 
+          />
+          <Route 
+          path="/settings" 
+          element={user ? <SettingsPage /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/write" 
+            element={user ? <WriteArticle /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/write-counter" 
+            element={user ? <WriteCounterPage /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/admin" 
+            element={user && (user.role === 'admin' || user.role === 'super-admin') ? <AdminDashboard /> : <Navigate to="/" />} 
+          />
+          <Route 
+            path="/admin/contacts" 
+            element={user && user.role === 'super-admin' ? <ContactDashboard /> : <Navigate to="/" />} 
+          />
+          <Route 
+    path="/admin/reported-articles" 
+    element={user && (user.role === 'admin' || user.role === 'super-admin') ? <ReportedArticlesDashboard /> : <Navigate to="/" />} 
+  />
+          <Route 
+            path="/editorial" 
+            element={user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') ? <EditorialBoard /> : <Navigate to="/" />} 
+          />
+          <Route 
+            path="/editorial/create-debate" 
+            element={user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') ? <CreateDebateTopic /> : <Navigate to="/" />} 
+          />
+          <Route path="/community-guidelines" element={<CommunityGuidelines />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </main>
+      <Footer />
     </div>
   );
 }
