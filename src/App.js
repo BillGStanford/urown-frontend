@@ -22,6 +22,9 @@ import EditorialBoard from './pages/EditorialBoard';
 import ContactPage from './pages/ContactPage';
 import ContactDashboard from './pages/ContactDashboard';
 import ReportedArticlesDashboard from './pages/ReportedArticlesDashboard';
+import EbookWritingPage from './pages/EbookWritingPage';
+import EBookCatalogPage from './pages/EBookCatalogPage';
+import EBookReadingPage from './pages/EBookReadingPage';
 import CommunityGuidelines from './pages/important/CommunityGuidelines';
 import GlobalError from './components/GlobalError';
 
@@ -64,6 +67,9 @@ function AppRoutes() {
           <Route path="/browse" element={<BrowseArticles />} />
           <Route path="/article/:id/:slug?" element={<ArticlePage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/write-ebook" element={user ? <EbookWritingPage /> : <Navigate to="/login" />} />
+<Route path="/ebooks" element={<EBookCatalogPage />} />
+<Route path="/ebook/:id" element={<EBookReadingPage />} />
           <Route path="/debate/:id" element={<DebateCategoryPage />} />
           <Route path="/debate/:id/write" element={<WriteDebateOpinion />} />
           <Route 

@@ -75,6 +75,9 @@ function Header({ user, onLogout }) {
                 <Search className="mr-1 h-4 w-4" />
                 Browse
               </Link>
+              <Link to="/ebooks" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                E-Books
+              </Link>
               <Link 
                 to="/contact" 
                 className="text-sm font-bold text-black hover:text-gray-700 hover:underline flex items-center transition-colors duration-200 uppercase tracking-wider"
