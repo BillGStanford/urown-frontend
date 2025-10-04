@@ -13,7 +13,8 @@ import {
   User,
   ChevronDown,
   Shield,
-  Mail
+  Mail,
+  UserCircle
 } from 'lucide-react';
 
 function Header({ user, onLogout }) {
@@ -184,6 +185,15 @@ function Header({ user, onLogout }) {
                     {isUserDropdownOpen && (
                       <div className="absolute right-0 mt-2 w-48 bg-white border-2 border-gray-200 rounded-lg shadow-lg z-10 animate-dropdown">
                         <Link
+                          to={`/@${user.display_name}`}
+                          className="flex items-center px-4 py-2 text-sm font-bold text-black hover:bg-gray-100 transition-all duration-200 border-b border-gray-200"
+                          onClick={() => setIsUserDropdownOpen(false)}
+                          role="menuitem"
+                        >
+                          <UserCircle className="mr-2 h-4 w-4" />
+                          My Profile
+                        </Link>
+                        <Link
                           to="/settings"
                           className="flex items-center px-4 py-2 text-sm font-bold text-black hover:bg-gray-100 transition-all duration-200"
                           onClick={() => setIsUserDropdownOpen(false)}
@@ -326,6 +336,14 @@ function Header({ user, onLogout }) {
                       <User className="mr-2 h-4 w-4" />
                       {user.display_name}
                     </span>
+                    <Link
+                      to={`/@${user.display_name}`}
+                      className="flex items-center px-4 py-2 text-sm font-bold text-black hover:text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 uppercase tracking-wider"
+                      onClick={closeMobileMenu}
+                    >
+                      <UserCircle className="mr-2 h-4 w-4" />
+                      My Profile
+                    </Link>
                     <Link
                       to="/settings"
                       className="flex items-center px-4 py-2 text-sm font-bold text-black hover:text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 uppercase tracking-wider"

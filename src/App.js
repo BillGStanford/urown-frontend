@@ -22,6 +22,7 @@ import EditorialBoard from './pages/EditorialBoard';
 import ContactPage from './pages/ContactPage';
 import ContactDashboard from './pages/ContactDashboard';
 import ReportedArticlesDashboard from './pages/ReportedArticlesDashboard';
+import UserProfile from './pages/UserProfile';
 import CommunityGuidelines from './pages/important/CommunityGuidelines';
 import GlobalError from './components/GlobalError';
 
@@ -79,8 +80,8 @@ function AppRoutes() {
             element={user ? <Dashboard /> : <Navigate to="/login" />} 
           />
           <Route 
-          path="/settings" 
-          element={user ? <SettingsPage /> : <Navigate to="/login" />} 
+            path="/settings" 
+            element={user ? <SettingsPage /> : <Navigate to="/login" />} 
           />
           <Route 
             path="/write" 
@@ -99,9 +100,9 @@ function AppRoutes() {
             element={user && user.role === 'super-admin' ? <ContactDashboard /> : <Navigate to="/" />} 
           />
           <Route 
-    path="/admin/reported-articles" 
-    element={user && (user.role === 'admin' || user.role === 'super-admin') ? <ReportedArticlesDashboard /> : <Navigate to="/" />} 
-  />
+            path="/admin/reported-articles" 
+            element={user && (user.role === 'admin' || user.role === 'super-admin') ? <ReportedArticlesDashboard /> : <Navigate to="/" />} 
+          />
           <Route 
             path="/editorial" 
             element={user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') ? <EditorialBoard /> : <Navigate to="/" />} 
@@ -111,6 +112,7 @@ function AppRoutes() {
             element={user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') ? <CreateDebateTopic /> : <Navigate to="/" />} 
           />
           <Route path="/community-guidelines" element={<CommunityGuidelines />} />
+          <Route path="/@:displayName" element={<UserProfile />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
