@@ -100,6 +100,7 @@ function HomePage() {
           <h1 className="text-6xl font-black mb-4 tracking-tight">
             {user ? `Welcome back, ${user.display_name || user.full_name}!` : 'Welcome to Your Feed'}
           </h1>
+          <p>How it Works: Write → Publish → Counter → Discuss.</p>
           
           <div className="flex items-center justify-center text-xl text-gray-300 mb-8 space-x-3">
             <Calendar className="text-yellow-500" size={24} />
