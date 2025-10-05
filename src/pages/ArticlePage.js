@@ -14,7 +14,7 @@ import {
   EmailIcon
 } from 'react-share';
 import { Helmet } from 'react-helmet';
-import { Flag, ChevronDown, ChevronUp } from 'lucide-react';
+import { Flag, ChevronDown, ChevronUp, Award, MessageSquare, Share2, Copy, Eye } from 'lucide-react';
 
 const ArticlePage = () => {
   const { id, slug } = useParams();
@@ -33,6 +33,28 @@ const ArticlePage = () => {
   const [reportSuccess, setReportSuccess] = useState(false);
   const [showCounters, setShowCounters] = useState(true);
   const abortControllerRef = useRef(null);
+
+  // Check if article has been viewed by this user/browser
+  const hasViewedArticle = (articleId) => {
+    const storageKey = user ? `viewed_articles_user_${user.id}` : 'viewed_articles_browser';
+    const viewedArticles = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    return viewedArticles.includes(articleId);
+  };
+
+  // Mark article as viewed
+  const markArticleAsViewed = (articleId) => {
+    const storageKey = user ? `viewed_articles_user_${user.id}` : 'viewed_articles_browser';
+    const viewedArticles = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    
+    if (!viewedArticles.includes(articleId)) {
+      viewedArticles.push(articleId);
+      localStorage.setItem(storageKey, JSON.stringify(viewedArticles));
+      
+      // Increment view count on the server
+      axios.post(`/articles/${articleId}/view`)
+        .catch(err => console.error('Error incrementing view count:', err));
+    }
+  };
 
   useEffect(() => {
     // Cancel any ongoing request before starting a new one
@@ -53,6 +75,11 @@ const ArticlePage = () => {
         });
         const currentArticle = response.data.article;
         setArticle(currentArticle);
+        
+        // Mark article as viewed if not already viewed
+        if (!hasViewedArticle(id)) {
+          markArticleAsViewed(id);
+        }
         
         // If this is a counter opinion, fetch the original article
         if (currentArticle.parent_article_id) {
@@ -90,7 +117,7 @@ const ArticlePage = () => {
         abortControllerRef.current.abort();
       }
     };
-  }, [id]); // Only re-run effect when id changes
+  }, [id, user]); // Also re-run when user changes to handle login/logout
 
   // Update document title when article changes
   useEffect(() => {
@@ -213,13 +240,39 @@ const ArticlePage = () => {
     }
   };
 
+  const getTierGradient = (tier) => {
+    switch (tier?.toLowerCase()) {
+      case 'silver':
+        return 'from-gray-400 to-gray-600';
+      case 'gold':
+        return 'from-yellow-400 to-yellow-600';
+      case 'platinum':
+        return 'from-cyan-400 to-purple-600';
+      default:
+        return 'from-gray-400 to-gray-600';
+    }
+  };
+
+  const getStatusGradient = (status) => {
+    switch (status) {
+      case 'debate':
+        return 'from-blue-500 to-blue-700';
+      case 'certified':
+        return 'from-purple-500 to-purple-700';
+      case 'winner':
+        return 'from-yellow-500 to-orange-500';
+      default:
+        return 'from-gray-500 to-gray-700';
+    }
+  };
+
   // Format article content with proper line breaks
   const formatContent = (content) => {
     return content
       .split('\n\n')
       .map(paragraph => paragraph.trim())
       .filter(paragraph => paragraph.length > 0)
-      .map((paragraph, index) => `<p key=${index} class="mb-6 text-lg leading-relaxed font-serif">${paragraph}</p>`)
+      .map((paragraph, index) => `<p key=${index} class="mb-6 text-lg leading-relaxed font-serif text-gray-800">${paragraph}</p>`)
       .join('');
   };
 
@@ -231,10 +284,10 @@ const ArticlePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-          <div className="text-2xl mt-4 font-serif">Loading article...</div>
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gradient-to-r from-yellow-500 to-orange-500 mx-auto"></div>
+          <div className="text-2xl mt-4 font-serif font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-600 to-orange-600">Loading article...</div>
         </div>
       </div>
     );
@@ -242,13 +295,13 @@ const ArticlePage = () => {
 
   if (error || !article) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center max-w-2xl px-4">
-          <h1 className="text-4xl font-serif mb-4">Article Not Found</h1>
-          <p className="text-xl mb-8 font-serif">The article you're looking for doesn't exist or has been removed.</p>
+          <h1 className="text-4xl font-serif mb-4 font-black bg-clip-text text-transparent bg-gradient-to-r from-gray-800 to-gray-600">Article Not Found</h1>
+          <p className="text-xl mb-8 font-serif text-gray-600">The article you're looking for doesn't exist or has been removed.</p>
           <button 
             onClick={() => navigate('/')}
-            className="bg-black text-white px-6 py-3 font-serif hover:bg-gray-800 transition-colors"
+            className="px-6 py-3 font-serif font-bold text-white bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1"
           >
             Go to Homepage
           </button>
@@ -273,23 +326,23 @@ const ArticlePage = () => {
         <meta name="twitter:description" content={article.content.substring(0, 160)} />
       </Helmet>
 
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         {/* Non-intrusive auth banner for non-logged users */}
         {!user && (
-          <div className="bg-gray-50 py-3 px-4 flex justify-between items-center border-b border-gray-200">
-            <div className="text-sm font-serif">
-              Enjoying this article? <span className="font-medium">Sign up</span> to save articles to read later.
+          <div className="bg-white/80 backdrop-blur-md py-3 px-4 flex justify-between items-center border-b border-gray-200 sticky top-0 z-10">
+            <div className="text-sm font-serif text-gray-700">
+              Enjoying this article? <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-orange-600">Sign up</span> to save articles to read later.
             </div>
             <div className="flex space-x-2">
               <button 
                 onClick={handleLogin}
-                className="text-sm bg-white border border-gray-300 px-3 py-1 rounded font-serif hover:bg-gray-50 transition-colors"
+                className="text-sm bg-white border border-gray-300 px-3 py-1 rounded-lg font-serif font-medium hover:bg-gray-50 transition-all duration-300 hover:shadow-sm"
               >
                 Log In
               </button>
               <button 
                 onClick={handleSignup}
-                className="text-sm bg-black text-white px-3 py-1 rounded font-serif hover:bg-gray-800 transition-colors"
+                className="text-sm bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 rounded-lg font-serif font-bold hover:shadow-md transform transition-all duration-300 hover:-translate-y-0.5"
               >
                 Sign Up
               </button>
@@ -299,57 +352,76 @@ const ArticlePage = () => {
 
         {/* Article Header */}
         <header className="max-w-4xl mx-auto px-4 py-8 md:py-12">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
-            <div className="flex items-center mb-4 md:mb-0">
-              <span className="text-3xl mr-3">{getTierEmoji(article.tier)}</span>
-              <div>
-                <span className="text-xl font-medium">{article.display_name}</span>
-                <span className="text-lg font-medium ml-4 text-gray-600">
-                  {article.tier?.toUpperCase()} TIER
-                </span>
+          <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-6 md:p-8 border border-white/70 mb-8 transform transition-all duration-300 hover:shadow-xl">
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+              <div className="flex items-center mb-4 md:mb-0">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 bg-gradient-to-r ${getTierGradient(article.tier)} shadow-md`}>
+                  <span className="text-xl">{getTierEmoji(article.tier)}</span>
+                </div>
+                <div>
+                  <span className="text-xl font-bold">{article.display_name}</span>
+                  <div className={`inline-block ml-3 px-2 py-1 text-xs font-bold rounded-full bg-gradient-to-r ${getTierGradient(article.tier)} text-white shadow-sm`}>
+                    {article.tier?.toUpperCase()} TIER
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center text-gray-600 text-sm md:text-base font-serif">
+                <div className="flex items-center mr-4">
+                  <Eye className="mr-1" size={16} />
+                  <span>{article.views} views</span>
+                </div>
+                <span>{formatDate(article.created_at)}</span>
               </div>
             </div>
             
-            <div className="text-gray-500 text-sm md:text-base font-serif">
-              <span>{formatDate(article.created_at)}</span>
-              <span className="mx-2">•</span>
-              <span>{article.views} views</span>
+            <h1 className="text-4xl md:text-5xl font-serif font-black mb-6 leading-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700">
+              {article.title}
+            </h1>
+            
+            {/* Article meta tags */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              <div className="bg-gradient-to-r from-gray-600 to-gray-800 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center shadow-md">
+                <MessageSquare className="mr-1" size={14} />
+                Opinion
+              </div>
+              {article.certified && (
+                <div className={`bg-gradient-to-r ${getStatusGradient('certified')} text-white px-3 py-1 rounded-full text-sm font-bold flex items-center shadow-md`}>
+                  <Award className="mr-1" size={14} />
+                  Editorial Certified
+                </div>
+              )}
+              {article.featured && (
+                <div className={`bg-gradient-to-r ${getStatusGradient('winner')} text-white px-3 py-1 rounded-full text-sm font-bold flex items-center shadow-md`}>
+                  <Award className="mr-1" size={14} />
+                  Featured
+                </div>
+              )}
             </div>
-          </div>
-          
-          <h1 className="text-4xl md:text-5xl font-serif mb-6 leading-tight">{article.title}</h1>
-          
-          {/* Article meta tags */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
-              Opinion
-            </span>
-            {article.certified && (
-              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                Editorial Certified
-              </span>
-            )}
-            {article.featured && (
-              <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
-                Featured
-              </span>
-            )}
-          </div>
-          
-          {/* Share buttons */}
-          <div className="flex space-x-4">
-            <FacebookShareButton url={shareUrl} quote={shareTitle}>
-              <FacebookIcon size={32} round />
-            </FacebookShareButton>
-            <TwitterShareButton url={shareUrl} title={shareTitle}>
-              <TwitterIcon size={32} round />
-            </TwitterShareButton>
-            <LinkedinShareButton url={shareUrl} title={shareTitle}>
-              <LinkedinIcon size={32} round />
-            </LinkedinShareButton>
-            <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle}>
-              <EmailIcon size={32} round />
-            </EmailShareButton>
+            
+            {/* Share buttons */}
+            <div className="flex space-x-4">
+              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md">
+                <FacebookShareButton url={shareUrl} quote={shareTitle}>
+                  <FacebookIcon size={32} round className="bg-white" />
+                </FacebookShareButton>
+              </div>
+              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md">
+                <TwitterShareButton url={shareUrl} title={shareTitle}>
+                  <TwitterIcon size={32} round className="bg-white" />
+                </TwitterShareButton>
+              </div>
+              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md">
+                <LinkedinShareButton url={shareUrl} title={shareTitle}>
+                  <LinkedinIcon size={32} round className="bg-white" />
+                </LinkedinShareButton>
+              </div>
+              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md">
+                <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle}>
+                  <EmailIcon size={32} round className="bg-white" />
+                </EmailShareButton>
+              </div>
+            </div>
           </div>
         </header>
 
@@ -358,7 +430,7 @@ const ArticlePage = () => {
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Main Content */}
             <div className={`${showSidebar ? 'lg:w-2/3' : 'w-full'}`}>
-              <div className="prose prose-lg max-w-none">
+              <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-6 md:p-8 border border-white/70 transform transition-all duration-300 hover:shadow-xl">
                 <div 
                   className="text-gray-800 leading-relaxed font-serif"
                   dangerouslySetInnerHTML={{ __html: formatContent(article.content) }}
@@ -366,91 +438,98 @@ const ArticlePage = () => {
               </div>
 
               {/* Counter Opinion Button */}
-              <div className="mt-12 pt-8 border-t border-gray-200">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-serif">Disagree with this opinion?</h2>
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row justify-between items-center bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-white/70">
+                  <h2 className="text-2xl font-serif font-bold mb-4 sm:mb-0">Disagree with this opinion?</h2>
                   <button
                     onClick={handleCounterOpinion}
                     disabled={!canWriteCounter}
-                    className={`px-6 py-3 font-serif transition-colors ${
+                    className={`px-6 py-3 font-serif font-bold text-white rounded-xl transform transition-all duration-300 flex items-center ${
                       canWriteCounter
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-700 hover:shadow-lg hover:-translate-y-1'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                   >
+                    <MessageSquare className="mr-2" size={18} />
                     Counter Opinion
                   </button>
                 </div>
                 {!canWriteCounter && user && (
-                  <p className="text-red-500 mt-2 font-serif">Maximum number of counter opinions reached for this article.</p>
+                  <p className="text-red-500 mt-2 font-serif font-medium">Maximum number of counter opinions reached for this article.</p>
                 )}
               </div>
             </div>
 
             {/* Sidebar */}
             {showSidebar && (
-              <div className="lg:w-1/3">
+              <div className="lg:w-1/3 space-y-6">
                 {/* Original Article Section (if viewing a counter opinion) */}
                 {originalArticle && (
-                  <div className="mb-8 bg-gray-50 rounded-lg p-6 border border-gray-200">
-                    <h3 className="text-xl font-serif mb-4">Original Piece</h3>
-                    <div className="mb-3">
-                      <span className="text-xl mr-2">{getTierEmoji(originalArticle.tier)}</span>
-                      <span className="font-medium">{originalArticle.display_name}</span>
-                      <span className="text-gray-600 ml-2 text-sm">
-                        {originalArticle.tier?.toUpperCase()} TIER
-                      </span>
+                  <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-white/70 transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <h3 className="text-xl font-serif font-bold mb-4">Original Piece</h3>
+                    <div className="flex items-center mb-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 bg-gradient-to-r ${getTierGradient(originalArticle.tier)} shadow-sm`}>
+                        <span className="text-lg">{getTierEmoji(originalArticle.tier)}</span>
+                      </div>
+                      <span className="font-bold">{originalArticle.display_name}</span>
+                      <div className={`ml-2 px-2 py-0.5 text-xs font-bold rounded-full bg-gradient-to-r ${getTierGradient(originalArticle.tier)} text-white`}>
+                        {originalArticle.tier?.toUpperCase()}
+                      </div>
                     </div>
-                    <h4 className="font-serif text-lg mb-2">{originalArticle.title}</h4>
+                    <h4 className="font-serif text-lg font-bold mb-2">{originalArticle.title}</h4>
                     <div 
-                      className="text-gray-800 text-sm mb-4 font-serif"
+                      className="text-gray-700 text-sm mb-4 font-serif"
                       dangerouslySetInnerHTML={{ 
                         __html: formatContent(originalArticle.content.substring(0, 200) + (originalArticle.content.length > 200 ? '...' : ''))
                       }}
                     />
                     <button 
                       onClick={() => navigate(`/article/${originalArticle.id}`)}
-                      className="text-blue-600 hover:text-blue-800 font-medium"
+                      className="text-blue-600 hover:text-blue-800 font-bold flex items-center"
                     >
                       Read Original
+                      <ChevronDown className="ml-1 rotate-270" size={16} />
                     </button>
                   </div>
                 )}
 
                 {/* Counter Opinions Dropdown - Only show if there are counter opinions */}
                 {counterOpinions.length > 0 && (
-                  <div className="bg-gray-50 rounded-lg border border-gray-200">
+                  <div id="counter-opinions-section" className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-white/70 overflow-hidden transform transition-all duration-300 hover:shadow-xl">
                     <div 
                       className="flex justify-between items-center p-4 cursor-pointer"
                       onClick={() => setShowCounters(!showCounters)}
                     >
-                      <h3 className="text-xl font-serif">This Has Been Countered</h3>
+                      <h3 className="text-xl font-serif font-bold">This Has Been Countered</h3>
                       {showCounters ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                     </div>
                     
                     {showCounters && (
                       <div className="px-4 pb-4 space-y-4">
                         {counterOpinions.map(opinion => (
-                          <div key={opinion.id} className="bg-white p-4 rounded-lg border border-gray-200">
+                          <div key={opinion.id} className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/50 shadow transform transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
                             <div className="flex items-center mb-2">
-                              <span className="text-lg mr-2">{getTierEmoji(opinion.tier)}</span>
-                              <span className="font-medium">{opinion.display_name}</span>
-                              <span className="text-gray-600 ml-2 text-sm">
-                                {opinion.tier?.toUpperCase()} TIER
-                              </span>
+                              <div className={`w-7 h-7 rounded-full flex items-center justify-center mr-2 bg-gradient-to-r ${getTierGradient(opinion.tier)} shadow-sm`}>
+                                <span className="text-sm">{getTierEmoji(opinion.tier)}</span>
+                              </div>
+                              <span className="font-bold">{opinion.display_name}</span>
+                              <div className={`ml-2 px-2 py-0.5 text-xs font-bold rounded-full bg-gradient-to-r ${getTierGradient(opinion.tier)} text-white`}>
+                                {opinion.tier?.toUpperCase()}
+                              </div>
                             </div>
-                            <h4 className="font-serif mb-2">{opinion.title}</h4>
+                            <h4 className="font-serif font-bold mb-2">{opinion.title}</h4>
                             <div 
-                              className="text-gray-800 text-sm mb-3 font-serif"
+                              className="text-gray-700 text-sm mb-3 font-serif"
                               dangerouslySetInnerHTML={{ 
                                 __html: formatContent(opinion.content.substring(0, 150) + (opinion.content.length > 150 ? '...' : ''))
                               }}
                             />
                             <button 
                               onClick={() => navigate(`/article/${opinion.id}`)}
-                              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                              className="text-blue-600 hover:text-blue-800 text-sm font-bold flex items-center"
                             >
                               Read Counter
+                              <ChevronDown className="ml-1 rotate-270" size={14} />
                             </button>
                           </div>
                         ))}
@@ -464,40 +543,52 @@ const ArticlePage = () => {
         </div>
 
         {/* Article Footer */}
-        <footer className="bg-gray-50 border-t border-gray-200">
+        <footer className="bg-white/80 backdrop-blur-md border-t border-gray-200">
           <div className="max-w-4xl mx-auto px-4 py-8">
             <div className="flex flex-col md:flex-row justify-between items-center mb-8">
               <div className="mb-4 md:mb-0">
-                <h3 className="text-lg font-serif mb-2">Share this article</h3>
+                <h3 className="text-lg font-serif font-bold mb-2 flex items-center">
+                  <Share2 className="mr-2" size={18} />
+                  Share this article
+                </h3>
                 <div className="flex space-x-4">
-                  <FacebookShareButton url={shareUrl} quote={shareTitle}>
-                    <FacebookIcon size={32} round />
-                  </FacebookShareButton>
-                  <TwitterShareButton url={shareUrl} title={shareTitle}>
-                    <TwitterIcon size={32} round />
-                  </TwitterShareButton>
-                  <LinkedinShareButton url={shareUrl} title={shareTitle}>
-                    <LinkedinIcon size={32} round />
-                  </LinkedinShareButton>
-                  <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle}>
-                    <EmailIcon size={32} round />
-                  </EmailShareButton>
+                  <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
+                    <FacebookShareButton url={shareUrl} quote={shareTitle}>
+                      <FacebookIcon size={32} round className="bg-white" />
+                    </FacebookShareButton>
+                  </div>
+                  <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
+                    <TwitterShareButton url={shareUrl} title={shareTitle}>
+                      <TwitterIcon size={32} round className="bg-white" />
+                    </TwitterShareButton>
+                  </div>
+                  <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
+                    <LinkedinShareButton url={shareUrl} title={shareTitle}>
+                      <LinkedinIcon size={32} round className="bg-white" />
+                    </LinkedinShareButton>
+                  </div>
+                  <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
+                    <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle}>
+                      <EmailIcon size={32} round className="bg-white" />
+                    </EmailShareButton>
+                  </div>
                 </div>
               </div>
               
               <div className="text-center">
-                <p className="text-gray-500 mb-2 font-serif">Direct link to this article:</p>
+                <p className="text-gray-600 mb-2 font-serif">Direct link to this article:</p>
                 <div className="flex items-center">
                   <input 
                     type="text" 
                     readOnly 
                     value={shareUrl} 
-                    className="border border-gray-300 rounded-l px-3 py-2 text-sm w-64 truncate font-serif"
+                    className="border border-gray-300 rounded-l-lg px-3 py-2 text-sm w-64 truncate font-serif bg-white/80 backdrop-blur-sm"
                   />
                   <button 
                     onClick={handleCopyLink}
-                    className="bg-gray-800 text-white px-3 py-2 rounded-r text-sm font-medium hover:bg-gray-700 transition-colors font-serif"
+                    className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-2 rounded-r-lg text-sm font-bold hover:shadow-md transform transition-all duration-300 hover:-translate-y-0.5 flex items-center"
                   >
+                    <Copy className="mr-1" size={14} />
                     {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
@@ -506,15 +597,15 @@ const ArticlePage = () => {
             
             <div className="border-t border-gray-200 pt-8 text-center">
               {reportSuccess ? (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4 font-serif">
-                  Thank you for reporting this article. Our team will review it shortly.
+                <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4 rounded-lg font-serif">
+                  <p className="text-green-700 font-bold">Thank you for reporting this article. Our team will review it shortly.</p>
                 </div>
               ) : (
                 <>
                   <p className="text-gray-600 mb-4 font-serif">Found this article concerning? Report it to our moderators.</p>
                   <button 
                     onClick={handleReportArticle}
-                    className="bg-red-600 text-white px-6 py-3 font-serif hover:bg-red-700 transition-colors flex items-center justify-center mx-auto"
+                    className="bg-gradient-to-r from-red-500 to-red-700 text-white px-6 py-3 font-serif font-bold hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1 flex items-center justify-center mx-auto rounded-xl"
                   >
                     <Flag className="mr-2" size={18} />
                     Report Article
@@ -528,17 +619,17 @@ const ArticlePage = () => {
 
       {/* Report Modal */}
       {showReportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h3 className="text-xl font-serif mb-4">Report Article</h3>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl max-w-md w-full p-6 border border-white/70 transform transition-all duration-300">
+            <h3 className="text-xl font-serif font-bold mb-4">Report Article</h3>
             {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-                <p className="text-red-700 font-serif">{error}</p>
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-lg">
+                <p className="text-red-700 font-serif font-bold">{error}</p>
               </div>
             )}
             <form onSubmit={handleSubmitReport}>
               <div className="mb-4">
-                <label htmlFor="reportReason" className="block text-sm font-medium text-gray-700 mb-1 font-serif">
+                <label htmlFor="reportReason" className="block text-sm font-bold text-gray-700 mb-1 font-serif">
                   Reason for reporting
                 </label>
                 <textarea
@@ -547,7 +638,7 @@ const ArticlePage = () => {
                   onChange={(e) => setReportReason(e.target.value)}
                   required
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 font-serif"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 font-serif bg-white/80 backdrop-blur-sm"
                   placeholder="Please explain why you're reporting this article..."
                 />
               </div>
@@ -559,14 +650,14 @@ const ArticlePage = () => {
                     setReportReason('');
                     setError(null);
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-md font-medium hover:bg-gray-50 font-serif"
+                  className="px-4 py-2 border border-gray-300 rounded-lg font-bold hover:bg-gray-50 font-serif transform transition-all duration-300 hover:-translate-y-0.5"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={reporting}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 disabled:opacity-50 font-serif"
+                  className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 text-white rounded-lg font-bold hover:shadow-lg transform transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 font-serif"
                 >
                   {reporting ? 'Submitting...' : 'Submit Report'}
                 </button>
