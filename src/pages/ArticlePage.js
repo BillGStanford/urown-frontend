@@ -34,16 +34,38 @@ const ArticlePage = () => {
   const [showCounters, setShowCounters] = useState(true);
   const abortControllerRef = useRef(null);
 
-  // Check if article has been viewed by this user/browser
+  // Generate or retrieve browser fingerprint
+  const getBrowserFingerprint = () => {
+    let fingerprint = localStorage.getItem('browser_fingerprint');
+    
+    if (!fingerprint) {
+      // Create a simple fingerprint based on browser info
+      const userAgent = navigator.userAgent;
+      const screenRes = `${screen.width}x${screen.height}`;
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const language = navigator.language;
+      const platform = navigator.platform;
+      
+      // Combine these to create a fingerprint
+      fingerprint = btoa(`${userAgent}|${screenRes}|${timezone}|${language}|${platform}`);
+      localStorage.setItem('browser_fingerprint', fingerprint);
+    }
+    
+    return fingerprint;
+  };
+
+  // Check if article has been viewed by this browser
   const hasViewedArticle = (articleId) => {
-    const storageKey = user ? `viewed_articles_user_${user.id}` : 'viewed_articles_browser';
+    const fingerprint = getBrowserFingerprint();
+    const storageKey = `viewed_articles_${fingerprint}`;
     const viewedArticles = JSON.parse(localStorage.getItem(storageKey) || '[]');
     return viewedArticles.includes(articleId);
   };
 
   // Mark article as viewed
   const markArticleAsViewed = (articleId) => {
-    const storageKey = user ? `viewed_articles_user_${user.id}` : 'viewed_articles_browser';
+    const fingerprint = getBrowserFingerprint();
+    const storageKey = `viewed_articles_${fingerprint}`;
     const viewedArticles = JSON.parse(localStorage.getItem(storageKey) || '[]');
     
     if (!viewedArticles.includes(articleId)) {
@@ -51,7 +73,7 @@ const ArticlePage = () => {
       localStorage.setItem(storageKey, JSON.stringify(viewedArticles));
       
       // Increment view count on the server
-      axios.post(`/articles/${articleId}/view`)
+      axios.post(`/articles/${articleId}/view`, { fingerprint })
         .catch(err => console.error('Error incrementing view count:', err));
     }
   };
@@ -117,7 +139,7 @@ const ArticlePage = () => {
         abortControllerRef.current.abort();
       }
     };
-  }, [id, user]); // Also re-run when user changes to handle login/logout
+  }, [id]); // Only re-run effect when id changes
 
   // Update document title when article changes
   useEffect(() => {
@@ -401,22 +423,22 @@ const ArticlePage = () => {
             
             {/* Share buttons */}
             <div className="flex space-x-4">
-              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md">
+              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
                 <FacebookShareButton url={shareUrl} quote={shareTitle}>
                   <FacebookIcon size={32} round className="bg-white" />
                 </FacebookShareButton>
               </div>
-              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md">
+              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
                 <TwitterShareButton url={shareUrl} title={shareTitle}>
                   <TwitterIcon size={32} round className="bg-white" />
                 </TwitterShareButton>
               </div>
-              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md">
+              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
                 <LinkedinShareButton url={shareUrl} title={shareTitle}>
                   <LinkedinIcon size={32} round className="bg-white" />
                 </LinkedinShareButton>
               </div>
-              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md">
+              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
                 <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle}>
                   <EmailIcon size={32} round className="bg-white" />
                 </EmailShareButton>
