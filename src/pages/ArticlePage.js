@@ -423,22 +423,22 @@ const ArticlePage = () => {
             
             {/* Share buttons */}
             <div className="flex space-x-4">
-              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
+              <div className="">
                 <FacebookShareButton url={shareUrl} quote={shareTitle}>
                   <FacebookIcon size={32} round className="bg-white" />
                 </FacebookShareButton>
               </div>
-              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
+              <div className="">
                 <TwitterShareButton url={shareUrl} title={shareTitle}>
                   <TwitterIcon size={32} round className="bg-white" />
                 </TwitterShareButton>
               </div>
-              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
+              <div className="">
                 <LinkedinShareButton url={shareUrl} title={shareTitle}>
                   <LinkedinIcon size={32} round className="bg-white" />
                 </LinkedinShareButton>
               </div>
-              <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
+              <div className="">
                 <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle}>
                   <EmailIcon size={32} round className="bg-white" />
                 </EmailShareButton>
@@ -574,22 +574,22 @@ const ArticlePage = () => {
                   Share this article
                 </h3>
                 <div className="flex space-x-4">
-                  <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
+                  <div className="">
                     <FacebookShareButton url={shareUrl} quote={shareTitle}>
                       <FacebookIcon size={32} round className="bg-white" />
                     </FacebookShareButton>
                   </div>
-                  <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
+                  <div className="">
                     <TwitterShareButton url={shareUrl} title={shareTitle}>
                       <TwitterIcon size={32} round className="bg-white" />
                     </TwitterShareButton>
                   </div>
-                  <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
+                  <div className="">
                     <LinkedinShareButton url={shareUrl} title={shareTitle}>
                       <LinkedinIcon size={32} round className="bg-white" />
                     </LinkedinShareButton>
                   </div>
-                  <div className="p-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow-md transform transition-all duration-300 hover:scale-105">
+                  <div className="">
                     <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle}>
                       <EmailIcon size={32} round className="bg-white" />
                     </EmailShareButton>
