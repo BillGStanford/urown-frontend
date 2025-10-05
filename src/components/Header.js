@@ -21,6 +21,7 @@ function Header({ user, onLogout }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef(null);
   const navDropdownRef = useRef(null);
 
@@ -48,6 +49,14 @@ function Header({ user, onLogout }) {
   };
 
   useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsUserDropdownOpen(false);
@@ -61,84 +70,97 @@ function Header({ user, onLogout }) {
   }, []);
 
   return (
-    <header className="bg-white border-b-4 border-black py-3 shadow-lg">
+    <header className={`sticky top-0 z-50 bg-white transition-all duration-300 ${
+      scrolled ? 'shadow-2xl border-b-2' : 'shadow-lg border-b-4'
+    } border-black`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Desktop Layout */}
-        <div className="hidden lg:flex items-center justify-center">
-          <div className="flex items-center justify-between w-full max-w-6xl">
-            {/* Left Navigation */}
-            <nav className="flex items-center space-x-6">
-              <Link 
-                to="/browse" 
-                className="text-sm font-bold text-black hover:text-gray-700 hover:underline flex items-center transition-colors duration-200 uppercase tracking-wider"
-              >
-                <Search className="mr-1 h-4 w-4" />
+        <div className="hidden lg:flex items-center justify-between py-4">
+          {/* Left Navigation */}
+          <nav className="flex items-center space-x-2">
+            <Link 
+              to="/browse" 
+              className="group relative px-4 py-2 text-sm font-bold text-black hover:text-white transition-all duration-300 uppercase tracking-wide overflow-hidden rounded-lg"
+            >
+              <span className="absolute inset-0 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
+              <span className="relative flex items-center gap-2">
+                <Search className="h-4 w-4" />
                 Browse
-              </Link>
-              <Link 
-                to="/contact" 
-                className="text-sm font-bold text-black hover:text-gray-700 hover:underline flex items-center transition-colors duration-200 uppercase tracking-wider"
-              >
-                <Mail className="mr-1 h-4 w-4" />
+              </span>
+            </Link>
+            <Link 
+              to="/contact" 
+              className="group relative px-4 py-2 text-sm font-bold text-black hover:text-white transition-all duration-300 uppercase tracking-wide overflow-hidden rounded-lg"
+            >
+              <span className="absolute inset-0 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
+              <span className="relative flex items-center gap-2">
+                <Mail className="h-4 w-4" />
                 Contact
-              </Link>
-            </nav>
+              </span>
+            </Link>
+          </nav>
 
-            {/* Centered Logo with Branding */}
-            <div className="flex flex-col items-center">
-              <Link to="/" className="flex flex-col items-center group">
-                <span className="text-5xl font-black text-black group-hover:text-gray-800 transition-all duration-300 tracking-tight">
+          {/* Centered Logo */}
+          <div className="absolute left-1/2 transform -translate-x-1/2">
+            <Link to="/" className="group flex flex-col items-center">
+              <div className="relative">
+                <span className="text-5xl font-black text-black group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-yellow-500 group-hover:via-orange-500 group-hover:to-red-500 group-hover:bg-clip-text transition-all duration-500 tracking-tighter">
                   UROWN
                 </span>
-                <span className="text-xs text-gray-700 mt-1 group-hover:text-gray-600 transition-all duration-300 uppercase tracking-widest">
-                  Your Opinion. Your Platform. UROWN.
-                </span>
-              </Link>
-            </div>
+                <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+              </div>
+              <span className="text-[10px] text-gray-600 mt-2 font-semibold uppercase tracking-[0.2em] group-hover:text-black transition-colors duration-300">
+                Your Opinion • Your Platform
+              </span>
+            </Link>
+          </div>
 
-            {/* Right Navigation and Actions */}
-            <div className="flex items-center space-x-3">
-              {user ? (
-                <>
-                  {/* Dashboard Button */}
-                  <Link 
-                    to="/dashboard" 
-                    className="flex items-center text-xs font-bold text-white bg-black hover:bg-gray-800 px-3 py-2 rounded-md transition-all duration-200 hover:scale-105 uppercase tracking-wider"
-                  >
-                    <LayoutDashboard className="mr-1 h-4 w-4" />
+          {/* Right Navigation */}
+          <div className="flex items-center space-x-2">
+            {user ? (
+              <>
+                <Link 
+                  to="/dashboard" 
+                  className="group relative px-4 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 rounded-lg transition-all duration-300 uppercase tracking-wider shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  <span className="flex items-center gap-2">
+                    <LayoutDashboard className="h-4 w-4" />
                     Dashboard
-                  </Link>
+                  </span>
+                </Link>
 
-                  {/* Write Button */}
-                  <Link 
-                    to="/write" 
-                    className="flex items-center text-xs font-bold text-white bg-black hover:bg-gray-800 px-3 py-2 rounded-md transition-all duration-200 hover:scale-105 uppercase tracking-wider"
-                  >
-                    <PenTool className="mr-1 h-4 w-4" />
+                <Link 
+                  to="/write" 
+                  className="group relative px-4 py-2.5 text-xs font-bold text-black bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 rounded-lg transition-all duration-300 uppercase tracking-wider shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  <span className="flex items-center gap-2">
+                    <PenTool className="h-4 w-4" />
                     Write
-                  </Link>
+                  </span>
+                </Link>
 
-                  {/* Navigation Dropdown */}
-                  <div className="relative" ref={navDropdownRef}>
-                    <button
-                      onClick={toggleNavDropdown}
-                      className="flex items-center text-white bg-black hover:bg-gray-800 px-3 py-2 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                      aria-expanded={isNavDropdownOpen}
-                      aria-haspopup="true"
-                      aria-label="Navigation menu"
-                    >
-                      {isNavDropdownOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-                    </button>
-                    {isNavDropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-56 bg-white border-2 border-gray-200 rounded-lg shadow-lg z-10 animate-dropdown">
+                {/* Navigation Dropdown */}
+                <div className="relative" ref={navDropdownRef}>
+                  <button
+                    onClick={toggleNavDropdown}
+                    className="p-2.5 rounded-lg bg-gradient-to-r from-gray-900 to-black text-white hover:from-black hover:to-gray-900 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
+                    aria-expanded={isNavDropdownOpen}
+                    aria-haspopup="true"
+                    aria-label="Navigation menu"
+                  >
+                    {isNavDropdownOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+                  </button>
+                  {isNavDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-dropdown">
+                      <div className="py-2">
                         {(user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') && (
                           <Link
                             to="/editorial"
-                            className="flex items-center px-4 py-2 text-sm font-bold text-blue-600 hover:bg-gray-100 transition-all duration-200"
+                            className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-blue-600 hover:bg-blue-50 transition-all duration-200"
                             onClick={() => setIsNavDropdownOpen(false)}
                             role="menuitem"
                           >
-                            <FileText className="mr-2 h-4 w-4" />
+                            <FileText className="h-4 w-4" />
                             Editorial
                           </Link>
                         )}
@@ -146,241 +168,277 @@ function Header({ user, onLogout }) {
                           <>
                             <Link
                               to="/admin"
-                              className="flex items-center px-4 py-2 text-sm font-bold text-red-600 hover:bg-gray-100 transition-all duration-200"
+                              className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 transition-all duration-200"
                               onClick={() => setIsNavDropdownOpen(false)}
                               role="menuitem"
                             >
-                              <Shield className="mr-2 h-4 w-4" />
+                              <Shield className="h-4 w-4" />
                               Admin
                             </Link>
                             <Link
                               to="/admin/reported-articles"
-                              className="flex items-center px-4 py-2 text-sm font-bold text-red-600 hover:bg-gray-100 transition-all duration-200"
+                              className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 transition-all duration-200"
                               onClick={() => setIsNavDropdownOpen(false)}
                               role="menuitem"
                             >
-                              <FileText className="mr-2 h-4 w-4" />
+                              <FileText className="h-4 w-4" />
                               Reported
                             </Link>
                           </>
                         )}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                </div>
 
-                  {/* User Dropdown */}
-                  <div className="relative" ref={dropdownRef}>
-                    <button
-                      onClick={toggleUserDropdown}
-                      className="flex items-center text-xs font-bold text-white bg-black hover:bg-gray-800 px-3 py-2 rounded-md transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 uppercase tracking-wider"
-                      aria-expanded={isUserDropdownOpen}
-                      aria-haspopup="true"
-                      aria-label="User menu"
-                    >
-                      <User className="mr-1 h-4 w-4" />
-                      {user.display_name}
-                      <ChevronDown className={`ml-1 h-3 w-3 transition-transform duration-200 ${isUserDropdownOpen ? 'rotate-180' : ''}`} />
-                    </button>
-                    {isUserDropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white border-2 border-gray-200 rounded-lg shadow-lg z-10 animate-dropdown">
+                {/* User Dropdown */}
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={toggleUserDropdown}
+                    className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 uppercase tracking-wider shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
+                    aria-expanded={isUserDropdownOpen}
+                    aria-haspopup="true"
+                    aria-label="User menu"
+                  >
+                    <User className="h-4 w-4" />
+                    <span className="max-w-[100px] truncate">{user.display_name}</span>
+                    <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${isUserDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {isUserDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-dropdown">
+                      <div className="py-2">
                         <Link
                           to="/settings"
-                          className="flex items-center px-4 py-2 text-sm font-bold text-black hover:bg-gray-100 transition-all duration-200"
+                          className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-50 transition-all duration-200"
                           onClick={() => setIsUserDropdownOpen(false)}
                           role="menuitem"
                         >
-                          <Settings className="mr-2 h-4 w-4" />
+                          <Settings className="h-4 w-4" />
                           Settings
                         </Link>
+                        <div className="border-t border-gray-100 my-1"></div>
                         <button
                           onClick={handleLogout}
-                          className="flex items-center w-full text-left px-4 py-2 text-sm font-bold text-black hover:bg-gray-100 transition-all duration-200"
+                          className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 transition-all duration-200"
                           role="menuitem"
                         >
-                          <LogOut className="mr-2 h-4 w-4" />
+                          <LogOut className="h-4 w-4" />
                           Logout
                         </button>
                       </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <Link 
-                    to="/login" 
-                    className="flex items-center text-xs font-bold text-white bg-black hover:bg-gray-800 px-3 py-2 rounded-md transition-all duration-200 hover:scale-105 uppercase tracking-wider"
-                  >
-                    <User className="mr-1 h-4 w-4" />
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <Link 
+                  to="/login" 
+                  className="px-6 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 rounded-lg transition-all duration-300 uppercase tracking-wider shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  <span className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
                     Login
-                  </Link>
-                  <Link 
-                    to="/signup" 
-                    className="flex items-center text-xs font-bold text-white bg-black hover:bg-gray-800 px-3 py-2 rounded-md transition-all duration-200 hover:scale-105 uppercase tracking-wider"
-                  >
-                    <User className="mr-1 h-4 w-4" />
+                  </span>
+                </Link>
+                <Link 
+                  to="/signup" 
+                  className="px-6 py-2.5 text-xs font-bold text-black bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 rounded-lg transition-all duration-300 uppercase tracking-wider shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  <span className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
                     Sign Up
-                  </Link>
-                </>
-              )}
-            </div>
+                  </span>
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
         {/* Mobile/Tablet Layout */}
-        <div className="lg:hidden flex items-center justify-center">
-          <div className="flex items-center justify-between w-full max-w-md">
-            <div className="flex-1"></div>
-            <div className="flex flex-col items-center">
-              <Link to="/" className="flex flex-col items-center group">
-                <span className="text-3xl font-black text-black group-hover:text-gray-800 transition-all duration-300 tracking-tight">
-                  UROWN
-                </span>
-                <span className="text-xs text-gray-700 mt-1 group-hover:text-gray-600 transition-all duration-300 uppercase tracking-widest">
-                  Your Opinion. Your Platform. UROWN.
-                </span>
-              </Link>
+        <div className="lg:hidden flex items-center justify-between py-4">
+          <div className="flex-1"></div>
+          <Link to="/" className="group flex flex-col items-center">
+            <div className="relative">
+              <span className="text-3xl sm:text-4xl font-black text-black group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-yellow-500 group-hover:via-orange-500 group-hover:to-red-500 group-hover:bg-clip-text transition-all duration-500 tracking-tighter">
+                UROWN
+              </span>
             </div>
-            <div className="flex-1 flex justify-end">
-              <button
-                onClick={toggleMobileMenu}
-                className="p-2 rounded-md bg-black text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-200"
-                aria-label="Toggle menu"
-                aria-expanded={isMobileMenuOpen}
-              >
-                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
-            </div>
+            <span className="text-[9px] sm:text-[10px] text-gray-600 mt-1 font-semibold uppercase tracking-[0.15em] group-hover:text-black transition-colors duration-300">
+              Your Opinion • Your Platform
+            </span>
+          </Link>
+          <div className="flex-1 flex justify-end">
+            <button
+              onClick={toggleMobileMenu}
+              className="p-3 rounded-xl bg-gradient-to-r from-gray-900 to-black text-white hover:from-black hover:to-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 shadow-lg"
+              aria-label="Toggle menu"
+              aria-expanded={isMobileMenuOpen}
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
         </div>
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <nav className="lg:hidden mt-4 pb-4 bg-white border-t-2 border-gray-200 animate-slide-down">
-            <div className="flex flex-col space-y-2">
+          <nav className="lg:hidden pb-4 bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-inner animate-slide-down mt-2 border-t-2 border-gray-100">
+            <div className="flex flex-col space-y-1 p-2">
               <Link 
                 to="/browse" 
-                className="flex items-center text-sm font-bold text-black hover:text-gray-700 hover:bg-gray-100 py-2 px-4 rounded-md transition-all duration-200 uppercase tracking-wider"
+                className="flex items-center gap-3 text-sm font-bold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-gray-900 hover:to-black py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide"
                 onClick={closeMobileMenu}
               >
-                <Search className="mr-2 h-4 w-4" />
+                <Search className="h-4 w-4" />
                 Browse
               </Link>
               <Link 
                 to="/contact" 
-                className="flex items-center text-sm font-bold text-black hover:text-gray-700 hover:bg-gray-100 py-2 px-4 rounded-md transition-all duration-200 uppercase tracking-wider"
+                className="flex items-center gap-3 text-sm font-bold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-gray-900 hover:to-black py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide"
                 onClick={closeMobileMenu}
               >
-                <Mail className="mr-2 h-4 w-4" />
+                <Mail className="h-4 w-4" />
                 Contact
               </Link>
+              
               {user ? (
                 <>
+                  <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-2"></div>
+                  
                   <Link 
                     to="/dashboard" 
-                    className="flex items-center text-sm font-bold text-white bg-black hover:bg-gray-800 py-2 px-4 rounded-md transition-all duration-200 uppercase tracking-wider"
+                    className="flex items-center gap-3 text-sm font-bold text-white bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide shadow-md"
                     onClick={closeMobileMenu}
                   >
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    <LayoutDashboard className="h-4 w-4" />
                     Dashboard
                   </Link>
                   <Link 
                     to="/write" 
-                    className="flex items-center text-sm font-bold text-white bg-black hover:bg-gray-800 py-2 px-4 rounded-md transition-all duration-200 uppercase tracking-wider"
+                    className="flex items-center gap-3 text-sm font-bold text-black bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide shadow-md"
                     onClick={closeMobileMenu}
                   >
-                    <PenTool className="mr-2 h-4 w-4" />
+                    <PenTool className="h-4 w-4" />
                     Write
                   </Link>
+                  
                   {(user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') && (
-                    <Link 
-                      to="/editorial" 
-                      className="flex items-center text-sm font-bold text-blue-600 hover:text-gray-700 hover:bg-gray-100 py-2 px-4 rounded-md transition-all duration-200 uppercase tracking-wider"
-                      onClick={closeMobileMenu}
-                    >
-                      <FileText className="mr-2 h-4 w-4" />
-                      Editorial
-                    </Link>
+                    <>
+                      <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-2"></div>
+                      <Link 
+                        to="/editorial" 
+                        className="flex items-center gap-3 text-sm font-bold text-blue-600 hover:bg-blue-50 py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide"
+                        onClick={closeMobileMenu}
+                      >
+                        <FileText className="h-4 w-4" />
+                        Editorial
+                      </Link>
+                    </>
                   )}
+                  
                   {(user.role === 'admin' || user.role === 'super-admin') && (
                     <>
                       <Link 
                         to="/admin" 
-                        className="flex items-center text-sm font-bold text-red-600 hover:text-gray-700 hover:bg-gray-100 py-2 px-4 rounded-md transition-all duration-200 uppercase tracking-wider"
+                        className="flex items-center gap-3 text-sm font-bold text-red-600 hover:bg-red-50 py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide"
                         onClick={closeMobileMenu}
                       >
-                        <Shield className="mr-2 h-4 w-4" />
+                        <Shield className="h-4 w-4" />
                         Admin
                       </Link>
                       <Link 
                         to="/admin/reported-articles"
-                        className="flex items-center text-sm font-bold text-red-600 hover:text-gray-700 hover:bg-gray-100 py-2 px-4 rounded-md transition-all duration-200 uppercase tracking-wider"
+                        className="flex items-center gap-3 text-sm font-bold text-red-600 hover:bg-red-50 py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide"
                         onClick={closeMobileMenu}
                       >
-                        <FileText className="mr-2 h-4 w-4" />
+                        <FileText className="h-4 w-4" />
                         Reported
                       </Link>
                     </>
                   )}
-                  <div className="border-t border-gray-200 pt-3 mt-3">
-                    <span className="text-sm font-bold text-black flex items-center px-4 py-2 uppercase tracking-wider">
-                      <User className="mr-2 h-4 w-4" />
+                  
+                  <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-2"></div>
+                  
+                  <div className="bg-gradient-to-r from-gray-900 to-black text-white px-4 py-2 rounded-xl">
+                    <span className="text-xs font-bold flex items-center gap-2 uppercase tracking-wider">
+                      <User className="h-4 w-4" />
                       {user.display_name}
                     </span>
-                    <Link
-                      to="/settings"
-                      className="flex items-center px-4 py-2 text-sm font-bold text-black hover:text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 uppercase tracking-wider"
-                      onClick={closeMobileMenu}
-                    >
-                      <Settings className="mr-2 h-4 w-4" />
-                      Settings
-                    </Link>
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        closeMobileMenu();
-                      }}
-                      className="flex items-center w-full text-left px-4 py-2 text-sm font-bold text-black hover:text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 uppercase tracking-wider"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Logout
-                    </button>
                   </div>
-                </>
-              ) : (
-                <div className="flex flex-col space-y-3 pt-3 border-t border-gray-200">
-                  <Link 
-                    to="/login" 
-                    className="flex items-center justify-center text-sm font-bold text-white bg-black hover:bg-gray-800 px-4 py-2 rounded-md transition-all duration-200 uppercase tracking-wider"
+                  
+                  <Link
+                    to="/settings"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200 uppercase tracking-wide"
                     onClick={closeMobileMenu}
                   >
-                    <User className="mr-2 h-4 w-4" />
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      closeMobileMenu();
+                    }}
+                    className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 uppercase tracking-wide"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-2"></div>
+                  <Link 
+                    to="/login" 
+                    className="flex items-center justify-center gap-3 text-sm font-bold text-white bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide shadow-md"
+                    onClick={closeMobileMenu}
+                  >
+                    <User className="h-4 w-4" />
                     Login
                   </Link>
                   <Link 
                     to="/signup" 
-                    className="flex items-center justify-center text-sm font-bold text-white bg-black hover:bg-gray-800 px-4 py-2 rounded-md transition-all duration-200 uppercase tracking-wider"
+                    className="flex items-center justify-center gap-3 text-sm font-bold text-black bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide shadow-md"
                     onClick={closeMobileMenu}
                   >
-                    <User className="mr-2 h-4 w-4" />
+                    <User className="h-4 w-4" />
                     Sign Up
                   </Link>
-                </div>
+                </>
               )}
             </div>
           </nav>
         )}
       </div>
+      
       <style jsx>{`
         @keyframes dropdown {
-          from { opacity: 0; transform: scale(0.95) translateY(-10px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
+          from { 
+            opacity: 0; 
+            transform: translateY(-10px) scale(0.95);
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0) scale(1);
+          }
         }
         @keyframes slide-down {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { 
+            opacity: 0; 
+            transform: translateY(-10px);
+            max-height: 0;
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0);
+            max-height: 1000px;
+          }
         }
         .animate-dropdown {
-          animation: dropdown 0.2s ease-out forwards;
+          animation: dropdown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-slide-down {
+          animation: slide-down 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
       `}</style>
     </header>
