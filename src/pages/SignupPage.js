@@ -1,3 +1,4 @@
+// pages/SignupPage.js
 import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
@@ -37,12 +38,16 @@ function SignupPage() {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.email && !formData.phone) {
-      newErrors.contact = 'Either email or phone number is required';
+    // Email is now required
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
     }
 
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+    // Phone is now optional
+    if (formData.phone && !/^\+?[1-9]\d{1,14}$/.test(formData.phone.replace(/\s/g, ''))) {
+      newErrors.phone = 'Please enter a valid phone number';
     }
 
     if (!formData.full_name.trim() || formData.full_name.length < 2) {
@@ -95,8 +100,8 @@ function SignupPage() {
 
     try {
       const response = await axios.post('/auth/signup', {
-        email: formData.email || null,
-        phone: formData.phone || null,
+        email: formData.email,
+        phone: formData.phone || null, // Send null if phone is empty
         full_name: formData.full_name,
         display_name: formData.display_name,
         date_of_birth: formData.date_of_birth,
@@ -135,10 +140,6 @@ function SignupPage() {
         {/* Contact Information */}
         <div className="bg-gray-50 p-8 border-2 border-black">
           <h2 className="text-3xl font-bold mb-6">CONTACT INFORMATION</h2>
-          
-          {errors.contact && (
-            <div className="error-message mb-4">{errors.contact}</div>
-          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -150,12 +151,13 @@ function SignupPage() {
                 onChange={handleChange}
                 className="input-field"
                 placeholder="your@email.com"
+                required
               />
               {errors.email && <div className="error-message">{errors.email}</div>}
             </div>
 
             <div>
-              <label className="form-label">PHONE NUMBER (REQUIRED)</label>
+              <label className="form-label">PHONE NUMBER (OPTIONAL)</label>
               <input
                 type="tel"
                 name="phone"
@@ -165,6 +167,9 @@ function SignupPage() {
                 placeholder="+1234567890"
               />
               {errors.phone && <div className="error-message">{errors.phone}</div>}
+              <p className="text-sm text-gray-600 mt-2">
+                Optional - used for account recovery
+              </p>
             </div>
           </div>
         </div>
