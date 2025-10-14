@@ -113,9 +113,38 @@ function SignupPage() {
       login(response.data.user, response.data.token);
     } catch (error) {
       console.error('Signup error:', error);
-      if (error.response?.data?.error) {
-        setErrors({ general: error.response.data.error });
+      
+      // Handle different types of errors
+      if (error.response) {
+        // Server responded with error status
+        const { data } = error.response;
+        
+        if (data.details) {
+          // If details is an object with field-specific errors
+          if (typeof data.details === 'object') {
+            setErrors(data.details);
+          } else if (Array.isArray(data.details)) {
+            // If details is an array of error messages
+            const fieldErrors = {};
+            data.details.forEach(msg => {
+              // Try to extract field name from error message
+              const field = msg.toLowerCase().split(' ')[0];
+              fieldErrors[field] = msg;
+            });
+            setErrors(fieldErrors);
+          } else {
+            // If details is just a string
+            setErrors({ general: data.details });
+          }
+        } else {
+          // General error message
+          setErrors({ general: data.error || 'Registration failed. Please try again.' });
+        }
+      } else if (error.request) {
+        // Request was made but no response received
+        setErrors({ general: 'Network error. Please check your connection and try again.' });
       } else {
+        // Something else happened
         setErrors({ general: 'Registration failed. Please try again.' });
       }
     } finally {
