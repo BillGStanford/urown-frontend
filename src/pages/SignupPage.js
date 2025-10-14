@@ -175,7 +175,7 @@ function SignupPage() {
           
           <div className="space-y-6">
             <div>
-              <label className="form-label">FULL LEGAL NAME *</label>
+              <label className="form-label">NAME (OPTIONAL & NEVER DISCLOSED) *</label>
               <input
                 type="text"
                 name="full_name"

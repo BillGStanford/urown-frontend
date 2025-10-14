@@ -30,7 +30,7 @@ const CommunityGuidelines = () => {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-extrabold text-black mb-4">UROWN Community Guidelines</h1>
           <p className="text-gray-600">Last Updated: October 2025</p>
-          <p className="text-gray-600">For questions: nilecomun@gmail.com</p>
+          <p className="text-gray-600">For questions: urowncontact@gmail.com</p>
         </div>
 
         {/* Table of Contents */}

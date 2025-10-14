@@ -32,6 +32,8 @@ const ArticlePage = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportSuccess, setReportSuccess] = useState(false);
   const [showCounters, setShowCounters] = useState(true);
+  const [delayedViewCount, setDelayedViewCount] = useState(null);
+  const [shouldDelayViewUpdate, setShouldDelayViewUpdate] = useState(false);
   const abortControllerRef = useRef(null);
 
   // Generate or retrieve browser fingerprint
@@ -62,15 +64,38 @@ const ArticlePage = () => {
     return viewedArticles.includes(articleId);
   };
 
+  // Check if article was viewed recently (within last 10 seconds)
+  const wasViewedRecently = (articleId) => {
+    const fingerprint = getBrowserFingerprint();
+    const storageKey = `recently_viewed_${fingerprint}`;
+    const recentlyViewed = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    
+    if (recentlyViewed[articleId]) {
+      const viewTime = new Date(recentlyViewed[articleId]);
+      const now = new Date();
+      const diffInSeconds = (now - viewTime) / 1000;
+      
+      return diffInSeconds < 10;
+    }
+    
+    return false;
+  };
+
   // Mark article as viewed
   const markArticleAsViewed = (articleId) => {
     const fingerprint = getBrowserFingerprint();
     const storageKey = `viewed_articles_${fingerprint}`;
+    const recentlyViewedKey = `recently_viewed_${fingerprint}`;
     const viewedArticles = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    const recentlyViewed = JSON.parse(localStorage.getItem(recentlyViewedKey) || '{}');
     
     if (!viewedArticles.includes(articleId)) {
       viewedArticles.push(articleId);
       localStorage.setItem(storageKey, JSON.stringify(viewedArticles));
+      
+      // Mark as recently viewed
+      recentlyViewed[articleId] = new Date().toISOString();
+      localStorage.setItem(recentlyViewedKey, JSON.stringify(recentlyViewed));
       
       // Increment view count on the server
       axios.post(`/articles/${articleId}/view`, { fingerprint })
@@ -96,6 +121,16 @@ const ArticlePage = () => {
           signal: abortControllerRef.current.signal
         });
         const currentArticle = response.data.article;
+        
+        // Check if we should delay the view count update
+        const wasRecentlyViewed = wasViewedRecently(id);
+        setShouldDelayViewUpdate(wasRecentlyViewed);
+        
+        // Store the original view count if we need to delay
+        if (wasRecentlyViewed) {
+          setDelayedViewCount(currentArticle.views);
+        }
+        
         setArticle(currentArticle);
         
         // Mark article as viewed if not already viewed
@@ -140,6 +175,24 @@ const ArticlePage = () => {
       }
     };
   }, [id]); // Only re-run effect when id changes
+
+  // Update view count after 10 seconds if needed
+  useEffect(() => {
+    if (shouldDelayViewUpdate && article) {
+      const timer = setTimeout(() => {
+        // Fetch the updated article to get the new view count
+        axios.get(`/articles/${id}`)
+          .then(response => {
+            setArticle(response.data.article);
+            setShouldDelayViewUpdate(false);
+            setDelayedViewCount(null);
+          })
+          .catch(err => console.error('Error fetching updated article:', err));
+      }, 10000); // 10 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [shouldDelayViewUpdate, article, id]);
 
   // Update document title when article changes
   useEffect(() => {
@@ -304,6 +357,14 @@ const ArticlePage = () => {
   // Determine if we should show the sidebar
   const showSidebar = originalArticle || counterOpinions.length > 0;
 
+  // Get the current view count to display
+  const getDisplayViewCount = () => {
+    if (shouldDelayViewUpdate && delayedViewCount !== null) {
+      return delayedViewCount;
+    }
+    return article?.views || 0;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
@@ -391,7 +452,10 @@ const ArticlePage = () => {
               <div className="flex items-center text-gray-600 text-sm md:text-base font-serif">
                 <div className="flex items-center mr-4">
                   <Eye className="mr-1" size={16} />
-                  <span>{article.views} views</span>
+                  <span>{getDisplayViewCount()} views</span>
+                  {shouldDelayViewUpdate && (
+                    <span className="ml-2 text-xs text-gray-500 italic">Updating...</span>
+                  )}
                 </div>
                 <span>{formatDate(article.created_at)}</span>
               </div>
