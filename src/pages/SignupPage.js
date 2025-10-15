@@ -9,7 +9,7 @@ function SignupPage() {
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
-    full_name: '',
+    full_name: '', // Now optional
     display_name: '',
     date_of_birth: '',
     password: '',
@@ -50,7 +50,8 @@ function SignupPage() {
       newErrors.phone = 'Please enter a valid phone number';
     }
 
-    if (!formData.full_name.trim() || formData.full_name.length < 2) {
+    // Full name is now optional - only validate if provided
+    if (formData.full_name && formData.full_name.trim().length > 0 && formData.full_name.length < 2) {
       newErrors.full_name = 'Full name must be at least 2 characters';
     }
 
@@ -102,7 +103,7 @@ function SignupPage() {
       const response = await axios.post('/auth/signup', {
         email: formData.email,
         phone: formData.phone || null, // Send null if phone is empty
-        full_name: formData.full_name,
+        full_name: formData.full_name || null, // Send null if full_name is empty
         display_name: formData.display_name,
         date_of_birth: formData.date_of_birth,
         password: formData.password,
@@ -209,7 +210,7 @@ function SignupPage() {
           
           <div className="space-y-6">
             <div>
-              <label className="form-label">NAME (OPTIONAL & NEVER DISCLOSED) *</label>
+              <label className="form-label">NAME (OPTIONAL & NEVER DISCLOSED)</label>
               <input
                 type="text"
                 name="full_name"
@@ -217,9 +218,11 @@ function SignupPage() {
                 onChange={handleChange}
                 className="input-field"
                 placeholder="John Doe"
-                required
               />
               {errors.full_name && <div className="error-message">{errors.full_name}</div>}
+              <p className="text-sm text-gray-600 mt-2">
+                Optional - this information will never be disclosed to other users
+              </p>
             </div>
 
             <div>
