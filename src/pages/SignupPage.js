@@ -5,11 +5,11 @@ import axios from 'axios';
 import { useUser } from '../context/UserContext';
 
 function SignupPage() {
-  const { login } = useUser(); // Changed from handleLogin to login
+  const { login } = useUser();
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
-    full_name: '', // Now optional
+    full_name: '',
     display_name: '',
     date_of_birth: '',
     password: '',
@@ -100,53 +100,43 @@ function SignupPage() {
     setErrors({});
 
     try {
-      // Fixed endpoint to match backend route
-      const response = await axios.post('/api/auth/signup', {
+      // Fixed: Removed /api prefix since it's already in the base URL
+      const response = await axios.post('/auth/signup', {
         email: formData.email,
-        phone: formData.phone || null, // Send null if phone is empty
-        full_name: formData.full_name || null, // Send null if full_name is empty
+        phone: formData.phone || null,
+        full_name: formData.full_name || null,
         display_name: formData.display_name,
         date_of_birth: formData.date_of_birth,
         password: formData.password,
         terms_agreed: formData.terms_agreed
       });
 
-      // Use login from context (changed from handleLogin)
       login(response.data.user, response.data.token);
     } catch (error) {
       console.error('Signup error:', error);
       
-      // Improved error handling
       if (error.response) {
-        // Server responded with error status
         const { data } = error.response;
         
         if (data.details) {
-          // If details is an object with field-specific errors
           if (typeof data.details === 'object') {
             setErrors(data.details);
           } else if (Array.isArray(data.details)) {
-            // If details is an array of error messages
             const fieldErrors = {};
             data.details.forEach(msg => {
-              // Try to extract field name from error message
               const field = msg.toLowerCase().split(' ')[0];
               fieldErrors[field] = msg;
             });
             setErrors(fieldErrors);
           } else {
-            // If details is just a string
             setErrors({ general: data.details });
           }
         } else {
-          // General error message
           setErrors({ general: data.error || 'Registration failed. Please try again.' });
         }
       } else if (error.request) {
-        // Request was made but no response received
         setErrors({ general: 'Network error. Please check your connection and try again.' });
       } else {
-        // Something else happened
         setErrors({ general: 'Registration failed. Please try again.' });
       }
     } finally {
