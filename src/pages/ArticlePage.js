@@ -167,11 +167,11 @@ const ArticlePage = () => {
         clearTimeout(paywallTimerRef.current);
       }
       
-      // Set a new timer to show the paywall after 5 seconds
+      // Set a new timer to show the paywall after 2 seconds
       paywallTimerRef.current = setTimeout(() => {
         setShowPaywall(true);
         markPaywallAsShown();
-      }, 5000);
+      }, 2000);
       
       // Clean up the timer when component unmounts or user logs in
       return () => {
