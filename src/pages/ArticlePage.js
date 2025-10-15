@@ -14,7 +14,7 @@ import {
   EmailIcon
 } from 'react-share';
 import { Helmet } from 'react-helmet';
-import { Flag, ChevronDown, ChevronUp, Award, MessageSquare, Share2, Copy, Eye } from 'lucide-react';
+import { Flag, ChevronDown, ChevronUp, Award, MessageSquare, Share2, Copy, Eye, X } from 'lucide-react';
 
 const ArticlePage = () => {
   const { id, slug } = useParams();
@@ -32,7 +32,9 @@ const ArticlePage = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportSuccess, setReportSuccess] = useState(false);
   const [showCounters, setShowCounters] = useState(true);
+  const [showPaywall, setShowPaywall] = useState(false);
   const abortControllerRef = useRef(null);
+  const paywallTimerRef = useRef(null);
 
   // Generate or retrieve browser fingerprint
   const getBrowserFingerprint = () => {
@@ -76,6 +78,19 @@ const ArticlePage = () => {
       axios.post(`/articles/${articleId}/view`, { fingerprint })
         .catch(err => console.error('Error incrementing view count:', err));
     }
+  };
+
+  // Check if paywall has been shown today
+  const hasPaywallBeenShownToday = () => {
+    const today = new Date().toDateString();
+    const lastShown = localStorage.getItem('paywall_last_shown');
+    return lastShown === today;
+  };
+
+  // Mark paywall as shown today
+  const markPaywallAsShown = () => {
+    const today = new Date().toDateString();
+    localStorage.setItem('paywall_last_shown', today);
   };
 
   useEffect(() => {
@@ -138,8 +153,34 @@ const ArticlePage = () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
+      if (paywallTimerRef.current) {
+        clearTimeout(paywallTimerRef.current);
+      }
     };
   }, [id]); // Only re-run effect when id changes
+
+  // Set up paywall timer for non-logged in users
+  useEffect(() => {
+    if (!user && article && !hasPaywallBeenShownToday()) {
+      // Clear any existing timer
+      if (paywallTimerRef.current) {
+        clearTimeout(paywallTimerRef.current);
+      }
+      
+      // Set a new timer to show the paywall after 5 seconds
+      paywallTimerRef.current = setTimeout(() => {
+        setShowPaywall(true);
+        markPaywallAsShown();
+      }, 5000);
+      
+      // Clean up the timer when component unmounts or user logs in
+      return () => {
+        if (paywallTimerRef.current) {
+          clearTimeout(paywallTimerRef.current);
+        }
+      };
+    }
+  }, [user, article]);
 
   // Update document title when article changes
   useEffect(() => {
@@ -288,13 +329,13 @@ const ArticlePage = () => {
     }
   };
 
-  // Format article content with proper line breaks
+  // Format article content with proper line breaks and improved styling
   const formatContent = (content) => {
     return content
       .split('\n\n')
       .map(paragraph => paragraph.trim())
       .filter(paragraph => paragraph.length > 0)
-      .map((paragraph, index) => `<p key=${index} class="mb-6 text-lg leading-relaxed font-serif text-gray-800">${paragraph}</p>`)
+      .map((paragraph, index) => `<p key=${index} class="mb-8 text-xl leading-relaxed font-serif text-gray-800">${paragraph}</p>`)
       .join('');
   };
 
@@ -638,6 +679,54 @@ const ArticlePage = () => {
           </div>
         </footer>
       </div>
+
+      {/* Paywall Modal for Non-Logged In Users */}
+      {showPaywall && !user && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop with blur effect */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+          
+          {/* Paywall Content */}
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 z-10 transform transition-all duration-300">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowPaywall(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <X size={24} />
+            </button>
+            
+            {/* Paywall Message */}
+            <div className="text-center">
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MessageSquare size={32} className="text-white" />
+                </div>
+                <h2 className="text-2xl font-serif font-bold mb-4">Join the Conversation</h2>
+                <p className="text-lg font-serif text-gray-700 mb-6">
+                  Want to respond or publish your own? Create your free account — it takes 30 seconds.
+                </p>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={handleSignup}
+                  className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-serif font-bold rounded-xl hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1"
+                >
+                  Create Free Account
+                </button>
+                <button
+                  onClick={() => setShowPaywall(false)}
+                  className="px-6 py-3 bg-gray-200 text-gray-800 font-serif font-bold rounded-xl hover:bg-gray-300 transition-colors"
+                >
+                  Continue Reading
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Report Modal */}
       {showReportModal && (
