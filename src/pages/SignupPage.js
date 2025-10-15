@@ -100,7 +100,6 @@ function SignupPage() {
     setErrors({});
 
     try {
-      // Fixed: Removed /api prefix since it's already in the base URL
       const response = await axios.post('/auth/signup', {
         email: formData.email,
         phone: formData.phone || null,
@@ -115,7 +114,12 @@ function SignupPage() {
     } catch (error) {
       console.error('Signup error:', error);
       
+      // Enhanced error logging to get more details
       if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+        console.error('Error response headers:', error.response.headers);
+        
         const { data } = error.response;
         
         if (data.details) {
@@ -135,8 +139,10 @@ function SignupPage() {
           setErrors({ general: data.error || 'Registration failed. Please try again.' });
         }
       } else if (error.request) {
+        console.error('Error request:', error.request);
         setErrors({ general: 'Network error. Please check your connection and try again.' });
       } else {
+        console.error('Error message:', error.message);
         setErrors({ general: 'Registration failed. Please try again.' });
       }
     } finally {
