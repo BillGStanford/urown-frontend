@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { 
   Search, 
@@ -18,19 +18,12 @@ import {
 
 function Header({ user, onLogout }) {
   const { logout } = useUser();
-  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchSuggestions, setSearchSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const dropdownRef = useRef(null);
   const navDropdownRef = useRef(null);
-  const searchRef = useRef(null);
-  const searchInputRef = useRef(null);
 
   const handleLogout = () => {
     logout();
@@ -55,61 +48,6 @@ function Header({ user, onLogout }) {
     setIsNavDropdownOpen(!isNavDropdownOpen);
   };
 
-  const toggleSearch = () => {
-    setIsSearchOpen(!isSearchOpen);
-    if (!isSearchOpen) {
-      // Focus on the input when opening the search
-      setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 100);
-    } else {
-      // Clear search when closing
-      setSearchQuery('');
-      setSearchSuggestions([]);
-      setShowSuggestions(false);
-    }
-  };
-
-  const handleSearchChange = async (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    
-    if (query.trim().length > 0) {
-      try {
-        const response = await fetch(`/api/search/suggestions?q=${encodeURIComponent(query)}`);
-        if (response.ok) {
-          const data = await response.json();
-          setSearchSuggestions(data.suggestions);
-          setShowSuggestions(true);
-        }
-      } catch (error) {
-        console.error('Error fetching search suggestions:', error);
-      }
-    } else {
-      setSearchSuggestions([]);
-      setShowSuggestions(false);
-    }
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/browse?q=${encodeURIComponent(searchQuery.trim())}`);
-      setIsSearchOpen(false);
-      setSearchQuery('');
-      setSearchSuggestions([]);
-      setShowSuggestions(false);
-    }
-  };
-
-  const handleSuggestionClick = (suggestion) => {
-    navigate(`/browse?q=${encodeURIComponent(suggestion)}`);
-    setIsSearchOpen(false);
-    setSearchQuery('');
-    setSearchSuggestions([]);
-    setShowSuggestions(false);
-  };
-
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -126,9 +64,6 @@ function Header({ user, onLogout }) {
       if (navDropdownRef.current && !navDropdownRef.current.contains(event.target)) {
         setIsNavDropdownOpen(false);
       }
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setShowSuggestions(false);
-      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -143,58 +78,13 @@ function Header({ user, onLogout }) {
         <div className="hidden lg:flex items-center justify-between py-4">
           {/* Left Navigation */}
           <nav className="flex items-center space-x-2">
-            {/* Search Bar */}
-            <div className="relative" ref={searchRef}>
-              {isSearchOpen ? (
-                <form onSubmit={handleSearchSubmit} className="relative">
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    placeholder="Search by title, author, or keywords..."
-                    className="w-64 px-4 py-2 pr-10 text-sm border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={toggleSearch}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-black"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                  {/* Search Suggestions Dropdown */}
-                  {showSuggestions && searchSuggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-black rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-                      {searchSuggestions.map((suggestion, index) => (
-                        <div
-                          key={index}
-                          onClick={() => handleSuggestionClick(suggestion)}
-                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                        >
-                          {suggestion}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </form>
-              ) : (
-                <button
-                  onClick={toggleSearch}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                  aria-label="Open search"
-                >
-                  <Search className="h-5 w-5" />
-                </button>
-              )}
-            </div>
-            
             <Link 
               to="/browse" 
               className="group relative px-4 py-2 text-sm font-bold text-black hover:text-white transition-all duration-300 uppercase tracking-wide overflow-hidden rounded-lg"
             >
               <span className="absolute inset-0 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
               <span className="relative flex items-center gap-2">
-                <FileText className="h-4 w-4" />
+                <Search className="h-4 w-4" />
                 Browse
               </span>
             </Link>
@@ -367,53 +257,7 @@ function Header({ user, onLogout }) {
 
         {/* Mobile/Tablet Layout */}
         <div className="lg:hidden flex items-center justify-between py-4">
-          <div className="flex items-center">
-            {/* Mobile Search */}
-            <div className="relative mr-2" ref={searchRef}>
-              {isSearchOpen ? (
-                <form onSubmit={handleSearchSubmit} className="relative">
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    placeholder="Search..."
-                    className="w-40 px-3 py-1 pr-8 text-sm border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={toggleSearch}
-                    className="absolute right-1 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-black"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                  {/* Mobile Search Suggestions */}
-                  {showSuggestions && searchSuggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-black rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-                      {searchSuggestions.map((suggestion, index) => (
-                        <div
-                          key={index}
-                          onClick={() => handleSuggestionClick(suggestion)}
-                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                        >
-                          {suggestion}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </form>
-              ) : (
-                <button
-                  onClick={toggleSearch}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                  aria-label="Open search"
-                >
-                  <Search className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-          </div>
-          
+          <div className="flex-1"></div>
           <Link to="/" className="group flex flex-col items-center">
             <div className="relative">
               <span className="text-3xl sm:text-4xl font-black text-black group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-yellow-500 group-hover:via-orange-500 group-hover:to-red-500 group-hover:bg-clip-text transition-all duration-500 tracking-tighter">
@@ -445,7 +289,7 @@ function Header({ user, onLogout }) {
                 className="flex items-center gap-3 text-sm font-bold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-gray-900 hover:to-black py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide"
                 onClick={closeMobileMenu}
               >
-                <FileText className="h-4 w-4" />
+                <Search className="h-4 w-4" />
                 Browse
               </Link>
               <Link 
