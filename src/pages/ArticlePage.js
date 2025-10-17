@@ -378,16 +378,25 @@ const ArticlePage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{article.title} - UROWN</title>
-        <meta property="og:title" content={article.title} />
-        <meta property="og:description" content={article.content.substring(0, 160)} />
-        <meta property="og:url" content={shareUrl} />
-        <meta property="og:type" content="article" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={article.title} />
-        <meta name="twitter:description" content={article.content.substring(0, 160)} />
-      </Helmet>
+<Helmet>
+  <title>{article.title} - UROWN</title>
+  <meta property="og:title" content={article.title} />
+  <meta property="og:description" content={article.content.substring(0, 160)} />
+  <meta property="og:url" content={shareUrl} />
+  <meta property="og:type" content="article" />
+  {/* Add article image */}
+  <meta property="og:image" content={article.image || "https://urown-delta.vercel.app/urowncover.jpg"} />
+  <meta property="og:image:secure_url" content={article.image || "https://urown-delta.vercel.app/urowncover.jpg"} />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={article.title} />
+  <meta name="twitter:description" content={article.content.substring(0, 160)} />
+  {/* Add Twitter image */}
+  <meta name="twitter:image" content={article.image || "https://urown-delta.vercel.app/urowncover.jpg"} />
+</Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         {/* Non-intrusive auth banner for non-logged users */}
