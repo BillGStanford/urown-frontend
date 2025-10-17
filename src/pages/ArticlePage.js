@@ -381,21 +381,24 @@ const ArticlePage = () => {
 <Helmet>
   <title>{article.title} - UROWN</title>
   <meta property="og:title" content={article.title} />
-  <meta property="og:description" content={article.content.substring(0, 160)} />
+  {/* Change the description to use the article title instead of content */}
+  <meta property="og:description" content={article.title} />
   <meta property="og:url" content={shareUrl} />
   <meta property="og:type" content="article" />
-  {/* Add article image */}
-  <meta property="og:image" content={article.image || "https://urown-delta.vercel.app/urowncover.jpg"} />
-  <meta property="og:image:secure_url" content={article.image || "https://urown-delta.vercel.app/urowncover.jpg"} />
+  <meta property="og:image" content="https://urown-delta.vercel.app/urowncover.jpg" />
+  <meta property="og:image:secure_url" content="https://urown-delta.vercel.app/urowncover.jpg" />
   <meta property="og:image:type" content="image/jpeg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={article.title} />
-  <meta name="twitter:description" content={article.content.substring(0, 160)} />
-  {/* Add Twitter image */}
-  <meta name="twitter:image" content={article.image || "https://urown-delta.vercel.app/urowncover.jpg"} />
+  {/* Change the Twitter description to use the article title as well */}
+  <meta name="twitter:description" content={article.title} />
+  <meta name="twitter:image" content="https://urown-delta.vercel.app/urowncover.jpg" />
+  
+  {/* Also update the general description meta tag */}
+  <meta name="description" content={article.title} />
 </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
