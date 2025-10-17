@@ -6,7 +6,7 @@ function PartnersPage() {
   const partners = [
     {
       id: 1,
-      name: "Israel-Palestine Debate Community (PENDING)",
+      name: "Israel-Palestine Debate Community",
       description: "A server where individuals engage in discussions about the Israel-Palestine conflict. Build a deeper understanding through dialogue.",
       link: "https://discord.gg/6m9C23Jc",
       memberCount: "1,000+",
