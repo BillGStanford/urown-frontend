@@ -13,7 +13,8 @@ import {
   User,
   ChevronDown,
   Shield,
-  Mail
+  Mail,
+  Globe
 } from 'lucide-react';
 
 function Header({ user, onLogout }) {
@@ -86,6 +87,17 @@ function Header({ user, onLogout }) {
               <span className="relative flex items-center gap-2">
                 <Search className="h-4 w-4" />
                 Browse
+              </span>
+            </Link>
+            <Link 
+              to="/partners" 
+              className="group relative px-4 py-2 text-sm font-bold text-black hover:text-white transition-all duration-300 uppercase tracking-wide overflow-hidden rounded-lg"
+            >
+              <span className="absolute inset-0 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
+              <span className="relative flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                Partners
+                
               </span>
             </Link>
             <Link 

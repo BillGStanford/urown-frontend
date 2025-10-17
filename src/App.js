@@ -23,6 +23,7 @@ import ContactPage from './pages/ContactPage';
 import ContactDashboard from './pages/ContactDashboard';
 import ReportedArticlesDashboard from './pages/ReportedArticlesDashboard';
 import CommunityGuidelines from './pages/important/CommunityGuidelines';
+import PartnersPage from './pages/PartnersPage';
 import GlobalError from './components/GlobalError';
 
 const API_URL = process.env.NODE_ENV === 'production' 
@@ -111,6 +112,7 @@ function AppRoutes() {
             element={user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') ? <CreateDebateTopic /> : <Navigate to="/" />} 
           />
           <Route path="/community-guidelines" element={<CommunityGuidelines />} />
+          <Route path="/partners" element={<PartnersPage />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
