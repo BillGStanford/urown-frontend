@@ -629,26 +629,29 @@ function WriteArticle() {
         <div className="mb-8">
           <label className="form-label">ARTICLE TITLE *</label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <span className="text-gray-700 font-bold text-2xl">{titlePrefix}</span>
+            <div className="flex items-center border-2 border-black rounded-lg overflow-hidden bg-white">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3">
+                <span className="text-2xl font-bold">Opinion |</span>
+              </div>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                placeholder="Enter a compelling title for your opinion piece..."
+                className="flex-1 px-4 py-3 text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                maxLength={maxTitleLength - titlePrefix.length}
+                disabled={loading}
+                style={{ border: 'none' }}
+              />
             </div>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              placeholder="Enter a compelling title for your opinion piece..."
-              className="input-field text-2xl pl-28"
-              maxLength={maxTitleLength - titlePrefix.length}
-              disabled={loading}
-            />
-          </div>
-          <div className="flex justify-between mt-2">
-            <div className="text-lg font-bold text-gray-600">
-              Make it bold and attention-grabbing
-            </div>
-            <div className="text-lg font-bold text-gray-500">
-              {formData.title.length}/{maxTitleLength - titlePrefix.length}
+            <div className="flex justify-between mt-2">
+              <div className="text-lg font-bold text-gray-600">
+                Make it bold and attention-grabbing
+              </div>
+              <div className="text-lg font-bold text-gray-500">
+                {formData.title.length}/{maxTitleLength - titlePrefix.length}
+              </div>
             </div>
           </div>
         </div>
