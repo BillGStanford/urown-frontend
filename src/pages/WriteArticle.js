@@ -21,8 +21,11 @@ function WriteArticle() {
 
   const { user, updateUser, loading: userLoading } = userContext;
   
+  // Fixed prefix for all article titles
+  const titlePrefix = "Opinion | ";
+  
   const [formData, setFormData] = useState({
-    title: '',
+    title: '', // This will store only the user's part of the title
     content: ''
   });
   const [charCount, setCharCount] = useState(0);
@@ -41,6 +44,7 @@ function WriteArticle() {
 
   const minWords = 100;
   const maxChars = 50000;
+  const maxTitleLength = 255; // Maximum total title length including prefix
 
   // Show loading while user context is loading
   if (userLoading) {
@@ -75,6 +79,11 @@ function WriteArticle() {
 
     return () => clearInterval(autoSaveInterval);
   }, [formData]);
+
+  // Get the full title with prefix
+  const getFullTitle = () => {
+    return titlePrefix + formData.title;
+  };
 
   // Mock grammar checking function (in a real app, this would call an API)
   const checkGrammar = async () => {
@@ -325,7 +334,7 @@ function WriteArticle() {
       }
 
       await axios.post('/articles', {
-        title: formData.title || 'Untitled Draft',
+        title: getFullTitle() || 'Untitled Draft',
         content: formData.content,
         published: false
       }, {
@@ -350,6 +359,11 @@ function WriteArticle() {
       return;
     }
     
+    // For title, prevent exceeding the max length including prefix
+    if (name === 'title' && (titlePrefix + value).length > maxTitleLength) {
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -366,12 +380,14 @@ function WriteArticle() {
   };
 
   const validateForm = () => {
+    const fullTitle = getFullTitle();
+    
     if (!formData.title.trim()) {
       return 'Article title is required';
     }
     
-    if (formData.title.length > 255) {
-      return 'Title must be 255 characters or less';
+    if (fullTitle.length > maxTitleLength) {
+      return `Title must be ${maxTitleLength} characters or less`;
     }
     
     if (!formData.content.trim()) {
@@ -409,7 +425,7 @@ function WriteArticle() {
       }
 
       const response = await axios.post('/articles', {
-        title: formData.title,
+        title: getFullTitle(),
         content: formData.content,
         published: false
       }, {
@@ -467,7 +483,7 @@ function WriteArticle() {
       }
 
       const response = await axios.post('/articles', {
-        title: formData.title,
+        title: getFullTitle(),
         content: formData.content,
         published: true
       }, {
@@ -612,22 +628,27 @@ function WriteArticle() {
         {/* Title Input */}
         <div className="mb-8">
           <label className="form-label">ARTICLE TITLE *</label>
-          <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            placeholder="Enter a compelling title for your opinion piece..."
-            className="input-field text-2xl"
-            maxLength={255}
-            disabled={loading}
-          />
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <span className="text-gray-700 font-bold text-2xl">{titlePrefix}</span>
+            </div>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              placeholder="Enter a compelling title for your opinion piece..."
+              className="input-field text-2xl pl-28"
+              maxLength={maxTitleLength - titlePrefix.length}
+              disabled={loading}
+            />
+          </div>
           <div className="flex justify-between mt-2">
             <div className="text-lg font-bold text-gray-600">
               Make it bold and attention-grabbing
             </div>
             <div className="text-lg font-bold text-gray-500">
-              {formData.title.length}/255
+              {formData.title.length}/{maxTitleLength - titlePrefix.length}
             </div>
           </div>
         </div>
