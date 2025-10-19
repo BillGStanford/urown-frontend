@@ -434,6 +434,23 @@ function BrowseArticles() {
               </div>
             )}
 
+            {/* No Results for Selected Topic */}
+            {!loading && articles.length > 0 && filteredArticles.length === 0 && selectedTopic && (
+              <div className="text-center py-20 bg-white rounded-2xl shadow-lg border border-gray-200 p-12">
+                <div className="text-6xl mb-6">🔍</div>
+                <div className="text-3xl font-black mb-4 text-gray-900">No Articles Found</div>
+                <div className="text-base text-gray-600 mb-8">
+                  No articles found for "{getSelectedTopicName()}"
+                </div>
+                <button 
+                  onClick={clearTopicFilter}
+                  className="bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 text-white px-8 py-3 font-bold transition-all rounded-xl shadow-md"
+                >
+                  Clear Topic Filter
+                </button>
+              </div>
+            )}
+
             {/* Articles Grid/List */}
             {!loading && filteredArticles.length > 0 && (
               <>
