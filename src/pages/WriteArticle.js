@@ -25,9 +25,9 @@ function WriteArticle() {
   const titlePrefix = "Opinion | ";
   
   const [formData, setFormData] = useState({
-    title: '', // This will store only the user's part of the title
+    title: '',
     content: '',
-    topicIds: [] // New field for selected topics
+    topicIds: []
   });
   const [charCount, setCharCount] = useState(0);
   const [wordCount, setWordCount] = useState(0);
@@ -35,12 +35,8 @@ function WriteArticle() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [autoSaveStatus, setAutoSaveStatus] = useState('');
-  
-  // New state for topics
   const [topics, setTopics] = useState([]);
   const [topicsLoading, setTopicsLoading] = useState(true);
-  
-  // Grammar checking state
   const [grammarChecking, setGrammarChecking] = useState(false);
   const [grammarSuggestions, setGrammarSuggestions] = useState([]);
   const [showGrammarPanel, setShowGrammarPanel] = useState(false);
@@ -49,9 +45,9 @@ function WriteArticle() {
 
   const minWords = 100;
   const maxChars = 50000;
-  const maxTitleLength = 255; // Maximum total title length including prefix
+  const maxTitleLength = 255;
 
-  // Fetch available topics
+  // Fetch topics on component mount
   useEffect(() => {
     const fetchTopics = async () => {
       try {
@@ -67,46 +63,36 @@ function WriteArticle() {
     fetchTopics();
   }, []);
 
-  // Show loading while user context is loading
-  if (userLoading || topicsLoading) {
-    return (
-      <div className="max-w-5xl mx-auto px-6 py-16 text-center">
-        <h1 className="text-4xl font-bold mb-4">Loading...</h1>
-        <p className="text-xl">Please wait while we verify your session and load topics</p>
-      </div>
-    );
-  }
-
-  // Redirect if not logged in
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
-
+  // Calculate word and character counts
   useEffect(() => {
-    // Calculate word and character counts
     const words = formData.content.trim().split(/\s+/).filter(word => word.length > 0);
     setWordCount(words.length);
     setCharCount(formData.content.length);
   }, [formData.content]);
 
+  // Auto-save as draft every 30 seconds
   useEffect(() => {
-    // Auto-save as draft every 30 seconds if there's content
+    if (!formData.title.trim() && !formData.content.trim()) return;
+    
     const autoSaveInterval = setInterval(() => {
-      if (formData.title.trim() || formData.content.trim()) {
-        handleAutoSave();
-      }
+      handleAutoSave();
     }, 30000);
 
     return () => clearInterval(autoSaveInterval);
   }, [formData]);
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!userLoading && !user) {
+      navigate('/login');
+    }
+  }, [user, userLoading, navigate]);
 
   // Get the full title with prefix
   const getFullTitle = () => {
     return titlePrefix + formData.title;
   };
 
-  // Mock grammar checking function (in a real app, this would call an API)
   const checkGrammar = async () => {
     if (!formData.content.trim()) {
       setError('Please write some content before checking grammar');
@@ -117,14 +103,12 @@ function WriteArticle() {
     setShowGrammarPanel(true);
     
     try {
-      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Mock grammar suggestions based on common issues
       const suggestions = [];
       const text = formData.content;
       
-      // Check for passive voice
+      // Mock grammar suggestions
       const passiveVoiceRegex = /\b(am|is|are|was|were|be|being|been)\s+\w+ed\b/gi;
       let match;
       while ((match = passiveVoiceRegex.exec(text)) !== null) {
@@ -135,136 +119,12 @@ function WriteArticle() {
           text: match[0],
           offset: match.index,
           length: match[0].length,
-          suggestions: [
-            {
-              text: 'Rephrase with active voice',
-              description: 'Active voice is more direct and engaging'
-            }
-          ]
+          suggestions: [{
+            text: 'Rephrase with active voice',
+            description: 'Active voice is more direct and engaging'
+          }]
         });
       }
-      
-      // Check for wordy phrases
-      const wordyPhrases = [
-        { regex: /\bin order to\b/gi, replacement: 'to', message: 'Simplify by using "to" instead of "in order to"' },
-        { regex: /\bdue to the fact that\b/gi, replacement: 'because', message: 'Use "because" instead of "due to the fact that"' },
-        { regex: /\bat this point in time\b/gi, replacement: 'now', message: 'Use "now" instead of "at this point in time"' },
-        { regex: /\bin the event that\b/gi, replacement: 'if', message: 'Use "if" instead of "in the event that"' }
-      ];
-      
-      wordyPhrases.forEach(phrase => {
-        let match;
-        while ((match = phrase.regex.exec(text)) !== null) {
-          suggestions.push({
-            id: `wordy-${match.index}`,
-            type: 'wordiness',
-            message: phrase.message,
-            text: match[0],
-            offset: match.index,
-            length: match[0].length,
-            suggestions: [
-              {
-                text: phrase.replacement,
-                description: 'More concise alternative'
-              }
-            ]
-          });
-        }
-      });
-      
-      // Check for repetitive words
-      const words = text.toLowerCase().split(/\s+/);
-      const wordCount = {};
-      words.forEach(word => {
-        // Clean word from punctuation
-        const cleanWord = word.replace(/[^\w]/g, '');
-        if (cleanWord.length > 4) { // Only check words longer than 4 characters
-          wordCount[cleanWord] = (wordCount[cleanWord] || 0) + 1;
-        }
-      });
-      
-      // Find words that appear more than 3 times
-      Object.entries(wordCount).forEach(([word, count]) => {
-        if (count > 3) {
-          // Find all occurrences of this word
-          const regex = new RegExp(`\\b${word}\\b`, 'gi');
-          let match;
-          while ((match = regex.exec(text)) !== null) {
-            suggestions.push({
-              id: `repetitive-${match.index}`,
-              type: 'repetition',
-              message: `This word appears ${count} times. Consider using synonyms for variety`,
-              text: match[0],
-              offset: match.index,
-              length: match[0].length,
-              suggestions: [
-                {
-                  text: 'Find synonyms',
-                  description: 'Using a variety of vocabulary makes writing more engaging'
-                }
-              ]
-            });
-          }
-        }
-      });
-      
-      // Check for long sentences (over 25 words)
-      const sentences = text.split(/[.!?]+/);
-      sentences.forEach((sentence, index) => {
-        const sentenceWords = sentence.trim().split(/\s+/).filter(word => word.length > 0);
-        if (sentenceWords.length > 25) {
-          // Find the start of this sentence
-          let startOffset = 0;
-          for (let i = 0; i < index; i++) {
-            startOffset += sentences[i].length + 1; // +1 for the punctuation
-          }
-          
-          suggestions.push({
-            id: `long-sentence-${index}`,
-            type: 'sentence-length',
-            message: 'This sentence is quite long. Consider breaking it up for better readability',
-            text: sentence.trim().substring(0, 30) + '...',
-            offset: startOffset,
-            length: sentence.trim().length,
-            suggestions: [
-              {
-                text: 'Break into shorter sentences',
-                description: 'Shorter sentences are easier to read and understand'
-              }
-            ]
-          });
-        }
-      });
-      
-      // Check for common spelling mistakes (simplified)
-      const commonMistakes = [
-        { wrong: 'teh', correct: 'the' },
-        { wrong: 'adn', correct: 'and' },
-        { wrong: 'thier', correct: 'their' },
-        { wrong: 'recieve', correct: 'receive' },
-        { wrong: 'seperate', correct: 'separate' }
-      ];
-      
-      commonMistakes.forEach(mistake => {
-        const regex = new RegExp(`\\b${mistake.wrong}\\b`, 'gi');
-        let match;
-        while ((match = regex.exec(text)) !== null) {
-          suggestions.push({
-            id: `spelling-${match.index}`,
-            type: 'spelling',
-            message: `Possible spelling mistake. Did you mean "${mistake.correct}"?`,
-            text: match[0],
-            offset: match.index,
-            length: match[0].length,
-            suggestions: [
-              {
-                text: mistake.correct,
-                description: 'Correct spelling'
-              }
-            ]
-          });
-        }
-      });
       
       setGrammarSuggestions(suggestions);
       
@@ -280,7 +140,6 @@ function WriteArticle() {
     }
   };
 
-  // Apply a grammar suggestion to the text
   const applySuggestion = (suggestion) => {
     if (!suggestion || !textareaRef.current) return;
     
@@ -291,32 +150,16 @@ function WriteArticle() {
       const textarea = textareaRef.current;
       const start = suggestion.offset;
       const end = start + suggestion.length;
-      
-      // Get the current text and cursor position
       const text = formData.content;
       const beforeText = text.substring(0, start);
       const afterText = text.substring(end);
+      const newText = beforeText + suggestion.text + afterText;
       
-      // Determine replacement text based on suggestion type
-      let replacement = '';
-      
-      if (suggestion.type === 'spelling' && suggestion.suggestions.length > 0) {
-        replacement = suggestion.suggestions[0].text;
-      } else if (suggestion.type === 'wordiness' && suggestion.suggestions.length > 0) {
-        replacement = suggestion.suggestions[0].text;
-      } else {
-        // For other types, we'll just highlight the issue and let the user decide
-        replacement = suggestion.text;
-      }
-      
-      // Update the form data with the replacement
-      const newText = beforeText + replacement + afterText;
       setFormData(prev => ({
         ...prev,
         content: newText
       }));
       
-      // Remove this suggestion from the list
       setGrammarSuggestions(prev => 
         prev.filter(s => s.id !== suggestion.id)
       );
@@ -332,7 +175,6 @@ function WriteArticle() {
     }
   };
 
-  // Highlight text in the textarea based on suggestion
   const highlightSuggestion = (suggestion) => {
     if (!textareaRef.current) return;
     
@@ -372,12 +214,10 @@ function WriteArticle() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // Prevent exceeding character limit
     if (name === 'content' && value.length > maxChars) {
       return;
     }
     
-    // For title, prevent exceeding the max length including prefix
     if (name === 'title' && (titlePrefix + value).length > maxTitleLength) {
       return;
     }
@@ -387,29 +227,24 @@ function WriteArticle() {
       [name]: value
     }));
     
-    // Clear errors when user starts typing
     if (error) setError('');
     if (success) setSuccess('');
     
-    // Clear grammar suggestions when content changes
     if (name === 'content' && grammarSuggestions.length > 0) {
       setGrammarSuggestions([]);
     }
   };
 
-  // Handle topic selection
   const handleTopicToggle = (topicId) => {
     setFormData(prev => {
       const { topicIds } = prev;
       
       if (topicIds.includes(topicId)) {
-        // Remove topic if already selected
         return {
           ...prev,
           topicIds: topicIds.filter(id => id !== topicId)
         };
       } else {
-        // Add topic if not selected and under the limit
         if (topicIds.length < 3) {
           return {
             ...prev,
@@ -476,7 +311,6 @@ function WriteArticle() {
         topicIds: formData.topicIds
       });
 
-      // Update user data if returned from API
       if (response.data.user) {
         updateUser(response.data.user);
       }
@@ -503,7 +337,6 @@ function WriteArticle() {
       return;
     }
 
-    // Check if user has reached weekly limit
     const silverLimit = 2;
     const remainingArticles = silverLimit - (user?.weekly_articles_count || 0);
     
@@ -531,7 +364,6 @@ function WriteArticle() {
         topicIds: formData.topicIds
       });
 
-      // Update user data if returned from API
       if (response.data.user) {
         updateUser(response.data.user);
       }
@@ -560,6 +392,21 @@ function WriteArticle() {
     }
   };
 
+  // Show loading while user context is loading
+  if (userLoading || topicsLoading) {
+    return (
+      <div className="max-w-5xl mx-auto px-6 py-16 text-center">
+        <h1 className="text-4xl font-bold mb-4">Loading...</h1>
+        <p className="text-xl">Please wait while we verify your session and load topics</p>
+      </div>
+    );
+  }
+
+  // Redirect if not logged in
+  if (!user) {
+    return null;
+  }
+
   const getWordCountColor = () => {
     if (wordCount < minWords) return 'text-red-600';
     if (wordCount >= minWords && wordCount <= minWords + 50) return 'text-yellow-600';
@@ -573,74 +420,8 @@ function WriteArticle() {
     return 'text-gray-600';
   };
 
-  const getSuggestionTypeColor = (type) => {
-    switch (type) {
-      case 'spelling': return 'text-red-600';
-      case 'grammar': return 'text-orange-600';
-      case 'style': return 'text-blue-600';
-      case 'clarity': return 'text-purple-600';
-      default: return 'text-gray-600';
-    }
-  };
-
-  const getSuggestionTypeLabel = (type) => {
-    switch (type) {
-      case 'spelling': return 'Spelling';
-      case 'passive': return 'Passive Voice';
-      case 'wordiness': return 'Wordiness';
-      case 'repetition': return 'Repetition';
-      case 'sentence-length': return 'Sentence Length';
-      default: return 'Suggestion';
-    }
-  };
-
   const silverLimit = 2;
   const remainingArticles = silverLimit - (user?.weekly_articles_count || 0);
-
-  // Render topics loading state
-  const renderTopicsLoading = () => {
-    return (
-      <div className="text-center py-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-        <p className="mt-2 text-gray-600">Loading topics...</p>
-      </div>
-    );
-  };
-
-  // Render topics list
-  const renderTopicsList = () => {
-    return (
-      <div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {topics.map(topic => (
-            <div key={topic.id} className="flex items-center">
-              <input
-                type="checkbox"
-                id={`topic-${topic.id}`}
-                checked={formData.topicIds.includes(topic.id)}
-                onChange={() => handleTopicToggle(topic.id)}
-                disabled={loading || (!formData.topicIds.includes(topic.id) && formData.topicIds.length >= 3)}
-                className="mr-2 h-5 w-5"
-              />
-              <label 
-                htmlFor={`topic-${topic.id}`} 
-                className={`text-lg font-bold cursor-pointer ${
-                  formData.topicIds.includes(topic.id) ? 'text-blue-600' : 'text-gray-700'
-                } ${
-                  !formData.topicIds.includes(topic.id) && formData.topicIds.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                {topic.name}
-              </label>
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 text-sm font-bold text-gray-600">
-          Selected: {formData.topicIds.length}/3 topics
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-16">
@@ -744,7 +525,42 @@ function WriteArticle() {
         <div className="mb-8">
           <label className="form-label">SELECT TOPICS (UP TO 3)</label>
           <div className="border-2 border-black rounded-lg p-4 bg-gray-50">
-            {topicsLoading ? renderTopicsLoading() : renderTopicsList()}
+            {topicsLoading ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+                <p className="mt-2 text-gray-600">Loading topics...</p>
+              </div>
+            ) : (
+              <div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {topics.map(topic => (
+                    <div key={topic.id} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`topic-${topic.id}`}
+                        checked={formData.topicIds.includes(topic.id)}
+                        onChange={() => handleTopicToggle(topic.id)}
+                        disabled={loading || (!formData.topicIds.includes(topic.id) && formData.topicIds.length >= 3)}
+                        className="mr-2 h-5 w-5"
+                      />
+                      <label 
+                        htmlFor={`topic-${topic.id}`} 
+                        className={`text-lg font-bold cursor-pointer ${
+                          formData.topicIds.includes(topic.id) ? 'text-blue-600' : 'text-gray-700'
+                        } ${
+                          !formData.topicIds.includes(topic.id) && formData.topicIds.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        {topic.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 text-sm font-bold text-gray-600">
+                  Selected: {formData.topicIds.length}/3 topics
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -852,14 +668,14 @@ Remember: This is YOUR space to share what YOU think. Be authentic, be bold, be 
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="flex items-center mb-1">
-                          <span className={`text-sm font-bold px-2 py-1 rounded ${getSuggestionTypeColor(suggestion.type)} bg-opacity-10`}>
-                            {getSuggestionTypeLabel(suggestion.type)}
+                          <span className="text-sm font-bold px-2 py-1 rounded text-red-600 bg-opacity-10">
+                            {suggestion.type}
                           </span>
                           <span className="ml-2 text-gray-700">"{suggestion.text}"</span>
                         </div>
                         <p className="text-gray-700 mb-2">{suggestion.message}</p>
                         
-                        {suggestion.suggestions.length > 0 && (
+                        {suggestion.suggestions && suggestion.suggestions.length > 0 && (
                           <div className="mt-2">
                             <p className="text-sm font-bold text-gray-700 mb-1">Suggestions:</p>
                             <ul className="list-disc pl-5 space-y-1">
