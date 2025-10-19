@@ -27,6 +27,7 @@ function Header({ user, onLogout }) {
   const navDropdownRef = useRef(null);
 
   const isAdmin = user && (user.role === 'admin' || user.role === 'super-admin');
+  const isEditorialOrAdmin = user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin');
 
   const handleLogout = () => {
     logout();
@@ -146,6 +147,17 @@ function Header({ user, onLogout }) {
                   Write
                 </Link>
 
+                {/* Editorial Board Link */}
+                {isEditorialOrAdmin && (
+                  <Link 
+                    to="/editorial" 
+                    className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Editorial
+                  </Link>
+                )}
+
                 {/* Navigation Dropdown - Only for Admins */}
                 {isAdmin && (
                   <div className="relative" ref={navDropdownRef}>
@@ -154,7 +166,7 @@ function Header({ user, onLogout }) {
                       className="p-2.5 rounded-lg text-gray-700 hover:text-black hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
                       aria-expanded={isNavDropdownOpen}
                       aria-haspopup="true"
-                      aria-label="Navigation menu"
+                      aria-label="Admin menu"
                     >
                       <Menu className="h-5 w-5" />
                     </button>
@@ -320,9 +332,22 @@ function Header({ user, onLogout }) {
                     Write Article
                   </Link>
                   
-                  {isAdmin && (
+                  {isEditorialOrAdmin && (
                     <>
                       <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-2"></div>
+                      <Link 
+                        to="/editorial" 
+                        className="flex items-center gap-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 py-3 px-4 rounded-xl transition-all duration-200"
+                        onClick={closeMobileMenu}
+                      >
+                        <FileText className="h-4 w-4" />
+                        Editorial
+                      </Link>
+                    </>
+                  )}
+                  
+                  {isAdmin && (
+                    <>
                       <Link 
                         to="/admin" 
                         className="flex items-center gap-3 text-sm font-semibold text-red-600 hover:bg-red-50 py-3 px-4 rounded-xl transition-all duration-200"
