@@ -147,26 +147,15 @@ function Header({ user, onLogout }) {
                   Write
                 </Link>
 
-                {/* Editorial Board Link */}
+                {/* Navigation Dropdown - For Editorial Board and Admins */}
                 {isEditorialOrAdmin && (
-                  <Link 
-                    to="/editorial" 
-                    className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200"
-                  >
-                    <FileText className="h-4 w-4" />
-                    Editorial
-                  </Link>
-                )}
-
-                {/* Navigation Dropdown - Only for Admins */}
-                {isAdmin && (
                   <div className="relative" ref={navDropdownRef}>
                     <button
                       onClick={toggleNavDropdown}
                       className="p-2.5 rounded-lg text-gray-700 hover:text-black hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
                       aria-expanded={isNavDropdownOpen}
                       aria-haspopup="true"
-                      aria-label="Admin menu"
+                      aria-label="Navigation menu"
                     >
                       <Menu className="h-5 w-5" />
                     </button>
@@ -174,23 +163,37 @@ function Header({ user, onLogout }) {
                       <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden animate-dropdown">
                         <div className="py-2">
                           <Link
-                            to="/admin"
+                            to="/editorial"
                             className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-150"
                             onClick={() => setIsNavDropdownOpen(false)}
                             role="menuitem"
                           >
-                            <Shield className="h-4 w-4 text-red-500" />
-                            Admin Panel
+                            <FileText className="h-4 w-4 text-blue-500" />
+                            Editorial
                           </Link>
-                          <Link
-                            to="/admin/reported-articles"
-                            className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-150"
-                            onClick={() => setIsNavDropdownOpen(false)}
-                            role="menuitem"
-                          >
-                            <FileText className="h-4 w-4 text-red-500" />
-                            Reported Articles
-                          </Link>
+                          {isAdmin && (
+                            <>
+                              <div className="border-t border-gray-100 my-1"></div>
+                              <Link
+                                to="/admin"
+                                className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-150"
+                                onClick={() => setIsNavDropdownOpen(false)}
+                                role="menuitem"
+                              >
+                                <Shield className="h-4 w-4 text-red-500" />
+                                Admin Panel
+                              </Link>
+                              <Link
+                                to="/admin/reported-articles"
+                                className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-150"
+                                onClick={() => setIsNavDropdownOpen(false)}
+                                role="menuitem"
+                              >
+                                <FileText className="h-4 w-4 text-red-500" />
+                                Reported Articles
+                              </Link>
+                            </>
+                          )}
                         </div>
                       </div>
                     )}
