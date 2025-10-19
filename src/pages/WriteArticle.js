@@ -1,4 +1,5 @@
-// pages/WriteArticle.js
+// pages/WriteArticle.js - Updated version
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -26,7 +27,8 @@ function WriteArticle() {
   
   const [formData, setFormData] = useState({
     title: '', // This will store only the user's part of the title
-    content: ''
+    content: '',
+    topicIds: [] // New field for selected topics
   });
   const [charCount, setCharCount] = useState(0);
   const [wordCount, setWordCount] = useState(0);
@@ -34,6 +36,10 @@ function WriteArticle() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [autoSaveStatus, setAutoSaveStatus] = useState('');
+  
+  // New state for topics
+  const [topics, setTopics] = useState([]);
+  const [topicsLoading, setTopicsLoading] = useState(true);
   
   // Grammar checking state
   const [grammarChecking, setGrammarChecking] = useState(false);
@@ -46,12 +52,28 @@ function WriteArticle() {
   const maxChars = 50000;
   const maxTitleLength = 255; // Maximum total title length including prefix
 
+  // Fetch available topics
+  useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        const response = await axios.get('/api/topics');
+        setTopics(response.data.topics);
+      } catch (error) {
+        console.error('Error fetching topics:', error);
+      } finally {
+        setTopicsLoading(false);
+      }
+    };
+
+    fetchTopics();
+  }, []);
+
   // Show loading while user context is loading
-  if (userLoading) {
+  if (userLoading || topicsLoading) {
     return (
       <div className="max-w-5xl mx-auto px-6 py-16 text-center">
         <h1 className="text-4xl font-bold mb-4">Loading...</h1>
-        <p className="text-xl">Please wait while we verify your session</p>
+        <p className="text-xl">Please wait while we verify your session and load topics</p>
       </div>
     );
   }
@@ -336,7 +358,8 @@ function WriteArticle() {
       await axios.post('/articles', {
         title: getFullTitle() || 'Untitled Draft',
         content: formData.content,
-        published: false
+        published: false,
+        topicIds: formData.topicIds
       }, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -377,6 +400,33 @@ function WriteArticle() {
     if (name === 'content' && grammarSuggestions.length > 0) {
       setGrammarSuggestions([]);
     }
+  };
+
+  // Handle topic selection
+  const handleTopicToggle = (topicId) => {
+    setFormData(prev => {
+      const { topicIds } = prev;
+      
+      if (topicIds.includes(topicId)) {
+        // Remove topic if already selected
+        return {
+          ...prev,
+          topicIds: topicIds.filter(id => id !== topicId)
+        };
+      } else {
+        // Add topic if not selected and under the limit
+        if (topicIds.length < 3) {
+          return {
+            ...prev,
+            topicIds: [...topicIds, topicId]
+          };
+        } else {
+          setError('You can select a maximum of 3 topics');
+          setTimeout(() => setError(''), 3000);
+          return prev;
+        }
+      }
+    });
   };
 
   const validateForm = () => {
@@ -427,7 +477,8 @@ function WriteArticle() {
       const response = await axios.post('/articles', {
         title: getFullTitle(),
         content: formData.content,
-        published: false
+        published: false,
+        topicIds: formData.topicIds
       }, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -485,7 +536,8 @@ function WriteArticle() {
       const response = await axios.post('/articles', {
         title: getFullTitle(),
         content: formData.content,
-        published: true
+        published: true,
+        topicIds: formData.topicIds
       }, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -514,7 +566,7 @@ function WriteArticle() {
 
   const handleClear = () => {
     if (window.confirm('Are you sure you want to clear all content? This action cannot be undone.')) {
-      setFormData({ title: '', content: '' });
+      setFormData({ title: '', content: '', topicIds: [] });
       setError('');
       setSuccess('');
       setGrammarSuggestions([]);
@@ -652,6 +704,40 @@ function WriteArticle() {
               <div className="text-lg font-bold text-gray-500">
                 {formData.title.length}/{maxTitleLength - titlePrefix.length}
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Topics Selection */}
+        <div className="mb-8">
+          <label className="form-label">SELECT TOPICS (UP TO 3)</label>
+          <div className="border-2 border-black rounded-lg p-4 bg-gray-50">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {topics.map(topic => (
+                <div key={topic.id} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id={`topic-${topic.id}`}
+                    checked={formData.topicIds.includes(topic.id)}
+                    onChange={() => handleTopicToggle(topic.id)}
+                    disabled={loading || (!formData.topicIds.includes(topic.id) && formData.topicIds.length >= 3)}
+                    className="mr-2 h-5 w-5"
+                  />
+                  <label 
+                    htmlFor={`topic-${topic.id}`} 
+                    className={`text-lg font-bold cursor-pointer ${
+                      formData.topicIds.includes(topic.id) ? 'text-blue-600' : 'text-gray-700'
+                    } ${
+                      !formData.topicIds.includes(topic.id) && formData.topicIds.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {topic.name}
+                  </label>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 text-sm font-bold text-gray-600">
+              Selected: {formData.topicIds.length}/3 topics
             </div>
           </div>
         </div>

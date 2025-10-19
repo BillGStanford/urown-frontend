@@ -1,5 +1,7 @@
+// src/components/Header.js - Updated version
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { 
   Search, 
@@ -14,20 +16,55 @@ import {
   ChevronDown,
   Shield,
   Mail,
-  Globe
+  Globe,
+  Tag
 } from 'lucide-react';
 
 function Header({ user, onLogout }) {
   const { logout } = useUser();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
+  const [isTopicsDropdownOpen, setIsTopicsDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [topics, setTopics] = useState([]);
+  const [selectedTopic, setSelectedTopic] = useState(null);
   const dropdownRef = useRef(null);
   const navDropdownRef = useRef(null);
+  const topicsDropdownRef = useRef(null);
 
   const isAdmin = user && (user.role === 'admin' || user.role === 'super-admin');
   const isEditorialOrAdmin = user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin');
+
+  // Fetch topics on component mount
+  useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        const response = await fetch('/api/topics');
+        const data = await response.json();
+        setTopics(data.topics || []);
+      } catch (error) {
+        console.error('Error fetching topics:', error);
+      }
+    };
+
+    fetchTopics();
+  }, []);
+
+  // Check if we're on the browse page and extract topic from URL
+  useEffect(() => {
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith('/browse')) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const topicId = urlParams.get('topic');
+      if (topicId) {
+        setSelectedTopic(parseInt(topicId));
+      } else {
+        setSelectedTopic(null);
+      }
+    }
+  }, [window.location.pathname, window.location.search]);
 
   const handleLogout = () => {
     logout();
@@ -52,6 +89,22 @@ function Header({ user, onLogout }) {
     setIsNavDropdownOpen(!isNavDropdownOpen);
   };
 
+  const toggleTopicsDropdown = () => {
+    setIsTopicsDropdownOpen(!isTopicsDropdownOpen);
+  };
+
+  const handleTopicSelect = (topicId) => {
+    setSelectedTopic(topicId);
+    setIsTopicsDropdownOpen(false);
+    navigate(`/browse?topic=${topicId}`);
+  };
+
+  const handleBrowseAll = () => {
+    setSelectedTopic(null);
+    setIsTopicsDropdownOpen(false);
+    navigate('/browse');
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -67,6 +120,9 @@ function Header({ user, onLogout }) {
       }
       if (navDropdownRef.current && !navDropdownRef.current.contains(event.target)) {
         setIsNavDropdownOpen(false);
+      }
+      if (topicsDropdownRef.current && !topicsDropdownRef.current.contains(event.target)) {
+        setIsTopicsDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -84,6 +140,55 @@ function Header({ user, onLogout }) {
         <div className="hidden lg:flex items-center justify-between py-5">
           {/* Left Navigation */}
           <nav className="flex items-center space-x-1">
+            {/* Topics Dropdown */}
+            <div className="relative" ref={topicsDropdownRef}>
+              <button
+                onClick={toggleTopicsDropdown}
+                className={`group relative px-5 py-2.5 text-sm font-semibold transition-colors duration-200 rounded-lg flex items-center gap-2 ${
+                  selectedTopic 
+                    ? 'text-orange-600 bg-orange-50 hover:bg-orange-100' 
+                    : 'text-gray-700 hover:text-black hover:bg-gray-50'
+                }`}
+                aria-expanded={isTopicsDropdownOpen}
+                aria-haspopup="true"
+              >
+                <Tag className="h-4 w-4" />
+                Topics
+                <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isTopicsDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {isTopicsDropdownOpen && (
+                <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden animate-dropdown max-h-96 overflow-y-auto">
+                  <div className="py-2">
+                    <button
+                      onClick={handleBrowseAll}
+                      className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors duration-150 w-full text-left ${
+                        !selectedTopic ? 'bg-orange-50 text-orange-600' : 'text-gray-900 hover:bg-gray-50'
+                      }`}
+                      role="menuitem"
+                    >
+                      <div className="h-4 w-4 rounded-full bg-gray-300"></div>
+                      All Topics
+                    </button>
+                    {topics.map(topic => (
+                      <button
+                        key={topic.id}
+                        onClick={() => handleTopicSelect(topic.id)}
+                        className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors duration-150 w-full text-left ${
+                          selectedTopic === topic.id ? 'bg-orange-50 text-orange-600' : 'text-gray-900 hover:bg-gray-50'
+                        }`}
+                        role="menuitem"
+                      >
+                        <div className={`h-4 w-4 rounded-full ${
+                          selectedTopic === topic.id ? 'bg-orange-500' : 'bg-gray-300'
+                        }`}></div>
+                        {topic.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
             <Link 
               to="/browse" 
               className="group relative px-5 py-2.5 text-sm font-semibold text-gray-700 hover:text-black transition-colors duration-200 rounded-lg hover:bg-gray-50"
@@ -289,6 +394,35 @@ function Header({ user, onLogout }) {
         {isMobileMenuOpen && (
           <nav className="lg:hidden pb-4 bg-gray-50 rounded-2xl animate-slide-down mt-2 border-t border-gray-200">
             <div className="flex flex-col space-y-1 p-2">
+              {/* Topics Section in Mobile Menu */}
+              <div className="bg-white rounded-xl p-4 mb-2 border border-gray-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <Tag className="h-5 w-5 text-orange-500" />
+                  <span className="text-sm font-bold text-gray-900">Filter by Topic</span>
+                </div>
+                <div className="space-y-2">
+                  <button
+                    onClick={handleBrowseAll}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      !selectedTopic ? 'bg-orange-50 text-orange-600' : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    All Topics
+                  </button>
+                  {topics.map(topic => (
+                    <button
+                      key={topic.id}
+                      onClick={() => handleTopicSelect(topic.id)}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        selectedTopic === topic.id ? 'bg-orange-50 text-orange-600' : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {topic.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
               <Link 
                 to="/browse" 
                 className="flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-black hover:bg-white py-3 px-4 rounded-xl transition-all duration-200"

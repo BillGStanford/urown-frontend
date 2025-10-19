@@ -1,7 +1,7 @@
 // src/components/ArticleCard.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Eye, MessageSquare, Award, Flame, Clock, Sparkles } from 'lucide-react';
+import { Trophy, Eye, MessageSquare, Award, Flame, Clock, Sparkles, Tag } from 'lucide-react';
 
 function ArticleCard({ article, size = 'normal', counterCount = null, viewMode = 'grid' }) {
   const navigate = useNavigate();
@@ -79,6 +79,35 @@ function ArticleCard({ article, size = 'normal', counterCount = null, viewMode =
   const isDebateOpinion = article.debate_topic_id !== null;
   const isWinner = article.is_debate_winner;
   const tierConfig = getTierConfig(article.tier);
+  
+  // Get topics array, handling both array and string formats
+  const topics = article.topics ? 
+    (Array.isArray(article.topics) ? article.topics : 
+      typeof article.topics === 'string' ? article.topics.split(',') : []) : [];
+
+  // Render topics as tags
+  const renderTopics = (maxCount = 3, className = "") => {
+    if (!topics || topics.length === 0) return null;
+    
+    return (
+      <div className={`flex flex-wrap gap-1 ${className}`}>
+        {topics.slice(0, maxCount).map((topic, index) => (
+          <span
+            key={index}
+            className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium"
+          >
+            <Tag size={10} />
+            {typeof topic === 'string' ? topic : topic.name || topic}
+          </span>
+        ))}
+        {topics.length > maxCount && (
+          <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+            +{topics.length - maxCount}
+          </span>
+        )}
+      </div>
+    );
+  };
 
   // List View Mode
   if (viewMode === 'list') {
@@ -109,6 +138,10 @@ function ArticleCard({ article, size = 'normal', counterCount = null, viewMode =
                     {formatDate(article.created_at)}
                   </span>
                 </div>
+                
+                {/* Topics in List View */}
+                {renderTopics(3, "mb-2")}
+                
                 <h3 className="text-xl font-black text-gray-900 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-orange-500 group-hover:to-red-500 group-hover:bg-clip-text transition-all duration-300 line-clamp-2 mb-2">
                   {article.title}
                 </h3>
@@ -185,6 +218,9 @@ function ArticleCard({ article, size = 'normal', counterCount = null, viewMode =
               </div>
             </div>
             
+            {/* Topics in Hero View */}
+            {renderTopics(5, "mb-4")}
+            
             <h2 className="text-3xl lg:text-4xl xl:text-5xl font-black mb-6 leading-tight group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-yellow-500 group-hover:to-orange-500 group-hover:bg-clip-text transition-all duration-300 line-clamp-3">
               {article.title}
             </h2>
@@ -249,6 +285,9 @@ function ArticleCard({ article, size = 'normal', counterCount = null, viewMode =
             <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">{article.tier}</div>
           </div>
         </div>
+        
+        {/* Topics in Sidebar View */}
+        {renderTopics(2, "mb-2")}
         
         <h3 className="text-base font-bold text-gray-900 group-hover:text-orange-600 transition-colors mb-2 leading-tight line-clamp-2">
           {article.title}
@@ -328,6 +367,9 @@ function ArticleCard({ article, size = 'normal', counterCount = null, viewMode =
       
       {/* Content Section */}
       <div className="p-6 flex-1 flex flex-col">
+        {/* Topics in Normal View */}
+        {renderTopics(3, "mb-3")}
+        
         <h3 className="text-xl font-black text-gray-900 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-orange-500 group-hover:to-red-500 group-hover:bg-clip-text transition-all duration-300 mb-3 leading-tight line-clamp-2">
           {article.title}
         </h3>

@@ -1,11 +1,12 @@
-// src/pages/BrowseArticles.js
+// src/pages/BrowseArticles.js - Updated version
+
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import ArticleCard from '../components/ArticleCard';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import TrendingOpinions from '../components/TrendingOpinions';
-import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List } from 'lucide-react';
+import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X } from 'lucide-react';
 
 function BrowseArticles() {
   const [articles, setArticles] = useState([]);
@@ -17,12 +18,41 @@ function BrowseArticles() {
   const [hasMore, setHasMore] = useState(true);
   const [showCounters, setShowCounters] = useState(false);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const [topics, setTopics] = useState([]);
+  const [selectedTopic, setSelectedTopic] = useState(null);
+  const [isTopicFilterOpen, setIsTopicFilterOpen] = useState(false);
   const articlesPerPage = 12;
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Fetch topics on component mount
+  useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        const response = await axios.get('/api/topics');
+        setTopics(response.data.topics || []);
+      } catch (error) {
+        console.error('Error fetching topics:', error);
+      }
+    };
+
+    fetchTopics();
+  }, []);
+
+  // Check for topic in URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const topicId = urlParams.get('topic');
+    if (topicId) {
+      setSelectedTopic(parseInt(topicId));
+    } else {
+      setSelectedTopic(null);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     fetchArticles();
-  }, [currentPage]);
+  }, [currentPage, selectedTopic]);
 
   const fetchCounterCounts = async (articleIds) => {
     try {
@@ -48,18 +78,22 @@ function BrowseArticles() {
       setLoading(true);
       const offset = reset ? 0 : (currentPage - 1) * articlesPerPage;
       
-      const cacheKey = `articles-${articlesPerPage}-${offset}-false`;
+      const cacheKey = `articles-${articlesPerPage}-${offset}-false-${selectedTopic || 'all'}`;
       let cachedData = getCachedData(cacheKey);
       
       if (!cachedData) {
+        const params = {
+          limit: articlesPerPage,
+          offset: offset,
+          featured: 'false'
+        };
+        
+        if (selectedTopic) {
+          params.topicId = selectedTopic;
+        }
+        
         const response = await fetchWithRetry(() => 
-          axios.get('/articles', {
-            params: {
-              limit: articlesPerPage,
-              offset: offset,
-              featured: 'false'
-            }
-          })
+          axios.get('/articles', { params })
         );
         cachedData = response.data.articles;
         setCachedData(cacheKey, cachedData);
@@ -115,6 +149,35 @@ function BrowseArticles() {
 
   const handleToggleCounters = () => {
     setShowCounters(!showCounters);
+  };
+
+  const handleTopicSelect = (topicId) => {
+    setSelectedTopic(topicId);
+    setCurrentPage(1);
+    setIsTopicFilterOpen(false);
+    
+    // Update URL
+    if (topicId) {
+      navigate(`/browse?topic=${topicId}`);
+    } else {
+      navigate('/browse');
+    }
+  };
+
+  const clearTopicFilter = () => {
+    setSelectedTopic(null);
+    setCurrentPage(1);
+    navigate('/browse');
+  };
+
+  const toggleTopicFilter = () => {
+    setIsTopicFilterOpen(!isTopicFilterOpen);
+  };
+
+  const getSelectedTopicName = () => {
+    if (!selectedTopic) return 'All Topics';
+    const topic = topics.find(t => t.id === selectedTopic);
+    return topic ? topic.name : 'Unknown Topic';
   };
 
   const filteredArticles = articles.filter(article => {
@@ -178,6 +241,69 @@ function BrowseArticles() {
               </div>
             </div>
 
+            {/* Topic Filter */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 sm:p-6 mb-6 md:mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Filter size={18} className="text-gray-600" />
+                  <span className="text-sm font-bold text-gray-700">Topic Filter</span>
+                </div>
+                
+                <button
+                  onClick={toggleTopicFilter}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  <span className="text-sm font-medium text-gray-700">{getSelectedTopicName()}</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isTopicFilterOpen ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+              
+              {isTopicFilterOpen && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <button
+                      onClick={() => handleTopicSelect(null)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        !selectedTopic 
+                          ? 'bg-orange-100 text-orange-700 border-2 border-orange-300' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-transparent'
+                      }`}
+                    >
+                      All Topics
+                    </button>
+                    {topics.map(topic => (
+                      <button
+                        key={topic.id}
+                        onClick={() => handleTopicSelect(topic.id)}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          selectedTopic === topic.id 
+                            ? 'bg-orange-100 text-orange-700 border-2 border-orange-300' 
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-transparent'
+                        }`}
+                      >
+                        {topic.name}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {selectedTopic && (
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className="text-sm text-gray-600">
+                        Showing articles tagged with "{getSelectedTopicName()}"
+                      </span>
+                      <button
+                        onClick={clearTopicFilter}
+                        className="text-sm font-medium text-orange-600 hover:text-orange-700 flex items-center gap-1"
+                      >
+                        <X size={16} />
+                        Clear Filter
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Control Panel */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 sm:p-6 mb-6 md:mb-8">
               {/* Top Row: Stats and Actions */}
@@ -190,6 +316,11 @@ function BrowseArticles() {
                   <div className="text-sm font-bold text-gray-600 uppercase tracking-wide">
                     {searchTerm ? 'Results' : 'Articles'}
                   </div>
+                  {selectedTopic && (
+                    <div className="text-sm font-medium text-orange-600 ml-2">
+                      in {getSelectedTopicName()}
+                    </div>
+                  )}
                 </div>
 
                 {/* Action Buttons */}
