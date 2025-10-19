@@ -1,6 +1,6 @@
 // components/Header.js
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { axios } from '../utils/apiUtils';
 import { 
@@ -23,6 +23,7 @@ import {
 function Header({ user, onLogout }) {
   const { logout } = useUser();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
@@ -51,19 +52,21 @@ function Header({ user, onLogout }) {
     fetchTopics();
   }, []);
 
-  // Check if we're on the browse page and extract topic from URL
+  // Sync selected topic with URL parameters
   useEffect(() => {
-    const currentPath = window.location.pathname;
-    if (currentPath.startsWith('/browse')) {
-      const urlParams = new URLSearchParams(window.location.search);
+    if (location.pathname.startsWith('/browse')) {
+      const urlParams = new URLSearchParams(location.search);
       const topicId = urlParams.get('topic');
       if (topicId) {
         setSelectedTopic(parseInt(topicId));
       } else {
         setSelectedTopic(null);
       }
+    } else {
+      // Reset selected topic when not on browse page
+      setSelectedTopic(null);
     }
-  }, [window.location.pathname, window.location.search]);
+  }, [location.pathname, location.search]);
 
   const handleLogout = () => {
     logout();
@@ -95,13 +98,26 @@ function Header({ user, onLogout }) {
   const handleTopicSelect = (topicId) => {
     setSelectedTopic(topicId);
     setIsTopicsDropdownOpen(false);
-    navigate(`/browse?topic=${topicId}`);
+    setIsMobileMenuOpen(false);
+    
+    if (topicId) {
+      navigate(`/browse?topic=${topicId}`);
+    } else {
+      navigate('/browse');
+    }
   };
 
   const handleBrowseAll = () => {
     setSelectedTopic(null);
     setIsTopicsDropdownOpen(false);
+    setIsMobileMenuOpen(false);
     navigate('/browse');
+  };
+
+  const getSelectedTopicName = () => {
+    if (!selectedTopic) return 'All Topics';
+    const topic = topics.find(t => t.id === selectedTopic);
+    return topic ? topic.name : 'All Topics';
   };
 
   useEffect(() => {
@@ -128,6 +144,11 @@ function Header({ user, onLogout }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
   return (
     <header className={`sticky top-0 z-50 transition-all duration-300 ${
       scrolled 
@@ -152,22 +173,23 @@ function Header({ user, onLogout }) {
                 aria-haspopup="true"
               >
                 <Tag className="h-4 w-4" />
-                Topics
+                {selectedTopic ? getSelectedTopicName() : 'Topics'}
                 <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isTopicsDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               {isTopicsDropdownOpen && (
                 <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden animate-dropdown max-h-96 overflow-y-auto">
                   <div className="py-2">
                     <button
-                      onClick={handleBrowseAll}
+                      onClick={() => handleTopicSelect(null)}
                       className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors duration-150 w-full text-left ${
                         !selectedTopic ? 'bg-orange-50 text-orange-600' : 'text-gray-900 hover:bg-gray-50'
                       }`}
                       role="menuitem"
                     >
-                      <div className="h-4 w-4 rounded-full bg-gray-300"></div>
+                      <div className={`h-4 w-4 rounded-full ${!selectedTopic ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
                       All Topics
                     </button>
+                    <div className="border-t border-gray-100 my-1"></div>
                     {topics.map(topic => (
                       <button
                         key={topic.id}
@@ -395,27 +417,38 @@ function Header({ user, onLogout }) {
             <div className="flex flex-col space-y-1 p-2">
               {/* Topics Section in Mobile Menu */}
               <div className="bg-white rounded-xl p-4 mb-2 border border-gray-200">
-                <div className="flex items-center gap-2 mb-3">
-                  <Tag className="h-5 w-5 text-orange-500" />
-                  <span className="text-sm font-bold text-gray-900">Filter by Topic</span>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-5 w-5 text-orange-500" />
+                    <span className="text-sm font-bold text-gray-900">Filter by Topic</span>
+                  </div>
+                  {selectedTopic && (
+                    <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-full">
+                      {getSelectedTopicName()}
+                    </span>
+                  )}
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 max-h-60 overflow-y-auto">
                   <button
-                    onClick={handleBrowseAll}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      !selectedTopic ? 'bg-orange-50 text-orange-600' : 'text-gray-700 hover:bg-gray-50'
+                    onClick={() => handleTopicSelect(null)}
+                    className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 ${
+                      !selectedTopic ? 'bg-orange-50 text-orange-600 border-2 border-orange-300' : 'text-gray-700 hover:bg-gray-50 border-2 border-transparent'
                     }`}
                   >
+                    <div className={`h-3 w-3 rounded-full ${!selectedTopic ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
                     All Topics
                   </button>
                   {topics.map(topic => (
                     <button
                       key={topic.id}
                       onClick={() => handleTopicSelect(topic.id)}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        selectedTopic === topic.id ? 'bg-orange-50 text-orange-600' : 'text-gray-700 hover:bg-gray-50'
+                      className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 ${
+                        selectedTopic === topic.id ? 'bg-orange-50 text-orange-600 border-2 border-orange-300' : 'text-gray-700 hover:bg-gray-50 border-2 border-transparent'
                       }`}
                     >
+                      <div className={`h-3 w-3 rounded-full ${
+                        selectedTopic === topic.id ? 'bg-orange-500' : 'bg-gray-300'
+                      }`}></div>
                       {topic.name}
                     </button>
                   ))}
