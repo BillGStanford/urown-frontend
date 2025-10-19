@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
+import { axios } from '../utils/apiUtils'; // Import axios from apiUtils
 import { 
   Search, 
   LayoutDashboard, 
@@ -41,9 +42,8 @@ function Header({ user, onLogout }) {
   useEffect(() => {
     const fetchTopics = async () => {
       try {
-        const response = await fetch('/api/topics');
-        const data = await response.json();
-        setTopics(data.topics || []);
+        const response = await axios.get('/topics');
+        setTopics(response.data.topics || []);
       } catch (error) {
         console.error('Error fetching topics:', error);
       }

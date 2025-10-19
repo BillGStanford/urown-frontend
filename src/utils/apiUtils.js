@@ -1,8 +1,12 @@
 // utils/apiUtils.js
 import axios from 'axios';
 
-// Set base URL for all API requests
-axios.defaults.baseURL = '/api';
+// Set base URL for all API requests based on environment
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://urown-backend.onrender.com/api' 
+  : 'http://localhost:5000/api';
+
+axios.defaults.baseURL = API_BASE_URL;
 
 // Retry function with exponential backoff
 export const fetchWithRetry = async (axiosRequest, maxRetries = 3, initialDelay = 1000) => {
@@ -138,3 +142,6 @@ axios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Export the base URL for use in components
+export const API_URL = API_BASE_URL;

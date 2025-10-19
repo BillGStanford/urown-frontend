@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import { axios } from '../utils/apiUtils'; // Import axios from apiUtils
 import ArticleCard from '../components/ArticleCard';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import TrendingOpinions from '../components/TrendingOpinions';
-import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X } from 'lucide-react';
+import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown } from 'lucide-react';
 
 function BrowseArticles() {
   const [articles, setArticles] = useState([]);
@@ -29,7 +29,7 @@ function BrowseArticles() {
   useEffect(() => {
     const fetchTopics = async () => {
       try {
-        const response = await axios.get('/api/topics');
+        const response = await axios.get('/topics');
         setTopics(response.data.topics || []);
       } catch (error) {
         console.error('Error fetching topics:', error);
