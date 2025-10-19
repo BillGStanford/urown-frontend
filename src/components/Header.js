@@ -26,6 +26,8 @@ function Header({ user, onLogout }) {
   const dropdownRef = useRef(null);
   const navDropdownRef = useRef(null);
 
+  const isAdmin = user && (user.role === 'admin' || user.role === 'super-admin');
+
   const handleLogout = () => {
     logout();
     onLogout();
@@ -71,41 +73,39 @@ function Header({ user, onLogout }) {
   }, []);
 
   return (
-    <header className={`sticky top-0 z-50 bg-white transition-all duration-300 ${
-      scrolled ? 'shadow-2xl border-b-2' : 'shadow-lg border-b-4'
-    } border-black`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <header className={`sticky top-0 z-50 transition-all duration-300 ${
+      scrolled 
+        ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200' 
+        : 'bg-white shadow-md'
+    }`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Desktop Layout */}
-        <div className="hidden lg:flex items-center justify-between py-4">
+        <div className="hidden lg:flex items-center justify-between py-5">
           {/* Left Navigation */}
-          <nav className="flex items-center space-x-2">
+          <nav className="flex items-center space-x-1">
             <Link 
               to="/browse" 
-              className="group relative px-4 py-2 text-sm font-bold text-black hover:text-white transition-all duration-300 uppercase tracking-wide overflow-hidden rounded-lg"
+              className="group relative px-5 py-2.5 text-sm font-semibold text-gray-700 hover:text-black transition-colors duration-200 rounded-lg hover:bg-gray-50"
             >
-              <span className="absolute inset-0 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
-              <span className="relative flex items-center gap-2">
+              <span className="flex items-center gap-2">
                 <Search className="h-4 w-4" />
                 Browse
               </span>
             </Link>
             <Link 
               to="/partners" 
-              className="group relative px-4 py-2 text-sm font-bold text-black hover:text-white transition-all duration-300 uppercase tracking-wide overflow-hidden rounded-lg"
+              className="group relative px-5 py-2.5 text-sm font-semibold text-gray-700 hover:text-black transition-colors duration-200 rounded-lg hover:bg-gray-50"
             >
-              <span className="absolute inset-0 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
-              <span className="relative flex items-center gap-2">
+              <span className="flex items-center gap-2">
                 <Globe className="h-4 w-4" />
                 Partners
-                
               </span>
             </Link>
             <Link 
               to="/contact" 
-              className="group relative px-4 py-2 text-sm font-bold text-black hover:text-white transition-all duration-300 uppercase tracking-wide overflow-hidden rounded-lg"
+              className="group relative px-5 py-2.5 text-sm font-semibold text-gray-700 hover:text-black transition-colors duration-200 rounded-lg hover:bg-gray-50"
             >
-              <span className="absolute inset-0 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
-              <span className="relative flex items-center gap-2">
+              <span className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
                 Contact
               </span>
@@ -116,112 +116,96 @@ function Header({ user, onLogout }) {
           <div className="absolute left-1/2 transform -translate-x-1/2">
             <Link to="/" className="group flex flex-col items-center">
               <div className="relative">
-                <span className="text-5xl font-black text-black group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-yellow-500 group-hover:via-orange-500 group-hover:to-red-500 group-hover:bg-clip-text transition-all duration-500 tracking-tighter">
+                <span className="text-5xl font-black bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent group-hover:from-orange-600 group-hover:via-red-600 group-hover:to-pink-600 transition-all duration-300 tracking-tight">
                   UROWN
                 </span>
-                <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
               </div>
-              <span className="text-[10px] text-gray-600 mt-2 font-semibold uppercase tracking-[0.2em] group-hover:text-black transition-colors duration-300">
-                Your Opinion • Your Platform
+              <span className="text-xs text-gray-500 mt-1.5 font-medium tracking-wide group-hover:text-gray-700 transition-colors duration-300">
+                Your Voice Matters
               </span>
             </Link>
           </div>
 
           {/* Right Navigation */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             {user ? (
               <>
                 <Link 
                   to="/dashboard" 
-                  className="group relative px-4 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 rounded-lg transition-all duration-300 uppercase tracking-wider shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200"
                 >
-                  <span className="flex items-center gap-2">
-                    <LayoutDashboard className="h-4 w-4" />
-                    Dashboard
-                  </span>
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
                 </Link>
 
                 <Link 
                   to="/write" 
-                  className="group relative px-4 py-2.5 text-xs font-bold text-black bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 rounded-lg transition-all duration-300 uppercase tracking-wider shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
                 >
-                  <span className="flex items-center gap-2">
-                    <PenTool className="h-4 w-4" />
-                    Write
-                  </span>
+                  <PenTool className="h-4 w-4" />
+                  Write
                 </Link>
 
-                {/* Navigation Dropdown */}
-                <div className="relative" ref={navDropdownRef}>
-                  <button
-                    onClick={toggleNavDropdown}
-                    className="p-2.5 rounded-lg bg-gradient-to-r from-gray-900 to-black text-white hover:from-black hover:to-gray-900 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
-                    aria-expanded={isNavDropdownOpen}
-                    aria-haspopup="true"
-                    aria-label="Navigation menu"
-                  >
-                    {isNavDropdownOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-                  </button>
-                  {isNavDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-dropdown">
-                      <div className="py-2">
-                        {(user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') && (
+                {/* Navigation Dropdown - Only for Admins */}
+                {isAdmin && (
+                  <div className="relative" ref={navDropdownRef}>
+                    <button
+                      onClick={toggleNavDropdown}
+                      className="p-2.5 rounded-lg text-gray-700 hover:text-black hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                      aria-expanded={isNavDropdownOpen}
+                      aria-haspopup="true"
+                      aria-label="Navigation menu"
+                    >
+                      <Menu className="h-5 w-5" />
+                    </button>
+                    {isNavDropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden animate-dropdown">
+                        <div className="py-2">
                           <Link
-                            to="/editorial"
-                            className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                            to="/admin"
+                            className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-150"
                             onClick={() => setIsNavDropdownOpen(false)}
                             role="menuitem"
                           >
-                            <FileText className="h-4 w-4" />
-                            Editorial
+                            <Shield className="h-4 w-4 text-red-500" />
+                            Admin Panel
                           </Link>
-                        )}
-                        {(user.role === 'admin' || user.role === 'super-admin') && (
-                          <>
-                            <Link
-                              to="/admin"
-                              className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 transition-all duration-200"
-                              onClick={() => setIsNavDropdownOpen(false)}
-                              role="menuitem"
-                            >
-                              <Shield className="h-4 w-4" />
-                              Admin
-                            </Link>
-                            <Link
-                              to="/admin/reported-articles"
-                              className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 transition-all duration-200"
-                              onClick={() => setIsNavDropdownOpen(false)}
-                              role="menuitem"
-                            >
-                              <FileText className="h-4 w-4" />
-                              Reported
-                            </Link>
-                          </>
-                        )}
+                          <Link
+                            to="/admin/reported-articles"
+                            className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-150"
+                            onClick={() => setIsNavDropdownOpen(false)}
+                            role="menuitem"
+                          >
+                            <FileText className="h-4 w-4 text-red-500" />
+                            Reported Articles
+                          </Link>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
 
                 {/* User Dropdown */}
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={toggleUserDropdown}
-                    className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 uppercase tracking-wider shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
+                    className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
                     aria-expanded={isUserDropdownOpen}
                     aria-haspopup="true"
                     aria-label="User menu"
                   >
-                    <User className="h-4 w-4" />
-                    <span className="max-w-[100px] truncate">{user.display_name}</span>
-                    <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${isUserDropdownOpen ? 'rotate-180' : ''}`} />
+                    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
+                      {user.display_name.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="max-w-[120px] truncate">{user.display_name}</span>
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isUserDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
                   {isUserDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-dropdown">
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden animate-dropdown">
                       <div className="py-2">
                         <Link
                           to="/settings"
-                          className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-50 transition-all duration-200"
+                          className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-150"
                           onClick={() => setIsUserDropdownOpen(false)}
                           role="menuitem"
                         >
@@ -231,7 +215,7 @@ function Header({ user, onLogout }) {
                         <div className="border-t border-gray-100 my-1"></div>
                         <button
                           onClick={handleLogout}
-                          className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 transition-all duration-200"
+                          className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors duration-150"
                           role="menuitem"
                         >
                           <LogOut className="h-4 w-4" />
@@ -246,21 +230,15 @@ function Header({ user, onLogout }) {
               <>
                 <Link 
                   to="/login" 
-                  className="px-6 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 rounded-lg transition-all duration-300 uppercase tracking-wider shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="px-5 py-2.5 text-sm font-semibold text-gray-700 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200"
                 >
-                  <span className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Login
-                  </span>
+                  Login
                 </Link>
                 <Link 
                   to="/signup" 
-                  className="px-6 py-2.5 text-xs font-bold text-black bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 rounded-lg transition-all duration-300 uppercase tracking-wider shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
                 >
-                  <span className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Sign Up
-                  </span>
+                  Sign Up
                 </Link>
               </>
             )}
@@ -272,41 +250,49 @@ function Header({ user, onLogout }) {
           <div className="flex-1"></div>
           <Link to="/" className="group flex flex-col items-center">
             <div className="relative">
-              <span className="text-3xl sm:text-4xl font-black text-black group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-yellow-500 group-hover:via-orange-500 group-hover:to-red-500 group-hover:bg-clip-text transition-all duration-500 tracking-tighter">
+              <span className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent tracking-tight">
                 UROWN
               </span>
             </div>
-            <span className="text-[9px] sm:text-[10px] text-gray-600 mt-1 font-semibold uppercase tracking-[0.15em] group-hover:text-black transition-colors duration-300">
-              Your Opinion • Your Platform
+            <span className="text-[10px] text-gray-500 mt-1 font-medium tracking-wide">
+              Your Voice Matters
             </span>
           </Link>
           <div className="flex-1 flex justify-end">
             <button
               onClick={toggleMobileMenu}
-              className="p-3 rounded-xl bg-gradient-to-r from-gray-900 to-black text-white hover:from-black hover:to-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 shadow-lg"
+              className="p-3 rounded-xl text-gray-700 hover:text-black hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200"
               aria-label="Toggle menu"
               aria-expanded={isMobileMenuOpen}
             >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <nav className="lg:hidden pb-4 bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-inner animate-slide-down mt-2 border-t-2 border-gray-100">
+          <nav className="lg:hidden pb-4 bg-gray-50 rounded-2xl animate-slide-down mt-2 border-t border-gray-200">
             <div className="flex flex-col space-y-1 p-2">
               <Link 
                 to="/browse" 
-                className="flex items-center gap-3 text-sm font-bold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-gray-900 hover:to-black py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide"
+                className="flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-black hover:bg-white py-3 px-4 rounded-xl transition-all duration-200"
                 onClick={closeMobileMenu}
               >
                 <Search className="h-4 w-4" />
                 Browse
               </Link>
               <Link 
+                to="/partners" 
+                className="flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-black hover:bg-white py-3 px-4 rounded-xl transition-all duration-200"
+                onClick={closeMobileMenu}
+              >
+                <Globe className="h-4 w-4" />
+                Partners
+              </Link>
+              <Link 
                 to="/contact" 
-                className="flex items-center gap-3 text-sm font-bold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-gray-900 hover:to-black py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide"
+                className="flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-black hover:bg-white py-3 px-4 rounded-xl transition-all duration-200"
                 onClick={closeMobileMenu}
               >
                 <Mail className="h-4 w-4" />
@@ -319,7 +305,7 @@ function Header({ user, onLogout }) {
                   
                   <Link 
                     to="/dashboard" 
-                    className="flex items-center gap-3 text-sm font-bold text-white bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide shadow-md"
+                    className="flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-black hover:bg-white py-3 px-4 rounded-xl transition-all duration-200"
                     onClick={closeMobileMenu}
                   >
                     <LayoutDashboard className="h-4 w-4" />
@@ -327,60 +313,49 @@ function Header({ user, onLogout }) {
                   </Link>
                   <Link 
                     to="/write" 
-                    className="flex items-center gap-3 text-sm font-bold text-black bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide shadow-md"
+                    className="flex items-center gap-3 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 py-3 px-4 rounded-xl transition-all duration-200 shadow-sm"
                     onClick={closeMobileMenu}
                   >
                     <PenTool className="h-4 w-4" />
-                    Write
+                    Write Article
                   </Link>
                   
-                  {(user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') && (
+                  {isAdmin && (
                     <>
                       <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-2"></div>
                       <Link 
-                        to="/editorial" 
-                        className="flex items-center gap-3 text-sm font-bold text-blue-600 hover:bg-blue-50 py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide"
-                        onClick={closeMobileMenu}
-                      >
-                        <FileText className="h-4 w-4" />
-                        Editorial
-                      </Link>
-                    </>
-                  )}
-                  
-                  {(user.role === 'admin' || user.role === 'super-admin') && (
-                    <>
-                      <Link 
                         to="/admin" 
-                        className="flex items-center gap-3 text-sm font-bold text-red-600 hover:bg-red-50 py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide"
+                        className="flex items-center gap-3 text-sm font-semibold text-red-600 hover:bg-red-50 py-3 px-4 rounded-xl transition-all duration-200"
                         onClick={closeMobileMenu}
                       >
                         <Shield className="h-4 w-4" />
-                        Admin
+                        Admin Panel
                       </Link>
                       <Link 
                         to="/admin/reported-articles"
-                        className="flex items-center gap-3 text-sm font-bold text-red-600 hover:bg-red-50 py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide"
+                        className="flex items-center gap-3 text-sm font-semibold text-red-600 hover:bg-red-50 py-3 px-4 rounded-xl transition-all duration-200"
                         onClick={closeMobileMenu}
                       >
                         <FileText className="h-4 w-4" />
-                        Reported
+                        Reported Articles
                       </Link>
                     </>
                   )}
                   
                   <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-2"></div>
                   
-                  <div className="bg-gradient-to-r from-gray-900 to-black text-white px-4 py-2 rounded-xl">
-                    <span className="text-xs font-bold flex items-center gap-2 uppercase tracking-wider">
-                      <User className="h-4 w-4" />
+                  <div className="bg-white px-4 py-3 rounded-xl border border-gray-200">
+                    <span className="text-sm font-semibold flex items-center gap-2 text-gray-900">
+                      <div className="h-6 w-6 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
+                        {user.display_name.charAt(0).toUpperCase()}
+                      </div>
                       {user.display_name}
                     </span>
                   </div>
                   
                   <Link
                     to="/settings"
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200 uppercase tracking-wide"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-700 hover:text-black hover:bg-white rounded-xl transition-all duration-200"
                     onClick={closeMobileMenu}
                   >
                     <Settings className="h-4 w-4" />
@@ -391,7 +366,7 @@ function Header({ user, onLogout }) {
                       handleLogout();
                       closeMobileMenu();
                     }}
-                    className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 uppercase tracking-wide"
+                    className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
                   >
                     <LogOut className="h-4 w-4" />
                     Logout
@@ -402,7 +377,7 @@ function Header({ user, onLogout }) {
                   <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-2"></div>
                   <Link 
                     to="/login" 
-                    className="flex items-center justify-center gap-3 text-sm font-bold text-white bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide shadow-md"
+                    className="flex items-center justify-center gap-3 text-sm font-semibold text-gray-700 hover:text-black hover:bg-white py-3 px-4 rounded-xl transition-all duration-200"
                     onClick={closeMobileMenu}
                   >
                     <User className="h-4 w-4" />
@@ -410,7 +385,7 @@ function Header({ user, onLogout }) {
                   </Link>
                   <Link 
                     to="/signup" 
-                    className="flex items-center justify-center gap-3 text-sm font-bold text-black bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 py-3 px-4 rounded-xl transition-all duration-200 uppercase tracking-wide shadow-md"
+                    className="flex items-center justify-center gap-3 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 py-3 px-4 rounded-xl transition-all duration-200 shadow-sm"
                     onClick={closeMobileMenu}
                   >
                     <User className="h-4 w-4" />
@@ -427,11 +402,11 @@ function Header({ user, onLogout }) {
         @keyframes dropdown {
           from { 
             opacity: 0; 
-            transform: translateY(-10px) scale(0.95);
+            transform: translateY(-8px);
           }
           to { 
             opacity: 1; 
-            transform: translateY(0) scale(1);
+            transform: translateY(0);
           }
         }
         @keyframes slide-down {
@@ -447,10 +422,10 @@ function Header({ user, onLogout }) {
           }
         }
         .animate-dropdown {
-          animation: dropdown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: dropdown 0.2s ease-out forwards;
         }
         .animate-slide-down {
-          animation: slide-down 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: slide-down 0.3s ease-out forwards;
         }
       `}</style>
     </header>
