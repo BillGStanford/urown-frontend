@@ -170,7 +170,7 @@ function HomePage() {
                 <div className="flex items-center justify-center mb-2">
                   <Users className="w-6 h-6 text-yellow-500" />
                 </div>
-                <div className="text-2xl font-black text-white mb-1">1000+</div>
+                <div className="text-2xl font-black text-white mb-1">4000+</div>
                 <div className="text-xs text-gray-400 uppercase tracking-wider">Total Views</div>
               </div>
               <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
