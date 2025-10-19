@@ -5,22 +5,7 @@ import { axios } from '../utils/apiUtils';
 import ArticleCard from '../components/ArticleCard';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import TrendingOpinions from '../components/TrendingOpinions';
-import { 
-  Shuffle, 
-  RefreshCw, 
-  Search, 
-  Filter, 
-  TrendingUp, 
-  Zap, 
-  Grid, 
-  List, 
-  X, 
-  ChevronDown,
-  Sparkles,
-  BookOpen,
-  FilterCircle,
-  ArrowRight
-} from 'lucide-react';
+import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown } from 'lucide-react';
 
 function BrowseArticles() {
   const [articles, setArticles] = useState([]);
@@ -65,14 +50,7 @@ function BrowseArticles() {
     }
   }, [location.search]);
 
-  // Fetch articles when topic changes
-  useEffect(() => {
-    if (refreshing) {
-      setRefreshing(true);
-      fetchArticles(true);
-    }
-  }, [refreshing, selectedTopic]);
-
+  // Fetch articles when component mounts or when topic changes
   useEffect(() => {
     fetchArticles();
   }, [currentPage, selectedTopic]);
@@ -99,12 +77,13 @@ function BrowseArticles() {
   const fetchArticles = async (reset = false) => {
     try {
       setLoading(true);
+      setRefreshing(true);
       const offset = reset ? 0 : (currentPage - 1) * articlesPerPage;
       
       const cacheKey = `articles-${articlesPerPage}-${offset}-false-${selectedTopic || 'all'}`;
       let cachedData = getCachedData(cacheKey);
       
-      if (!cachedData || reset) {
+      if (!cachedData) {
         const params = {
           limit: articlesPerPage,
           offset: offset,
@@ -180,7 +159,7 @@ function BrowseArticles() {
     setCurrentPage(1);
     setIsTopicFilterOpen(false);
     
-    // Update URL and trigger refresh
+    // Update URL
     if (topicId) {
       navigate(`/browse?topic=${topicId}`);
     } else {
@@ -227,37 +206,30 @@ function BrowseArticles() {
 
   const handleRefresh = () => {
     setCurrentPage(1);
-    setRefreshing(true);
     fetchArticles(true);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content - 2 columns */}
           <div className="lg:col-span-2">
             {/* Hero Header */}
             <div className="mb-8 md:mb-12">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="bg-white rounded-full p-3 shadow-md">
-                    <FilterCircle className="w-10 h-10 text-blue-500" />
-                  </div>
-                  <h1 className="text-3xl font-bold text-gray-900">Explore</h1>
-                  <div className="text-sm text-gray-600">Discover content that matters to you</div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <div className="text-2xl font-black text-gray-900">Browse Articles</div>
-                  {selectedTopic && (
-                    <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                      <FilterCircle className="w-4 h-4 text-blue-500" />
-                      {getSelectedTopicName()}
-                    </div>
-                  )}
-                </div>
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border border-yellow-500/30 px-4 py-2 rounded-full mb-4">
+                <Zap className="w-4 h-4 text-yellow-600" />
+                <span className="text-yellow-700 font-bold text-xs uppercase tracking-wider">
+                  {filteredArticles.length} Active Debates
+                </span>
               </div>
+              
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-4 text-gray-900 leading-tight">
+                Explore Opinions
+              </h1>
+              <p className="text-base sm:text-lg text-gray-600 mb-6 max-w-2xl">
+                Dive into thought-provoking articles from writers around the world
+              </p>
               
               {/* Search Bar */}
               <div className="relative max-w-2xl">
@@ -267,17 +239,17 @@ function BrowseArticles() {
                   placeholder="Search by title, author, or content..."
                   value={searchTerm}
                   onChange={handleSearch}
-                  className="w-full pl-12 pr-4 py-3.5 text-base border-2 border-gray-300 focus:border-blue-500 focus:outline-none transition-all rounded-xl bg-white shadow-sm"
+                  className="w-full pl-12 pr-4 py-3.5 text-base border-2 border-gray-300 focus:border-black focus:outline-none transition-all rounded-xl bg-white shadow-sm"
                 />
               </div>
             </div>
 
             {/* Topic Filter */}
-            <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-4 sm:p-6 mb-6 md:mb-8">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 sm:p-6 mb-6 md:mb-8">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <FilterCircle className="w-5 h-5 text-blue-500" />
-                  <span className="text-sm font-bold text-gray-700">Filter by Topic</span>
+                  <Filter size={18} className="text-gray-600" />
+                  <span className="text-sm font-bold text-gray-700">Topic Filter</span>
                 </div>
                 
                 <button
@@ -294,33 +266,25 @@ function BrowseArticles() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     <button
                       onClick={() => handleTopicSelect(null)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                         !selectedTopic 
-                          ? 'bg-blue-100 text-blue-700 border-2 border-blue-300' 
+                          ? 'bg-orange-100 text-orange-700 border-2 border-orange-300' 
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-transparent'
                       }`}
                     >
-                      <div className="flex items-center justify-center">
-                        <div className="w-4 h-4 rounded-full bg-gray-300"></div>
-                        <span className="text-sm font-bold">All</span>
-                      </div>
+                      All Topics
                     </button>
                     {topics.map(topic => (
                       <button
                         key={topic.id}
                         onClick={() => handleTopicSelect(topic.id)}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                           selectedTopic === topic.id 
-                            ? 'bg-blue-100 text-blue-700 border-2 border-blue-300' 
+                            ? 'bg-orange-100 text-orange-700 border-2 border-orange-300' 
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-transparent'
                         }`}
                       >
-                        <div className="flex items-center justify-center">
-                          <div className={`w-4 h-4 rounded-full ${
-                            selectedTopic === topic.id ? 'bg-blue-500' : 'bg-gray-300'
-                          }`}></div>
-                          <span className="text-xs font-medium truncate max-w-[100px]">{topic.name}</span>
-                        </div>
+                        {topic.name}
                       </button>
                     ))}
                   </div>
@@ -332,7 +296,7 @@ function BrowseArticles() {
                       </span>
                       <button
                         onClick={clearTopicFilter}
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                        className="text-sm font-medium text-orange-600 hover:text-orange-700 flex items-center gap-1"
                       >
                         <X size={16} />
                         Clear Filter
@@ -344,7 +308,7 @@ function BrowseArticles() {
             </div>
 
             {/* Control Panel */}
-            <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-4 sm:p-6 mb-6 md:mb-8">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 sm:p-6 mb-6 md:mb-8">
               {/* Top Row: Stats and Actions */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 {/* Article Count */}
@@ -356,7 +320,7 @@ function BrowseArticles() {
                     {searchTerm ? 'Results' : 'Articles'}
                   </div>
                   {selectedTopic && (
-                    <div className="text-sm font-medium text-blue-600 ml-2">
+                    <div className="text-sm font-medium text-orange-600 ml-2">
                       in {getSelectedTopicName()}
                     </div>
                   )}
@@ -367,10 +331,10 @@ function BrowseArticles() {
                   <button 
                     onClick={handleRefresh}
                     className="inline-flex items-center gap-2 bg-white border-2 border-gray-900 text-gray-900 px-4 py-2 font-bold hover:bg-gray-900 hover:text-white transition-all duration-200 rounded-xl text-sm"
-                    disabled={loading}
+                    disabled={loading || refreshing}
                   >
-                    <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                    {refreshing ? 'Refreshing...' : 'Refresh'}
+                    <RefreshCw size={16} className={loading || refreshing ? 'animate-spin' : ''} />
+                    Refresh
                   </button>
                   
                   <button 
@@ -406,7 +370,7 @@ function BrowseArticles() {
               <div className="pt-6 border-t border-gray-200">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
-                    <FilterCircle className="w-5 h-5 text-gray-600" />
+                    <Filter size={18} className="text-gray-600" />
                     <span className="text-sm font-bold text-gray-700">Filter Type</span>
                   </div>
                   
