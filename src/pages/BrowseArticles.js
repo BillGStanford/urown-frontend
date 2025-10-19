@@ -157,6 +157,7 @@ function BrowseArticles() {
   const handleTopicSelect = (topicId) => {
     setSelectedTopic(topicId);
     setCurrentPage(1);
+    setArticles([]); // Clear existing articles
     setIsTopicFilterOpen(false);
     
     // Update URL

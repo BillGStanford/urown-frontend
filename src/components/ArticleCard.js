@@ -46,12 +46,18 @@ function ArticleCard({ article, size = 'normal', counterCount = null, viewMode =
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffInHours = (now - date) / (1000 * 60 * 60);
+    const diffInMinutes = (now - date) / (1000 * 60);
     
-    if (diffInHours < 1) return 'Just now';
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${Math.floor(diffInMinutes)}m ago`;
+    
+    const diffInHours = diffInMinutes / 60;
     if (diffInHours < 24) return `${Math.floor(diffInHours)}h ago`;
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
     
+    const diffInDays = diffInHours / 24;
+    if (diffInDays < 7) return `${Math.floor(diffInDays)}d ago`;
+    
+    // For older posts, show actual date
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
