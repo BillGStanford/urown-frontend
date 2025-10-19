@@ -39,21 +39,33 @@ function BrowseArticles() {
     fetchTopics();
   }, []);
 
-  // Check for topic in URL parameters
+  // Check for topic in URL parameters and fetch when it changes
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const topicId = urlParams.get('topic');
-    if (topicId) {
-      setSelectedTopic(parseInt(topicId));
-    } else {
-      setSelectedTopic(null);
+    const newTopicId = topicId ? parseInt(topicId) : null;
+    
+    // Only update and fetch if topic actually changed
+    if (newTopicId !== selectedTopic) {
+      setSelectedTopic(newTopicId);
+      setArticles([]); // Clear existing articles
+      setCurrentPage(1); // Reset to page 1
     }
   }, [location.search]);
 
   // Fetch articles when component mounts or when topic changes
   useEffect(() => {
-    fetchArticles();
-  }, [currentPage, selectedTopic]);
+    setArticles([]); // Clear existing articles
+    setCurrentPage(1); // Reset to page 1
+    fetchArticles(true); // Force refresh
+  }, [selectedTopic]);
+
+  // Fetch more articles when page changes (but not on topic change)
+  useEffect(() => {
+    if (currentPage > 1) {
+      fetchArticles();
+    }
+  }, [currentPage]);
 
   const fetchCounterCounts = async (articleIds) => {
     try {
@@ -155,9 +167,8 @@ function BrowseArticles() {
   };
 
   const handleTopicSelect = (topicId) => {
-    setSelectedTopic(topicId);
-    setCurrentPage(1);
-    setArticles([]); // Clear existing articles
+    // Topic change is handled by useEffect watching selectedTopic
+    // No need to manually clear articles or set page here
     setIsTopicFilterOpen(false);
     
     // Update URL
@@ -169,8 +180,7 @@ function BrowseArticles() {
   };
 
   const clearTopicFilter = () => {
-    setSelectedTopic(null);
-    setCurrentPage(1);
+    setIsTopicFilterOpen(false);
     navigate('/browse');
   };
 
@@ -442,17 +452,26 @@ function BrowseArticles() {
             {/* No Results for Selected Topic */}
             {!loading && articles.length > 0 && filteredArticles.length === 0 && selectedTopic && (
               <div className="text-center py-20 bg-white rounded-2xl shadow-lg border border-gray-200 p-12">
-                <div className="text-6xl mb-6">🔍</div>
-                <div className="text-3xl font-black mb-4 text-gray-900">No Articles Found</div>
+                <div className="text-6xl mb-6">📝</div>
+                <div className="text-3xl font-black mb-4 text-gray-900">Doesn't Exist. Create One Instead!</div>
                 <div className="text-base text-gray-600 mb-8">
-                  No articles found for "{getSelectedTopicName()}"
+                  No articles found for "{getSelectedTopicName()}". Be the first to write about it!
                 </div>
-                <button 
-                  onClick={clearTopicFilter}
-                  className="bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 text-white px-8 py-3 font-bold transition-all rounded-xl shadow-md"
-                >
-                  Clear Topic Filter
-                </button>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <Link 
+                    to="/write" 
+                    className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black px-8 py-3 font-bold transition-all rounded-xl shadow-md"
+                  >
+                    <Zap className="h-5 w-5" />
+                    Write Article
+                  </Link>
+                  <button 
+                    onClick={clearTopicFilter}
+                    className="bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 text-white px-8 py-3 font-bold transition-all rounded-xl shadow-md"
+                  >
+                    Clear Topic Filter
+                  </button>
+                </div>
               </div>
             )}
 
