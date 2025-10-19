@@ -597,6 +597,51 @@ function WriteArticle() {
   const silverLimit = 2;
   const remainingArticles = silverLimit - (user?.weekly_articles_count || 0);
 
+  // Render topics loading state
+  const renderTopicsLoading = () => {
+    return (
+      <div className="text-center py-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+        <p className="mt-2 text-gray-600">Loading topics...</p>
+      </div>
+    );
+  };
+
+  // Render topics list
+  const renderTopicsList = () => {
+    return (
+      <div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {topics.map(topic => (
+            <div key={topic.id} className="flex items-center">
+              <input
+                type="checkbox"
+                id={`topic-${topic.id}`}
+                checked={formData.topicIds.includes(topic.id)}
+                onChange={() => handleTopicToggle(topic.id)}
+                disabled={loading || (!formData.topicIds.includes(topic.id) && formData.topicIds.length >= 3)}
+                className="mr-2 h-5 w-5"
+              />
+              <label 
+                htmlFor={`topic-${topic.id}`} 
+                className={`text-lg font-bold cursor-pointer ${
+                  formData.topicIds.includes(topic.id) ? 'text-blue-600' : 'text-gray-700'
+                } ${
+                  !formData.topicIds.includes(topic.id) && formData.topicIds.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {topic.name}
+              </label>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 text-sm font-bold text-gray-600">
+          Selected: {formData.topicIds.length}/3 topics
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-6 py-16">
       {/* Header */}
@@ -699,42 +744,7 @@ function WriteArticle() {
         <div className="mb-8">
           <label className="form-label">SELECT TOPICS (UP TO 3)</label>
           <div className="border-2 border-black rounded-lg p-4 bg-gray-50">
-            {topicsLoading ? (
-              <div className="text-center py-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-                <p className="mt-2 text-gray-600">Loading topics...</p>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {topics.map(topic => (
-                    <div key={topic.id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={`topic-${topic.id}`}
-                        checked={formData.topicIds.includes(topic.id)}
-                        onChange={() => handleTopicToggle(topic.id)}
-                        disabled={loading || (!formData.topicIds.includes(topic.id) && formData.topicIds.length >= 3)}
-                        className="mr-2 h-5 w-5"
-                      />
-                      <label 
-                        htmlFor={`topic-${topic.id}`} 
-                        className={`text-lg font-bold cursor-pointer ${
-                          formData.topicIds.includes(topic.id) ? 'text-blue-600' : 'text-gray-700'
-                        } ${
-                          !formData.topicIds.includes(topic.id) && formData.topicIds.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      >
-                        {topic.name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3 text-sm font-bold text-gray-600">
-                  Selected: {formData.topicIds.length}/3 topics
-                </div>
-              </>
-            )}
+            {topicsLoading ? renderTopicsLoading() : renderTopicsList()}
           </div>
         </div>
 
