@@ -1,9 +1,8 @@
-// src/components/Header.js - Updated version
-
+// components/Header.js
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import { axios } from '../utils/apiUtils'; // Import axios from apiUtils
+import { axios } from '../utils/apiUtils';
 import { 
   Search, 
   LayoutDashboard, 

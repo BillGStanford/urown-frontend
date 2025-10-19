@@ -143,5 +143,5 @@ axios.interceptors.response.use(
   }
 );
 
-// Export the base URL for use in components
-export const API_URL = API_BASE_URL;
+// Export the axios instance for use in components
+export { axios };

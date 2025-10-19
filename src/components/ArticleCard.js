@@ -1,4 +1,4 @@
-// src/components/ArticleCard.js
+// components/ArticleCard.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trophy, Eye, MessageSquare, Award, Flame, Clock, Sparkles, Tag } from 'lucide-react';
