@@ -16,6 +16,23 @@ function DebateCategoryPage() {
   const [userHasOpinion, setUserHasOpinion] = useState(false);
   const [markingWinner, setMarkingWinner] = useState({ loading: false, articleId: null });
 
+  // Function to parse and render formatted description
+  const renderFormattedDescription = (description) => {
+    // Simple markdown-like parser
+    let html = description
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+      .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
+      .replace(/^- (.+)$/gm, '<li>$1</li>') // Unordered list
+      .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>') // Ordered list
+      .replace(/\n/g, '<br>'); // Line breaks
+    
+    // Wrap list items in proper tags
+    html = html.replace(/(<li>.*?<\/li>)/s, '<ul>$1</ul>');
+    html = html.replace(/(<ul>.*?<\/li>)(?!<li>)/s, '$1</ul>');
+    
+    return { __html: html };
+  };
+
   useEffect(() => {
     const fetchDebateData = async () => {
       try {
@@ -172,9 +189,9 @@ function DebateCategoryPage() {
               {debateTopic.title}
             </h1>
             
-            <p className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed">
-              {debateTopic.description}
-            </p>
+            <div className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed">
+              <div dangerouslySetInnerHTML={renderFormattedDescription(debateTopic.description)} />
+            </div>
             
             {/* Stats and Actions Bar */}
             <div className="flex flex-wrap gap-4 pt-6 border-t-2 border-gray-200">

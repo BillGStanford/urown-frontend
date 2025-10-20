@@ -3,7 +3,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useUser } from '../context/UserContext';
-import { ArrowLeft, Save, AlertCircle, Clock, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Save, AlertCircle, Clock, MessageSquare, Bold, Italic, List, ListOrdered } from 'lucide-react';
 
 function CreateDebateTopic() {
   const navigate = useNavigate();
@@ -13,12 +13,63 @@ function CreateDebateTopic() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
 
   useEffect(() => {
     if (!user || (user.role !== 'editorial-board' && user.role !== 'admin' && user.role !== 'super-admin')) {
       navigate('/');
     }
   }, [user, navigate]);
+
+  const insertFormatting = (format) => {
+    const textarea = document.getElementById('description');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = description.substring(start, end);
+    let formattedText = '';
+    
+    switch(format) {
+      case 'bold':
+        formattedText = `**${selectedText || 'bold text'}**`;
+        break;
+      case 'italic':
+        formattedText = `*${selectedText || 'italic text'}*`;
+        break;
+      case 'list':
+        formattedText = `\n- ${selectedText || 'List item'}`;
+        break;
+      case 'orderedList':
+        formattedText = `\n1. ${selectedText || 'List item'}`;
+        break;
+      default:
+        formattedText = selectedText;
+    }
+    
+    const newDescription = description.substring(0, start) + formattedText + description.substring(end);
+    setDescription(newDescription);
+    
+    // Set cursor position after the inserted text
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + formattedText.length, start + formattedText.length);
+    }, 0);
+  };
+
+  const renderPreview = () => {
+    // Simple markdown-like parser
+    let html = description
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+      .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
+      .replace(/^- (.+)$/gm, '<li>$1</li>') // Unordered list
+      .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>') // Ordered list
+      .replace(/\n/g, '<br>'); // Line breaks
+    
+    // Wrap list items in proper tags
+    html = html.replace(/(<li>.*?<\/li>)/s, '<ul>$1</ul>');
+    html = html.replace(/(<ul>.*?<\/li>)(?!<li>)/s, '$1</ul>');
+    
+    return { __html: html };
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,7 +83,7 @@ function CreateDebateTopic() {
       setLoading(true);
       setError('');
       
-      // Create debate topic - removed double /api/ prefix
+      // Create debate topic with formatted description
       const response = await axios.post('/debate-topics', {
         title: title.trim(),
         description: description.trim()
@@ -143,20 +194,78 @@ function CreateDebateTopic() {
           </div>
           
           <div className="mb-8">
-            <label htmlFor="description" className="block text-gray-700 text-lg font-bold mb-3">
-              Description
-            </label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={8}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
-              placeholder="Provide context, background information, and specific questions to guide the debate"
-            ></textarea>
-            <div className="text-sm text-gray-500 mt-2">
-              A good description helps users understand the topic and frame their opinions effectively.
+            <div className="flex justify-between items-center mb-3">
+              <label htmlFor="description" className="block text-gray-700 text-lg font-bold">
+                Description
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode(!previewMode)}
+                  className={`px-3 py-1 rounded text-sm font-medium ${
+                    previewMode 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {previewMode ? 'Edit' : 'Preview'}
+                </button>
+              </div>
             </div>
+            
+            {!previewMode ? (
+              <>
+                <div className="flex gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => insertFormatting('bold')}
+                    className="p-2 border border-gray-300 rounded hover:bg-gray-100"
+                    title="Bold"
+                  >
+                    <Bold size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertFormatting('italic')}
+                    className="p-2 border border-gray-300 rounded hover:bg-gray-100"
+                    title="Italic"
+                  >
+                    <Italic size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertFormatting('list')}
+                    className="p-2 border border-gray-300 rounded hover:bg-gray-100"
+                    title="Bullet List"
+                  >
+                    <List size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertFormatting('orderedList')}
+                    className="p-2 border border-gray-300 rounded hover:bg-gray-100"
+                    title="Numbered List"
+                  >
+                    <ListOrdered size={18} />
+                  </button>
+                </div>
+                <textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={8}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+                  placeholder="Provide context, background information, and specific questions to guide the debate. You can use markdown for formatting: **bold**, *italic*, - list items, 1. numbered lists"
+                ></textarea>
+                <div className="text-sm text-gray-500 mt-2">
+                  You can use markdown for formatting. Press the formatting buttons or use markdown syntax directly.
+                </div>
+              </>
+            ) : (
+              <div className="border-2 border-gray-300 rounded-md p-4 min-h-[200px] bg-gray-50">
+                <div dangerouslySetInnerHTML={renderPreview()} />
+              </div>
+            )}
           </div>
           
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-8">

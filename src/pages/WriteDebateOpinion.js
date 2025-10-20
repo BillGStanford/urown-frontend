@@ -21,7 +21,7 @@ function WriteDebateOpinion() {
   const startTimeRef = useRef(Date.now());
   const lastPostTimeRef = useRef(localStorage.getItem('lastPostTime') || 0);
 
-  // Strict censorship word list
+  // Reduced list of prohibited words (only the most offensive)
 const prohibitedWords = [
   // Profanity and offensive terms
   'fuck', 'shit', 'asshole', 'bitch', 'bastard', 'damn', 'dick', 'cock', 'pussy',
@@ -56,15 +56,8 @@ const prohibitedWords = [
   'no experience needed', 'double your money', 'risk-free', 
   'exclusive deal', 'work from home', 'easy money', 'instant payout',
 
-  // Drug and substance abuse references
-  'weed', 'marijuana', 'cannabis', 'pot', 'blunt', 'bong', 'joint', '420', 
-  'cocaine', 'crack', 'heroin', 'meth', 'methamphetamine', 'lsd', 'acid', 
-  'shrooms', 'magic mushrooms', 'ecstasy', 'mdma', 'molly', 'ketamine', 
-  'opioid', 'fentanyl', 'oxy', 'xanax', 'lean', 'purple drank', 'drugs', 
-  'drug dealing', 'dealer', 'snort', 'high af', 'stoned', 'lit af',
-
   // Self-harm and suicide references (sensitive)
-  'cut myself', 'self harm', 'self-harm', 'slit wrists', 'jump off', 
+  'cut myself', 'slit wrists', 'jump off', 
   'overdose', 'painless death', 'end it all', 'die alone', 'worthless', 
   'nobody cares', 'end my life', 'I want to die', 'no way out',
 
@@ -81,21 +74,13 @@ const prohibitedWords = [
   'admin account', 'support team', 'your account is compromised', 
   'reset your password here', 'fake giveaway', 'verify your identity', 
   'login required', 'click to unlock', 'payment pending', 'bitcoin investment',
-
-  // Misc harmful or misleading terms
-  'qanon', 'flat earth', 'covid hoax', 'vax kills', 'plandemic', 'hoax cure',
 ];
 
-
-  // Spam patterns to detect
+  // Reduced spam patterns
   const spamPatterns = [
-    /(.)\1{4,}/, // Repeated characters (4+ times)
-    /\b(\w+)(\s+\1){2,}\b/, // Repeated words
-    /[A-Z]{10,}/, // Excessive capitalization
-    /[!@#$%^&*]{3,}/, // Excessive special characters
+    /(.)\1{6,}/, // Repeated characters (7+ times)
+    /\b(\w+)(\s+\1){3,}\b/, // Repeated words (4+ times)
     /https?:\/\/[^\s]+/, // URLs
-    /\b\d{3,}\b/, // Long numbers
-    /^\s*$/m, // Empty lines
   ];
 
   useEffect(() => {
@@ -135,14 +120,13 @@ const prohibitedWords = [
   const generateMathQuestion = () => {
     const a = Math.floor(Math.random() * 10) + 1;
     const b = Math.floor(Math.random() * 10) + 1;
-    const operations = ['+', '-', '*'];
+    const operations = ['+', '-'];
     const op = operations[Math.floor(Math.random() * operations.length)];
     
     let answer;
     switch(op) {
       case '+': answer = a + b; break;
       case '-': answer = a - b; break;
-      case '*': answer = a * b; break;
       default: answer = a + b;
     }
     
@@ -152,30 +136,30 @@ const prohibitedWords = [
   const validateContent = (title, content) => {
     const errors = [];
     
-    // Time requirement (must spend at least 30 seconds)
-    if (timeSpent < 30) {
-      errors.push('Please spend at least 30 seconds reading and writing your opinion.');
+    // Reduced time requirement (must spend at least 10 seconds)
+    if (timeSpent < 10) {
+      errors.push('Please spend at least 10 seconds reading and writing your opinion.');
     }
     
-    // Rate limiting (must wait 5 minutes between posts)
+    // Reduced rate limiting (must wait 2 minutes between posts)
     const timeSinceLastPost = Date.now() - parseInt(lastPostTimeRef.current);
-    if (timeSinceLastPost < 5 * 60 * 1000) {
-      const remainingTime = Math.ceil((5 * 60 * 1000 - timeSinceLastPost) / 1000);
+    if (timeSinceLastPost < 2 * 60 * 1000) {
+      const remainingTime = Math.ceil((2 * 60 * 1000 - timeSinceLastPost) / 1000);
       errors.push(`Please wait ${remainingTime} seconds before posting another opinion.`);
     }
     
-    // Title requirements
-    if (!title || title.trim().length < 10) {
-      errors.push('Title must be at least 10 characters long.');
+    // Reduced title requirements
+    if (!title || title.trim().length < 5) {
+      errors.push('Title must be at least 5 characters long.');
     }
     if (title.length > 100) {
       errors.push('Title must be less than 100 characters.');
     }
     
-    // Content requirements
+    // Reduced content requirements
     const wordCount = content.trim().split(/\s+/).filter(word => word.length > 0).length;
-    if (wordCount < 50) {
-      errors.push('Content must be at least 50 words long.');
+    if (wordCount < 20) {
+      errors.push('Content must be at least 20 words long.');
     }
     if (wordCount > 1000) {
       errors.push('Content must be less than 1000 words.');
@@ -200,28 +184,10 @@ const prohibitedWords = [
       }
     }
     
-    // Check for meaningful content
+    // Reduced sentence requirement
     const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    if (sentences.length < 3) {
-      errors.push('Content must contain at least 3 complete sentences.');
-    }
-    
-    // Check for excessive punctuation
-    const punctuationCount = (content.match(/[.,;:!?]/g) || []).length;
-    if (punctuationCount > content.length * 0.2) {
-      errors.push('Too much punctuation. Please write naturally.');
-    }
-    
-    // Check for capitalization ratio
-    const capitalCount = (content.match(/[A-Z]/g) || []).length;
-    if (capitalCount > content.length * 0.3) {
-      errors.push('Too much capitalization. Please write naturally.');
-    }
-    
-    // Check for unique words (to prevent copy-paste spam)
-    const uniqueWords = new Set(content.toLowerCase().split(/\s+/));
-    if (uniqueWords.size < wordCount * 0.3) {
-      errors.push('Content appears to be repetitive. Please write more varied content.');
+    if (sentences.length < 1) {
+      errors.push('Content must contain at least 1 complete sentence.');
     }
     
     return errors;
@@ -344,36 +310,28 @@ const prohibitedWords = [
           <p className="text-sm text-gray-500 mt-2">You're posting as <span className="font-medium">Uncreated User</span></p>
         </div>
         
-        {/* Content Requirements Panel */}
+        {/* Simplified Content Requirements Panel */}
         <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-8">
           <div className="flex items-start gap-3">
             <Shield className="text-blue-600 mt-1" size={24} />
             <div>
-              <h3 className="font-bold text-blue-900 mb-3">Content Requirements & Guidelines</h3>
+              <h3 className="font-bold text-blue-900 mb-3">Simple Guidelines</h3>
               <ul className="text-sm text-blue-800 space-y-2">
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 mt-1">•</span>
-                  <span>Minimum 50 words, maximum 1000 words</span>
+                  <span>Minimum 20 words</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 mt-1">•</span>
-                  <span>At least 3 complete sentences</span>
+                  <span>Keep it civil and appropriate</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 mt-1">•</span>
-                  <span>No offensive language, hate speech, or inappropriate content</span>
+                  <span>No spam or repetitive content</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 mt-1">•</span>
-                  <span>No spam, repetitive content, or excessive punctuation</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-600 mt-1">•</span>
-                  <span>Must spend at least 30 seconds on this page</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-600 mt-1">•</span>
-                  <span>5-minute cooldown between posts</span>
+                  <span>2-minute cooldown between posts</span>
                 </li>
               </ul>
             </div>
@@ -412,7 +370,7 @@ const prohibitedWords = [
           
           <div className="mb-6">
             <label htmlFor="title" className="block text-gray-700 font-medium mb-2">
-              Title <span className="text-gray-500 text-sm">(10-100 characters)</span>
+              Title <span className="text-gray-500 text-sm">(5-100 characters)</span>
             </label>
             <input
               type="text"
@@ -428,7 +386,7 @@ const prohibitedWords = [
           
           <div className="mb-6">
             <label htmlFor="content" className="block text-gray-700 font-medium mb-2">
-              Your Opinion <span className="text-gray-500 text-sm">(50-1000 words)</span>
+              Your Opinion <span className="text-gray-500 text-sm">(20-1000 words)</span>
             </label>
             <textarea
               id="content"
@@ -444,11 +402,11 @@ const prohibitedWords = [
             </div>
           </div>
           
-          {/* Math Verification */}
+          {/* Simplified Math Verification */}
           <div className="mb-6 p-4 bg-gray-50 rounded-lg">
             <label className="block text-gray-700 font-medium mb-2">
               <FileText className="inline mr-2" size={18} />
-              Verify you're human: What is {mathQuestion.question}?
+              Quick verification: What is {mathQuestion.question}?
             </label>
             <input
               type="number"
@@ -463,7 +421,7 @@ const prohibitedWords = [
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={loading || timeSpent < 30}
+              disabled={loading || timeSpent < 10}
               className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md flex items-center transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
