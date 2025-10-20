@@ -180,5 +180,5 @@ unauthenticatedAxios.interceptors.response.use(
   }
 );
 
-// Export the axios instances for use in components
-export { axios, unauthenticatedAxios };
+// Export only the authenticated axios instance (unauthenticatedAxios is already exported above)
+export { axios };
