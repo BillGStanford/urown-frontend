@@ -16,23 +16,6 @@ function DebateCategoryPage() {
   const [userHasOpinion, setUserHasOpinion] = useState(false);
   const [markingWinner, setMarkingWinner] = useState({ loading: false, articleId: null });
 
-  // Function to parse and render formatted description
-  const renderFormattedDescription = (description) => {
-    // Simple markdown-like parser
-    let html = description
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
-      .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
-      .replace(/^- (.+)$/gm, '<li>$1</li>') // Unordered list
-      .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>') // Ordered list
-      .replace(/\n/g, '<br>'); // Line breaks
-    
-    // Wrap list items in proper tags
-    html = html.replace(/(<li>.*?<\/li>)/s, '<ul>$1</ul>');
-    html = html.replace(/(<ul>.*?<\/li>)(?!<li>)/s, '$1</ul>');
-    
-    return { __html: html };
-  };
-
   useEffect(() => {
     const fetchDebateData = async () => {
       try {
@@ -42,7 +25,15 @@ function DebateCategoryPage() {
         setDebateTopic(topicResponse.data.topic);
         
         const opinionsResponse = await axios.get(`/debate-topics/${id}/opinions`);
-        setOpinions(opinionsResponse.data.opinions);
+        // Ensure each opinion has the required properties for ArticleCard
+        const formattedOpinions = opinionsResponse.data.opinions.map(opinion => ({
+          ...opinion,
+          display_name: opinion.display_name || opinion.author_name || "Uncreated User",
+          tier: opinion.tier || "Guest",
+          debate_topic_id: parseInt(id),
+          is_debate_winner: winners.some(winner => winner.id === opinion.id)
+        }));
+        setOpinions(formattedOpinions);
         
         const winnersResponse = await axios.get(`/debate-topics/${id}/winners`);
         setWinners(winnersResponse.data.winners);
@@ -93,6 +84,14 @@ function DebateCategoryPage() {
       
       const winnersResponse = await axios.get(`/debate-topics/${id}/winners`);
       setWinners(winnersResponse.data.winners);
+      
+      // Update the opinions to reflect the new winner status
+      setOpinions(prevOpinions => 
+        prevOpinions.map(opinion => ({
+          ...opinion,
+          is_debate_winner: opinion.id === articleId
+        }))
+      );
     } catch (error) {
       console.error('Error marking article as winner:', error);
       alert('Failed to mark article as winner. Please try again.');
@@ -111,6 +110,14 @@ function DebateCategoryPage() {
       
       const winnersResponse = await axios.get(`/debate-topics/${id}/winners`);
       setWinners(winnersResponse.data.winners);
+      
+      // Update the opinions to reflect the removed winner status
+      setOpinions(prevOpinions => 
+        prevOpinions.map(opinion => ({
+          ...opinion,
+          is_debate_winner: opinion.id === articleId ? false : opinion.is_debate_winner
+        }))
+      );
     } catch (error) {
       console.error('Error removing winner status:', error);
       alert('Failed to remove winner status. Please try again.');
@@ -190,7 +197,7 @@ function DebateCategoryPage() {
             </h1>
             
             <div className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed">
-              <div dangerouslySetInnerHTML={renderFormattedDescription(debateTopic.description)} />
+              <div dangerouslySetInnerHTML={{__html: debateTopic.description.replace(/\n/g, '<br>')}} />
             </div>
             
             {/* Stats and Actions Bar */}

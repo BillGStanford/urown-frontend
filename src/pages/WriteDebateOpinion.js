@@ -1,7 +1,7 @@
 // src/pages/WriteDebateOpinion.js
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { unauthenticatedAxios } from '../utils/apiUtils'; // Import the unauthenticated axios instance
+import { unauthenticatedAxios } from '../utils/apiUtils';
 import { ArrowLeft, Save, AlertCircle, Shield, Clock, FileText } from 'lucide-react';
 
 function WriteDebateOpinion() {
