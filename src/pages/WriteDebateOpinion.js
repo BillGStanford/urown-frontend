@@ -1,36 +1,119 @@
 // src/pages/WriteDebateOpinion.js
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { useUser } from '../context/UserContext';
-import { ArrowLeft, Save, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Save, AlertCircle, Shield, Clock, FileText } from 'lucide-react';
 
 function WriteDebateOpinion() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useUser();
   const [debateTopic, setDebateTopic] = useState(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fetching, setFetching] = useState(true);
+  const [hasPosted, setHasPosted] = useState(false);
+  const [timeSpent, setTimeSpent] = useState(0);
+  const [mathQuestion, setMathQuestion] = useState({ question: '', answer: 0 });
+  const [mathAnswer, setMathAnswer] = useState('');
+  const [validationErrors, setValidationErrors] = useState([]);
+  const startTimeRef = useRef(Date.now());
+  const lastPostTimeRef = useRef(localStorage.getItem('lastPostTime') || 0);
+
+  // Strict censorship word list
+const prohibitedWords = [
+  // Profanity and offensive terms
+  'fuck', 'shit', 'asshole', 'bitch', 'bastard', 'damn', 'dick', 'cock', 'pussy',
+  'cunt', 'motherfucker', 'fucker', 'slut', 'whore', 'twat', 'prick', 'wanker', 
+  'bollocks', 'bugger', 'arse', 'douche', 'jackass', 'crap', 'bloody', 'jerk',
+
+  // Racial and ethnic slurs
+  'nigger', 'nigga', 'kike', 'spic', 'chink', 'gook', 'raghead', 'towelhead', 
+  'sandnigger', 'beaner', 'wetback', 'zipperhead', 'gyppo', 'coon', 'jigaboo', 
+  'porchmonkey', 'cracker', 'redskin', 'peckerwood', 'paki',
+
+  // Homophobia, transphobia, ableism, and other slurs
+  'fag', 'faggot', 'tranny', 'dyke', 'queer', 'homo', 'retard', 'retarded', 
+  'spaz', 'cripple', 'lame', 'mongoloid', 'invalid', 'nutcase', 'psycho',
+
+  // Hate speech and violent ideologies
+  'kill yourself', 'go die', 'hang yourself', 'commit suicide', 'terrorist', 
+  'nazi', 'hitler', 'genocide', 'massacre', 'death to', 'murder', 'lynch', 
+  'bomb', 'execute', 'behead', 'exterminate', 'shoot up', 'white power', 
+  'ethnic cleansing', 'heil hitler', 'gas them', 'holocaust denial',
+
+  // Inappropriate and sexually explicit content
+  'porn', 'xxx', 'sex', 'nude', 'naked', 'explicit', 'erotic', 'orgy', 
+  'stripper', 'blowjob', 'handjob', 'rimjob', '69', 'anal', 'cum', 'jizz', 
+  'milf', 'bdsm', 'fetish', 'sex tape', 'sex chat', 'onlyfans', 'escort',
+  'incest', 'stepmom', 'stepsis', 'deepthroat', 'nsfw', 'squirting',
+
+  // Spam and scam indicators
+  'click here', 'buy now', 'free money', 'make money fast', 'limited offer', 
+  'act now', 'call now', 'winner', 'congratulations', 'claim your prize', 
+  'earn cash', 'guaranteed income', 'fast cash', 'get rich quick', 
+  'no experience needed', 'double your money', 'risk-free', 
+  'exclusive deal', 'work from home', 'easy money', 'instant payout',
+
+  // Drug and substance abuse references
+  'weed', 'marijuana', 'cannabis', 'pot', 'blunt', 'bong', 'joint', '420', 
+  'cocaine', 'crack', 'heroin', 'meth', 'methamphetamine', 'lsd', 'acid', 
+  'shrooms', 'magic mushrooms', 'ecstasy', 'mdma', 'molly', 'ketamine', 
+  'opioid', 'fentanyl', 'oxy', 'xanax', 'lean', 'purple drank', 'drugs', 
+  'drug dealing', 'dealer', 'snort', 'high af', 'stoned', 'lit af',
+
+  // Self-harm and suicide references (sensitive)
+  'cut myself', 'self harm', 'self-harm', 'slit wrists', 'jump off', 
+  'overdose', 'painless death', 'end it all', 'die alone', 'worthless', 
+  'nobody cares', 'end my life', 'I want to die', 'no way out',
+
+  // Other harmful, abusive, or trolling language
+  'kill yourself', 'nobody loves you', 'you should die', 'unlovable', 
+  'go to hell', 'burn in hell', 'ugly af', 'fatass', 'loser', 'idiot', 
+  'stupid', 'dumbass', 'moron', 'trash', 'garbage', 'failure', 'worthless',
+
+  // Online trolling, harassment, and bullying
+  'dox', 'doxx', 'doxxing', 'leak your address', 'swat you', 'swatting', 
+  'hacked you', 'post your nudes', 'revenge porn', 'send nudes', 'leaked pics',
+
+  // Impersonation, scams, and misleading terms
+  'admin account', 'support team', 'your account is compromised', 
+  'reset your password here', 'fake giveaway', 'verify your identity', 
+  'login required', 'click to unlock', 'payment pending', 'bitcoin investment',
+
+  // Misc harmful or misleading terms
+  'qanon', 'flat earth', 'covid hoax', 'vax kills', 'plandemic', 'hoax cure',
+];
+
+
+  // Spam patterns to detect
+  const spamPatterns = [
+    /(.)\1{4,}/, // Repeated characters (4+ times)
+    /\b(\w+)(\s+\1){2,}\b/, // Repeated words
+    /[A-Z]{10,}/, // Excessive capitalization
+    /[!@#$%^&*]{3,}/, // Excessive special characters
+    /https?:\/\/[^\s]+/, // URLs
+    /\b\d{3,}\b/, // Long numbers
+    /^\s*$/m, // Empty lines
+  ];
 
   useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
     const fetchDebateTopic = async () => {
       try {
         setFetching(true);
-        // Fetch debate topic - removed leading /api/
         const response = await axios.get(`/debate-topics/${id}`);
         setDebateTopic(response.data.topic);
-        
-        // Set a default title based on the debate topic
         setTitle(`My Opinion: ${response.data.topic.title}`);
+        
+        // Check if user has already posted
+        const postedDebates = JSON.parse(localStorage.getItem('postedDebates') || '[]');
+        if (postedDebates.includes(id)) {
+          setHasPosted(true);
+        }
+        
+        // Generate math question
+        generateMathQuestion();
       } catch (error) {
         console.error('Error fetching debate topic:', error);
         setError('Failed to load debate topic. It may have expired or been removed.');
@@ -40,25 +123,150 @@ function WriteDebateOpinion() {
     };
     
     fetchDebateTopic();
-  }, [id, user, navigate]);
+    
+    // Update time spent every second
+    const timer = setInterval(() => {
+      setTimeSpent(Math.floor((Date.now() - startTimeRef.current) / 1000));
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [id]);
+
+  const generateMathQuestion = () => {
+    const a = Math.floor(Math.random() * 10) + 1;
+    const b = Math.floor(Math.random() * 10) + 1;
+    const operations = ['+', '-', '*'];
+    const op = operations[Math.floor(Math.random() * operations.length)];
+    
+    let answer;
+    switch(op) {
+      case '+': answer = a + b; break;
+      case '-': answer = a - b; break;
+      case '*': answer = a * b; break;
+      default: answer = a + b;
+    }
+    
+    setMathQuestion({ question: `${a} ${op} ${b}`, answer });
+  };
+
+  const validateContent = (title, content) => {
+    const errors = [];
+    
+    // Time requirement (must spend at least 30 seconds)
+    if (timeSpent < 30) {
+      errors.push('Please spend at least 30 seconds reading and writing your opinion.');
+    }
+    
+    // Rate limiting (must wait 5 minutes between posts)
+    const timeSinceLastPost = Date.now() - parseInt(lastPostTimeRef.current);
+    if (timeSinceLastPost < 5 * 60 * 1000) {
+      const remainingTime = Math.ceil((5 * 60 * 1000 - timeSinceLastPost) / 1000);
+      errors.push(`Please wait ${remainingTime} seconds before posting another opinion.`);
+    }
+    
+    // Title requirements
+    if (!title || title.trim().length < 10) {
+      errors.push('Title must be at least 10 characters long.');
+    }
+    if (title.length > 100) {
+      errors.push('Title must be less than 100 characters.');
+    }
+    
+    // Content requirements
+    const wordCount = content.trim().split(/\s+/).filter(word => word.length > 0).length;
+    if (wordCount < 50) {
+      errors.push('Content must be at least 50 words long.');
+    }
+    if (wordCount > 1000) {
+      errors.push('Content must be less than 1000 words.');
+    }
+    
+    // Check for prohibited words
+    const lowerTitle = title.toLowerCase();
+    const lowerContent = content.toLowerCase();
+    
+    for (const word of prohibitedWords) {
+      if (lowerTitle.includes(word) || lowerContent.includes(word)) {
+        errors.push('Content contains prohibited words or phrases. Please keep it civil and appropriate.');
+        break;
+      }
+    }
+    
+    // Check for spam patterns
+    for (const pattern of spamPatterns) {
+      if (pattern.test(title) || pattern.test(content)) {
+        errors.push('Content appears to be spam or contains repetitive patterns. Please write meaningful content.');
+        break;
+      }
+    }
+    
+    // Check for meaningful content
+    const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    if (sentences.length < 3) {
+      errors.push('Content must contain at least 3 complete sentences.');
+    }
+    
+    // Check for excessive punctuation
+    const punctuationCount = (content.match(/[.,;:!?]/g) || []).length;
+    if (punctuationCount > content.length * 0.2) {
+      errors.push('Too much punctuation. Please write naturally.');
+    }
+    
+    // Check for capitalization ratio
+    const capitalCount = (content.match(/[A-Z]/g) || []).length;
+    if (capitalCount > content.length * 0.3) {
+      errors.push('Too much capitalization. Please write naturally.');
+    }
+    
+    // Check for unique words (to prevent copy-paste spam)
+    const uniqueWords = new Set(content.toLowerCase().split(/\s+/));
+    if (uniqueWords.size < wordCount * 0.3) {
+      errors.push('Content appears to be repetitive. Please write more varied content.');
+    }
+    
+    return errors;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!title.trim() || !content.trim()) {
-      setError('Title and content are required');
+    // Validate math answer
+    if (parseInt(mathAnswer) !== mathQuestion.answer) {
+      setError('Incorrect answer to the math question. Please try again.');
+      generateMathQuestion();
+      setMathAnswer('');
       return;
     }
     
+    // Validate content
+    const errors = validateContent(title, content);
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      setError('Please fix the following issues before submitting:');
+      return;
+    }
+    
+    setValidationErrors([]);
+    setError('');
+    
     try {
       setLoading(true);
-      setError('');
       
-      // Create the opinion as an article - removed leading /api/
+      // Create the opinion as an article
       const response = await axios.post(`/debate-topics/${id}/opinions`, {
         title: title.trim(),
-        content: content.trim()
+        content: content.trim(),
+        author_name: "Uncreated User"
       });
+      
+      // Store in localStorage
+      const postedDebates = JSON.parse(localStorage.getItem('postedDebates') || '[]');
+      postedDebates.push(id);
+      localStorage.setItem('postedDebates', JSON.stringify(postedDebates));
+      
+      // Update last post time
+      localStorage.setItem('lastPostTime', Date.now().toString());
+      lastPostTimeRef.current = Date.now();
       
       // Redirect to the debate category page
       navigate(`/debate/${id}`);
@@ -102,6 +310,26 @@ function WriteDebateOpinion() {
     );
   }
 
+  if (hasPosted) {
+    return (
+      <div className="min-h-screen bg-white py-12 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-3xl font-bold mb-6">Already Posted</h1>
+          <p className="text-xl text-gray-600 mb-8">You have already shared your opinion on this debate topic.</p>
+          <Link to={`/debate/${id}`} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition-colors duration-200">
+            Back to Debate
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="min-h-screen bg-white py-12 px-6">
       <div className="max-w-4xl mx-auto">
@@ -113,28 +341,78 @@ function WriteDebateOpinion() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Write Your Opinion</h1>
           <p className="text-gray-600">Share your thoughts on: <span className="font-medium">{debateTopic.title}</span></p>
+          <p className="text-sm text-gray-500 mt-2">You're posting as <span className="font-medium">Uncreated User</span></p>
+        </div>
+        
+        {/* Content Requirements Panel */}
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-8">
+          <div className="flex items-start gap-3">
+            <Shield className="text-blue-600 mt-1" size={24} />
+            <div>
+              <h3 className="font-bold text-blue-900 mb-3">Content Requirements & Guidelines</h3>
+              <ul className="text-sm text-blue-800 space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-1">•</span>
+                  <span>Minimum 50 words, maximum 1000 words</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-1">•</span>
+                  <span>At least 3 complete sentences</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-1">•</span>
+                  <span>No offensive language, hate speech, or inappropriate content</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-1">•</span>
+                  <span>No spam, repetitive content, or excessive punctuation</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-1">•</span>
+                  <span>Must spend at least 30 seconds on this page</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-1">•</span>
+                  <span>5-minute cooldown between posts</span>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
         
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">{debateTopic.title}</h2>
           <p className="text-gray-700">{debateTopic.description}</p>
           
-          <div className="mt-4 text-sm text-yellow-700 bg-yellow-50 p-3 rounded-md">
-            <AlertCircle className="inline mr-2" size={16} />
-            Remember: You can only write one opinion per debate topic. Make it count!
+          <div className="mt-4 flex items-center justify-between">
+            <div className="text-sm text-yellow-700 bg-yellow-50 p-3 rounded-md flex items-center">
+              <AlertCircle className="inline mr-2" size={16} />
+              Remember: You can only write one opinion per debate topic. Make it count!
+            </div>
+            <div className="text-sm text-gray-600 flex items-center gap-2">
+              <Clock size={16} />
+              Time spent: {formatTime(timeSpent)}
+            </div>
           </div>
         </div>
         
         <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
           {error && (
             <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
-              {error}
+              <p className="font-semibold mb-2">{error}</p>
+              {validationErrors.length > 0 && (
+                <ul className="list-disc list-inside text-sm space-y-1">
+                  {validationErrors.map((err, idx) => (
+                    <li key={idx}>{err}</li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
           
           <div className="mb-6">
             <label htmlFor="title" className="block text-gray-700 font-medium mb-2">
-              Title
+              Title <span className="text-gray-500 text-sm">(10-100 characters)</span>
             </label>
             <input
               type="text"
@@ -143,12 +421,14 @@ function WriteDebateOpinion() {
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter a title for your opinion"
+              maxLength={100}
             />
+            <p className="text-sm text-gray-500 mt-1">{title.length}/100 characters</p>
           </div>
           
           <div className="mb-6">
             <label htmlFor="content" className="block text-gray-700 font-medium mb-2">
-              Your Opinion
+              Your Opinion <span className="text-gray-500 text-sm">(50-1000 words)</span>
             </label>
             <textarea
               id="content"
@@ -158,13 +438,33 @@ function WriteDebateOpinion() {
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Share your thoughts on this debate topic..."
             ></textarea>
+            <div className="flex justify-between text-sm text-gray-500 mt-1">
+              <span>{content.trim().split(/\s+/).filter(word => word.length > 0).length} words</span>
+              <span>{content.split(/[.!?]+/).filter(s => s.trim().length > 0).length} sentences</span>
+            </div>
+          </div>
+          
+          {/* Math Verification */}
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <label className="block text-gray-700 font-medium mb-2">
+              <FileText className="inline mr-2" size={18} />
+              Verify you're human: What is {mathQuestion.question}?
+            </label>
+            <input
+              type="number"
+              value={mathAnswer}
+              onChange={(e) => setMathAnswer(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter your answer"
+              required
+            />
           </div>
           
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md flex items-center transition-colors duration-200 disabled:opacity-50"
+              disabled={loading || timeSpent < 30}
+              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md flex items-center transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>

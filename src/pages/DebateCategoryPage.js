@@ -30,7 +30,12 @@ function DebateCategoryPage() {
         const winnersResponse = await axios.get(`/debate-topics/${id}/winners`);
         setWinners(winnersResponse.data.winners);
         
-        if (user) {
+        // Check if user has posted using localStorage
+        const postedDebates = JSON.parse(localStorage.getItem('postedDebates') || '[]');
+        if (postedDebates.includes(id)) {
+          setUserHasOpinion(true);
+        } else if (user) {
+          // Still check for logged-in users who might have posted before this change
           const userOpinion = opinionsResponse.data.opinions.find(opinion => opinion.user_id === user.id);
           setUserHasOpinion(!!userOpinion);
         }
@@ -187,7 +192,7 @@ function DebateCategoryPage() {
                 </div>
               )}
               
-              {user && !userHasOpinion && (
+              {!userHasOpinion && (
                 <Link 
                   to={`/debate/${id}/write`}
                   className="inline-flex items-center gap-2 bg-black text-white px-6 py-2.5 rounded-lg font-bold hover:bg-gray-800 transition-all duration-200 ml-auto"
@@ -197,7 +202,7 @@ function DebateCategoryPage() {
                 </Link>
               )}
               
-              {user && userHasOpinion && (
+              {userHasOpinion && (
                 <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2.5 rounded-lg ml-auto">
                   <MessageSquare size={20} />
                   <span className="font-bold">You've Contributed</span>
@@ -233,7 +238,7 @@ function DebateCategoryPage() {
               <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto">
                 Be the first to share your thoughts on this debate topic!
               </p>
-              {user && !userHasOpinion && (
+              {!userHasOpinion && (
                 <Link 
                   to={`/debate/${id}/write`}
                   className="inline-flex items-center gap-2 bg-black text-white px-8 py-4 text-lg font-bold hover:bg-gray-800 transition-colors rounded-lg"
