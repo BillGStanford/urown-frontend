@@ -218,6 +218,17 @@ function Header({ user, onLogout }) {
                   {isUserDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden animate-dropdown">
                       <div className="py-2">
+                        {/* New Profile Link */}
+                        <Link
+                          to={`/user/${encodeURIComponent(user.display_name)}`}
+                          className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-150"
+                          onClick={() => setIsUserDropdownOpen(false)}
+                          role="menuitem"
+                        >
+                          <User className="h-4 w-4" />
+                          View Profile
+                        </Link>
+                        <div className="border-t border-gray-100 my-1"></div>
                         <Link
                           to="/settings"
                           className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-150"
@@ -372,13 +383,18 @@ function Header({ user, onLogout }) {
                   
                   <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-2"></div>
                   
+                  {/* User Profile Section in Mobile Menu */}
                   <div className="bg-white px-4 py-3 rounded-xl border border-gray-200">
-                    <span className="text-sm font-semibold flex items-center gap-2 text-gray-900">
+                    <Link
+                      to={`/user/${encodeURIComponent(user.display_name)}`}
+                      className="text-sm font-semibold flex items-center gap-2 text-gray-900 hover:text-orange-600 transition-colors"
+                      onClick={closeMobileMenu}
+                    >
                       <div className="h-6 w-6 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
                         {user.display_name.charAt(0).toUpperCase()}
                       </div>
                       {user.display_name}
-                    </span>
+                    </Link>
                   </div>
                   
                   <Link
