@@ -24,6 +24,7 @@ import ContactDashboard from './pages/ContactDashboard';
 import ReportedArticlesDashboard from './pages/ReportedArticlesDashboard';
 import CommunityGuidelines from './pages/important/CommunityGuidelines';
 import PartnersPage from './pages/PartnersPage';
+import UserProfile from './pages/UserProfile';
 import GlobalError from './components/GlobalError';
 
 const API_URL = process.env.NODE_ENV === 'production' 
@@ -67,6 +68,7 @@ function AppRoutes() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/debate/:id" element={<DebateCategoryPage />} />
           <Route path="/debate/:id/write" element={<WriteDebateOpinion />} />
+            <Route path="/user/:display_name" element={<UserProfile />} />
           <Route 
             path="/signup" 
             element={user ? <Navigate to="/dashboard" /> : <SignupPage />} 
