@@ -3,6 +3,7 @@ import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useUser } from '../context/UserContext';
+import { User, Mail, Phone, Calendar, Lock, CheckCircle, AlertCircle, Eye, EyeOff, Sparkles } from 'lucide-react';
 
 function SignupPage() {
   const { login } = useUser();
@@ -18,6 +19,8 @@ function SignupPage() {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -151,192 +154,279 @@ function SignupPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-16">
-      <div className="text-center mb-12">
-        <h1 className="text-6xl font-bold mb-4">JOIN UROWN</h1>
-        <p className="text-2xl font-bold">Start sharing your opinions with the world</p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {errors.general && (
-          <div className="error-message text-center text-2xl">
-            {errors.general}
-          </div>
-        )}
-
-        {/* Contact Information */}
-        <div className="bg-gray-50 p-8 border-2 border-black">
-          <h2 className="text-3xl font-bold mb-6">CONTACT INFORMATION</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="form-label">EMAIL (REQUIRED)</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="your@email.com"
-                required
-              />
-              {errors.email && <div className="error-message">{errors.email}</div>}
-            </div>
-
-            <div>
-              <label className="form-label">PHONE NUMBER (OPTIONAL)</label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="+1234567890"
-              />
-              {errors.phone && <div className="error-message">{errors.phone}</div>}
-              <p className="text-sm text-gray-600 mt-2">
-                Optional - used for account recovery
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl w-full">
+        <div className="text-center mb-10">
+          <div className="flex justify-center items-center gap-3 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <Sparkles className="h-7 w-7 text-white" />
             </div>
           </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Join Our Community</h2>
+          <p className="text-lg text-gray-600">Start sharing your opinions with the world</p>
         </div>
 
-        {/* Personal Information */}
-        <div className="bg-gray-50 p-8 border-2 border-black">
-          <h2 className="text-3xl font-bold mb-6">PERSONAL INFORMATION</h2>
-          
-          <div className="space-y-6">
-            <div>
-              <label className="form-label">NAME (OPTIONAL & NEVER DISCLOSED)</label>
-              <input
-                type="text"
-                name="full_name"
-                value={formData.full_name}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="John Doe"
-              />
-              {errors.full_name && <div className="error-message">{errors.full_name}</div>}
-              <p className="text-sm text-gray-600 mt-2">
-                Optional - this information will never be disclosed to other users
-              </p>
+        <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/30 overflow-hidden">
+          <form onSubmit={handleSubmit} className="p-8 space-y-8">
+            {errors.general && (
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                <p className="text-red-700 font-medium">{errors.general}</p>
+              </div>
+            )}
+
+            {/* Contact Information */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 bg-orange-100 rounded-xl flex items-center justify-center">
+                  <Mail className="h-4 w-4 text-orange-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Contact Information</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 rounded-xl border ${errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'} focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200`}
+                      placeholder="your@email.com"
+                      required
+                    />
+                    {errors.email && (
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        <AlertCircle className="h-5 w-5 text-red-500" />
+                      </div>
+                    )}
+                  </div>
+                  {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Phone Number <span className="text-gray-400">(Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 rounded-xl border ${errors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'} focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200`}
+                      placeholder="+1234567890"
+                    />
+                    {errors.phone && (
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        <AlertCircle className="h-5 w-5 text-red-500" />
+                      </div>
+                    )}
+                  </div>
+                  {errors.phone && <p className="mt-2 text-sm text-red-600">{errors.phone}</p>}
+                  <p className="mt-2 text-xs text-gray-500">Used for account recovery</p>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="form-label">DISPLAY NAME *</label>
-              <input
-                type="text"
-                name="display_name"
-                value={formData.display_name}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="JohnD_Writer"
-                required
-              />
-              {errors.display_name && <div className="error-message">{errors.display_name}</div>}
-              <p className="text-lg font-bold mt-2 text-gray-600">
-                This is how other users will see you
-              </p>
+            {/* Personal Information */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center">
+                  <User className="h-4 w-4 text-red-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Personal Information</h3>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Full Name <span className="text-gray-400">(Optional & Never Disclosed)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="full_name"
+                    value={formData.full_name}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 rounded-xl border ${errors.full_name ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'} focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200`}
+                    placeholder="John Doe"
+                  />
+                  {errors.full_name && (
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <AlertCircle className="h-5 w-5 text-red-500" />
+                    </div>
+                  )}
+                </div>
+                {errors.full_name && <p className="mt-2 text-sm text-red-600">{errors.full_name}</p>}
+                <p className="mt-2 text-xs text-gray-500">This information will never be disclosed to other users</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Display Name <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="display_name"
+                    value={formData.display_name}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 rounded-xl border ${errors.display_name ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'} focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200`}
+                    placeholder="JohnD_Writer"
+                    required
+                  />
+                  {errors.display_name && (
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <AlertCircle className="h-5 w-5 text-red-500" />
+                    </div>
+                  )}
+                </div>
+                {errors.display_name && <p className="mt-2 text-sm text-red-600">{errors.display_name}</p>}
+                <p className="mt-2 text-xs text-gray-500">This is how other users will see you</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Date of Birth <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="date"
+                    name="date_of_birth"
+                    value={formData.date_of_birth}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 rounded-xl border ${errors.date_of_birth ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'} focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200`}
+                    required
+                  />
+                  {errors.date_of_birth && (
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <AlertCircle className="h-5 w-5 text-red-500" />
+                    </div>
+                  )}
+                </div>
+                {errors.date_of_birth && <p className="mt-2 text-sm text-red-600">{errors.date_of_birth}</p>}
+                <p className="mt-2 text-xs text-gray-500">You must be at least 15 years old</p>
+              </div>
             </div>
 
-            <div>
-              <label className="form-label">DATE OF BIRTH *</label>
-              <input
-                type="date"
-                name="date_of_birth"
-                value={formData.date_of_birth}
-                onChange={handleChange}
-                className="input-field"
-                required
-              />
-              {errors.date_of_birth && <div className="error-message">{errors.date_of_birth}</div>}
-              <p className="text-lg font-bold mt-2 text-gray-600">
-                You must be at least 15 years old
-              </p>
+            {/* Security */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 bg-pink-100 rounded-xl flex items-center justify-center">
+                  <Lock className="h-4 w-4 text-pink-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Security</h3>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 pr-12 rounded-xl border ${errors.password ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'} focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200`}
+                    placeholder="Create a strong password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+                  </button>
+                </div>
+                {errors.password && <p className="mt-2 text-sm text-red-600">{errors.password}</p>}
+                <p className="mt-2 text-xs text-gray-500">Must be 8+ characters with uppercase, lowercase, and number</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Confirm Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirm_password"
+                    value={formData.confirm_password}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 pr-12 rounded-xl border ${errors.confirm_password ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'} focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200`}
+                    placeholder="Confirm your password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+                  </button>
+                </div>
+                {errors.confirm_password && <p className="mt-2 text-sm text-red-600">{errors.confirm_password}</p>}
+              </div>
             </div>
-          </div>
+
+            {/* Terms */}
+            <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-100">
+              <label className="flex items-start space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="terms_agreed"
+                  checked={formData.terms_agreed}
+                  onChange={handleChange}
+                  className="mt-1 w-5 h-5 text-orange-600 rounded focus:ring-orange-500"
+                  required
+                />
+<div>
+  <span className="text-sm font-semibold text-gray-900">
+    I agree to the <a 
+      href="/community-guidelines" 
+      className="text-blue-600 hover:underline"
+      target="_blank" 
+      rel="noopener noreferrer"
+    >
+      Community Guidelines
+    </a> 
+    <span className="text-red-500">*</span>
+  </span>
+  <p className="text-xs text-gray-600 mt-1">
+    By checking this box, you agree to follow our community guidelines.
+  </p>
+</div>
+
+              </label>
+              {errors.terms_agreed && <p className="mt-3 text-sm text-red-600">{errors.terms_agreed}</p>}
+            </div>
+
+            {/* Submit */}
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold py-4 px-6 rounded-2xl hover:from-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg"
+              >
+                {loading ? 'Creating Account...' : 'Create Account'}
+              </button>
+            </div>
+          </form>
         </div>
 
-        {/* Security */}
-        <div className="bg-gray-50 p-8 border-2 border-black">
-          <h2 className="text-3xl font-bold mb-6">SECURITY</h2>
-          
-          <div className="space-y-6">
-            <div>
-              <label className="form-label">PASSWORD *</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="Create a strong password"
-                required
-              />
-              {errors.password && <div className="error-message">{errors.password}</div>}
-              <p className="text-lg font-bold mt-2 text-gray-600">
-                Must be 8+ characters with uppercase, lowercase, and number
-              </p>
-            </div>
-
-            <div>
-              <label className="form-label">CONFIRM PASSWORD *</label>
-              <input
-                type="password"
-                name="confirm_password"
-                value={formData.confirm_password}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="Confirm your password"
-                required
-              />
-              {errors.confirm_password && <div className="error-message">{errors.confirm_password}</div>}
-            </div>
-          </div>
+        <div className="text-center mt-8">
+          <p className="text-gray-700">
+            Already have an account?{' '}
+            <Link to="/login" className="font-semibold text-orange-600 hover:text-orange-700 transition-colors">
+              Login Here
+            </Link>
+          </p>
         </div>
-
-        {/* Terms */}
-        <div className="bg-gray-50 p-8 border-2 border-black">
-          <label className="flex items-start space-x-4">
-            <input
-              type="checkbox"
-              name="terms_agreed"
-              checked={formData.terms_agreed}
-              onChange={handleChange}
-              className="mt-2 w-6 h-6"
-              required
-            />
-            <div>
-              <span className="text-2xl font-bold">
-                I AGREE TO THE TERMS OF SERVICE *
-              </span>
-              <p className="text-lg font-bold mt-2 text-gray-600">
-                By checking this box, you agree to follow our community guidelines and terms of service
-              </p>
-            </div>
-          </label>
-          {errors.terms_agreed && <div className="error-message mt-4">{errors.terms_agreed}</div>}
-        </div>
-
-        {/* Submit */}
-        <div className="text-center">
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary text-3xl px-16 py-6 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'CREATING ACCOUNT...' : 'CREATE ACCOUNT'}
-          </button>
-        </div>
-      </form>
-
-      <div className="text-center mt-12">
-        <p className="text-xl font-bold">
-          Already have an account?{' '}
-          <Link to="/login" className="underline hover:no-underline">
-            LOGIN HERE
-          </Link>
-        </p>
       </div>
     </div>
   );

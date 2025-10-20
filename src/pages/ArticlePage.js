@@ -14,7 +14,22 @@ import {
   EmailIcon
 } from 'react-share';
 import { Helmet } from 'react-helmet';
-import { Flag, ChevronDown, ChevronUp, Award, MessageSquare, Share2, Copy, Eye, X } from 'lucide-react';
+import { 
+  Flag, 
+  ChevronDown, 
+  ChevronUp, 
+  Award, 
+  MessageSquare, 
+  Share2, 
+  Copy, 
+  Eye, 
+  X, 
+  Calendar,
+  User,
+  Clock,
+  Bookmark,
+  TrendingUp
+} from 'lucide-react';
 
 const ArticlePage = () => {
   const { id, slug } = useParams();
@@ -33,6 +48,7 @@ const ArticlePage = () => {
   const [reportSuccess, setReportSuccess] = useState(false);
   const [showCounters, setShowCounters] = useState(true);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
   const abortControllerRef = useRef(null);
   const paywallTimerRef = useRef(null);
 
@@ -246,6 +262,19 @@ const ArticlePage = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleBookmark = () => {
+    if (!user) {
+      handleLogin();
+      return;
+    }
+    
+    // Toggle bookmark state
+    setBookmarked(!bookmarked);
+    
+    // Here you would typically save the bookmark to your backend
+    // For now, we'll just update the local state
+  };
+
   const handleReportArticle = () => {
     if (!user) {
       handleLogin();
@@ -316,26 +345,26 @@ const ArticlePage = () => {
     }
   };
 
-  const getStatusGradient = (status) => {
-    switch (status) {
-      case 'debate':
-        return 'from-blue-500 to-blue-700';
-      case 'certified':
-        return 'from-purple-500 to-purple-700';
-      case 'winner':
-        return 'from-yellow-500 to-orange-500';
-      default:
-        return 'from-gray-500 to-gray-700';
-    }
-  };
-
-  // Format article content with proper line breaks and improved styling
+  // Format article content with proper HTML rendering
   const formatContent = (content) => {
     return content
       .split('\n\n')
       .map(paragraph => paragraph.trim())
       .filter(paragraph => paragraph.length > 0)
-      .map((paragraph, index) => `<p key=${index} class="mb-8 text-xl leading-relaxed font-serif text-gray-800">${paragraph}</p>`)
+      .map((paragraph, index) => {
+        // Check if it's a blockquote
+        if (paragraph.includes('<blockquote')) {
+          return paragraph;
+        }
+        // Check if it's a list
+        else if (paragraph.includes('<ul>') || paragraph.includes('<ol>')) {
+          return paragraph;
+        }
+        // Regular paragraph
+        else {
+          return `<p key=${index} class="article-paragraph">${paragraph}</p>`;
+        }
+      })
       .join('');
   };
 
@@ -349,8 +378,13 @@ const ArticlePage = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gradient-to-r from-yellow-500 to-orange-500 mx-auto"></div>
-          <div className="text-2xl mt-4 font-serif font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-600 to-orange-600">Loading article...</div>
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-orange-500 mx-auto"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="h-8 w-8 bg-orange-500 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+          <div className="mt-6 text-xl font-serif">Loading article...</div>
         </div>
       </div>
     );
@@ -360,11 +394,11 @@ const ArticlePage = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center max-w-2xl px-4">
-          <h1 className="text-4xl font-serif mb-4 font-black bg-clip-text text-transparent bg-gradient-to-r from-gray-800 to-gray-600">Article Not Found</h1>
+          <h1 className="text-4xl font-serif mb-4">Article Not Found</h1>
           <p className="text-xl mb-8 font-serif text-gray-600">The article you're looking for doesn't exist or has been removed.</p>
           <button 
             onClick={() => navigate('/')}
-            className="px-6 py-3 font-serif font-bold text-white bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1"
+            className="px-6 py-3 font-serif bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1"
           >
             Go to Homepage
           </button>
@@ -378,176 +412,255 @@ const ArticlePage = () => {
 
   return (
     <>
-<Helmet>
-  <title>{article.title} - UROWN</title>
-  <meta property="og:title" content={article.title} />
-  {/* Change the description to use the article title instead of content */}
-  <meta property="og:description" content={article.title} />
-  <meta property="og:url" content={shareUrl} />
-  <meta property="og:type" content="article" />
-  <meta property="og:image" content="https://urown-delta.vercel.app/urowncover.jpg" />
-  <meta property="og:image:secure_url" content="https://urown-delta.vercel.app/urowncover.jpg" />
-  <meta property="og:image:type" content="image/jpeg" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content={article.title} />
-  {/* Change the Twitter description to use the article title as well */}
-  <meta name="twitter:description" content={article.title} />
-  <meta name="twitter:image" content="https://urown-delta.vercel.app/urowncover.jpg" />
-  
-  {/* Also update the general description meta tag */}
-  <meta name="description" content={article.title} />
-</Helmet>
+      <Helmet>
+        <title>{article.title} - UROWN</title>
+        <meta property="og:title" content={article.title} />
+        <meta property="og:description" content={article.title} />
+        <meta property="og:url" content={shareUrl} />
+        <meta property="og:type" content="article" />
+        <meta property="og:image" content="https://urown-delta.vercel.app/urowncover.jpg" />
+        <meta property="og:image:secure_url" content="https://urown-delta.vercel.app/urowncover.jpg" />
+        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={article.title} />
+        <meta name="twitter:description" content={article.title} />
+        <meta name="twitter:image" content="https://urown-delta.vercel.app/urowncover.jpg" />
+        
+        <meta name="description" content={article.title} />
+      </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        {/* Non-intrusive auth banner for non-logged users */}
-        {!user && (
-          <div className="bg-white/80 backdrop-blur-md py-3 px-4 flex justify-between items-center border-b border-gray-200 sticky top-0 z-10">
-            <div className="text-sm font-serif text-gray-700">
-              Enjoying this article? <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-orange-600">Sign up</span> to save articles to read later.
-            </div>
-            <div className="flex space-x-2">
-              <button 
-                onClick={handleLogin}
-                className="text-sm bg-white border border-gray-300 px-3 py-1 rounded-lg font-serif font-medium hover:bg-gray-50 transition-all duration-300 hover:shadow-sm"
-              >
-                Log In
-              </button>
-              <button 
-                onClick={handleSignup}
-                className="text-sm bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 rounded-lg font-serif font-bold hover:shadow-md transform transition-all duration-300 hover:-translate-y-0.5"
-              >
-                Sign Up
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Article Header */}
-        <header className="max-w-4xl mx-auto px-4 py-8 md:py-12">
-          <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-6 md:p-8 border border-white/70 mb-8 transform transition-all duration-300 hover:shadow-xl">
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-              <div className="flex items-center mb-4 md:mb-0">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 bg-gradient-to-r ${getTierGradient(article.tier)} shadow-md`}>
-                  <span className="text-xl">{getTierEmoji(article.tier)}</span>
+        {/* Newspaper-style Header */}
+        <header className="bg-white border-b-4 border-black shadow-lg">
+          <div className="max-w-6xl mx-auto px-4 py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-black flex items-center justify-center mr-4">
+                  <span className="text-white font-bold text-xl">U</span>
                 </div>
                 <div>
-                  <span className="text-xl font-bold">{article.display_name}</span>
-                  <div className={`inline-block ml-3 px-2 py-1 text-xs font-bold rounded-full bg-gradient-to-r ${getTierGradient(article.tier)} text-white shadow-sm`}>
-                    {article.tier?.toUpperCase()} TIER
-                  </div>
+                  <h1 className="text-2xl font-serif font-black tracking-tight">UROWN</h1>
+                  <p className="text-xs font-serif italic">Your Voice Matters</p>
                 </div>
               </div>
               
-              <div className="flex items-center text-gray-600 text-sm md:text-base font-serif">
-                <div className="flex items-center mr-4">
-                  <Eye className="mr-1" size={16} />
-                  <span>{article.views} views</span>
+              <div className="flex items-center space-x-4">
+                <div className="text-right">
+                  <p className="text-xs font-serif text-gray-600">TODAY'S PAPER</p>
+                  <p className="text-sm font-serif">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
-                <span>{formatDate(article.created_at)}</span>
-              </div>
-            </div>
-            
-            <h1 className="text-4xl md:text-5xl font-serif font-black mb-6 leading-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700">
-              {article.title}
-            </h1>
-            
-            {/* Article meta tags */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              <div className="bg-gradient-to-r from-gray-600 to-gray-800 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center shadow-md">
-                <MessageSquare className="mr-1" size={14} />
-                Opinion
-              </div>
-              {article.certified && (
-                <div className={`bg-gradient-to-r ${getStatusGradient('certified')} text-white px-3 py-1 rounded-full text-sm font-bold flex items-center shadow-md`}>
-                  <Award className="mr-1" size={14} />
-                  Editorial Certified
-                </div>
-              )}
-              {article.featured && (
-                <div className={`bg-gradient-to-r ${getStatusGradient('winner')} text-white px-3 py-1 rounded-full text-sm font-bold flex items-center shadow-md`}>
-                  <Award className="mr-1" size={14} />
-                  Featured
-                </div>
-              )}
-            </div>
-            
-            {/* Share buttons */}
-            <div className="flex space-x-4">
-              <div className="">
-                <FacebookShareButton url={shareUrl} quote={shareTitle}>
-                  <FacebookIcon size={32} round className="bg-white" />
-                </FacebookShareButton>
-              </div>
-              <div className="">
-                <TwitterShareButton url={shareUrl} title={shareTitle}>
-                  <TwitterIcon size={32} round className="bg-white" />
-                </TwitterShareButton>
-              </div>
-              <div className="">
-                <LinkedinShareButton url={shareUrl} title={shareTitle}>
-                  <LinkedinIcon size={32} round className="bg-white" />
-                </LinkedinShareButton>
-              </div>
-              <div className="">
-                <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle}>
-                  <EmailIcon size={32} round className="bg-white" />
-                </EmailShareButton>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Main Content and Sidebar */}
-        <div className="max-w-4xl mx-auto px-4 pb-16">
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Main Content */}
-            <div className={`${showSidebar ? 'lg:w-2/3' : 'w-full'}`}>
-              <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-6 md:p-8 border border-white/70 transform transition-all duration-300 hover:shadow-xl">
-                <div 
-                  className="text-gray-800 leading-relaxed font-serif"
-                  dangerouslySetInnerHTML={{ __html: formatContent(article.content) }}
-                />
+        {/* Article Header */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="flex items-center mb-6">
+              <div className="h-px bg-black flex-grow"></div>
+              <span className="px-4 text-xs font-serif uppercase tracking-widest text-gray-600">Opinion</span>
+              <div className="h-px bg-black flex-grow"></div>
+            </div>
+            
+            <h1 className="text-4xl md:text-5xl font-serif font-black leading-tight mb-6">
+              {article.title}
+            </h1>
+            
+            <div className="flex flex-wrap items-center justify-between pb-6 border-b border-gray-200">
+              <div className="flex items-center mb-4 md:mb-0">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 bg-gradient-to-r ${getTierGradient(article.tier)}`}>
+                  <span className="text-lg">{getTierEmoji(article.tier)}</span>
+                </div>
+                <div>
+                  <div className="flex items-center">
+                    <span className="text-lg font-serif">{article.display_name}</span>
+                    <div className={`ml-3 px-2 py-1 text-xs font-serif rounded-full bg-gradient-to-r ${getTierGradient(article.tier)} text-white`}>
+                      {article.tier?.toUpperCase()} TIER
+                    </div>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600 font-serif mt-1">
+                    <Calendar className="mr-1" size={14} />
+                    <span>{formatDate(article.created_at)}</span>
+                    <Eye className="ml-3 mr-1" size={14} />
+                    <span>{article.views} views</span>
+                  </div>
+                </div>
               </div>
+              
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={handleBookmark}
+                  className={`p-2 rounded-full ${bookmarked ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-600'} hover:bg-orange-100 hover:text-orange-600 transition-colors`}
+                  title="Bookmark"
+                >
+                  <Bookmark size={18} fill={bookmarked ? "currentColor" : "none"} />
+                </button>
+                
+                <button
+                  onClick={handleCopyLink}
+                  className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                  title="Copy link"
+                >
+                  <Copy size={18} />
+                </button>
+                
+                <div className="flex space-x-2">
+                  <FacebookShareButton url={shareUrl} quote={shareTitle}>
+                    <FacebookIcon size={24} round />
+                  </FacebookShareButton>
+                  <TwitterShareButton url={shareUrl} title={shareTitle}>
+                    <TwitterIcon size={24} round />
+                  </TwitterShareButton>
+                </div>
+              </div>
+            </div>
+            
+            {/* Article tags */}
+            <div className="flex flex-wrap gap-2 mt-4">
+              {article.certified && (
+                <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-serif font-medium flex items-center">
+                  <Award className="mr-1" size={12} />
+                  Editorial Certified
+                </div>
+              )}
+              {article.featured && (
+                <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-serif font-medium flex items-center">
+                  <TrendingUp className="mr-1" size={12} />
+                  Featured
+                </div>
+              )}
+              {article.is_debate_winner && (
+                <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-serif font-medium flex items-center">
+                  <Award className="mr-1" size={12} />
+                  Debate Winner
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-              {/* Counter Opinion Button */}
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <div className="flex flex-col sm:flex-row justify-between items-center bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-white/70">
-                  <h2 className="text-2xl font-serif font-bold mb-4 sm:mb-0">Disagree with this opinion?</h2>
+        {/* Main Content */}
+        <div className="bg-white">
+          <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="prose prose-lg max-w-none">
+              <div 
+                className="article-content text-gray-800 leading-relaxed font-serif text-lg"
+                dangerouslySetInnerHTML={{ __html: formatContent(article.content) }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Article Footer */}
+        <div className="bg-gray-50 border-t border-gray-200">
+          <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+              <div className="mb-4 md:mb-0">
+                <h3 className="text-lg font-serif font-bold mb-4 flex items-center">
+                  <Share2 className="mr-2" size={18} />
+                  Share this article
+                </h3>
+                <div className="flex space-x-3">
+                  <FacebookShareButton url={shareUrl} quote={shareTitle}>
+                    <FacebookIcon size={32} round />
+                  </FacebookShareButton>
+                  <TwitterShareButton url={shareUrl} title={shareTitle}>
+                    <TwitterIcon size={32} round />
+                  </TwitterShareButton>
+                  <LinkedinShareButton url={shareUrl} title={shareTitle}>
+                    <LinkedinIcon size={32} round />
+                  </LinkedinShareButton>
+                  <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle}>
+                    <EmailIcon size={32} round />
+                  </EmailShareButton>
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <p className="text-gray-600 mb-2 font-serif text-sm">Direct link to this article:</p>
+                <div className="flex items-center">
+                  <input 
+                    type="text" 
+                    readOnly 
+                    value={shareUrl} 
+                    className="border border-gray-300 rounded-l-lg px-3 py-2 text-sm w-64 truncate font-serif bg-white"
+                  />
+                  <button 
+                    onClick={handleCopyLink}
+                    className="bg-black text-white px-3 py-2 rounded-r-lg text-sm font-serif hover:bg-gray-800 transition-colors"
+                  >
+                    {copied ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="border-t border-gray-200 pt-8">
+              <div className="flex flex-col md:flex-row justify-between items-center">
+                <div className="mb-4 md:mb-0">
+                  <h3 className="text-lg font-serif font-bold mb-2">Disagree with this opinion?</h3>
                   <button
                     onClick={handleCounterOpinion}
                     disabled={!canWriteCounter}
-                    className={`px-6 py-3 font-serif font-bold text-white rounded-xl transform transition-all duration-300 flex items-center ${
+                    className={`px-6 py-3 font-serif font-bold text-white rounded-lg flex items-center ${
                       canWriteCounter
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-700 hover:shadow-lg hover:-translate-y-1'
+                        ? 'bg-black hover:bg-gray-800'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                   >
                     <MessageSquare className="mr-2" size={18} />
-                    Counter Opinion
+                    Write a Counter Opinion
                   </button>
+                  {!canWriteCounter && user && (
+                    <p className="text-red-500 mt-2 font-serif text-sm">Maximum number of counter opinions reached for this article.</p>
+                  )}
                 </div>
-                {!canWriteCounter && user && (
-                  <p className="text-red-500 mt-2 font-serif font-medium">Maximum number of counter opinions reached for this article.</p>
-                )}
+                
+                <div className="text-center">
+                  {reportSuccess ? (
+                    <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4 rounded-lg font-serif">
+                      <p className="text-green-700 font-serif">Thank you for reporting this article. Our team will review it shortly.</p>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-gray-600 mb-2 font-serif text-sm">Found this article concerning?</p>
+                      <button 
+                        onClick={handleReportArticle}
+                        className="px-4 py-2 bg-red-600 text-white font-serif font-bold rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center mx-auto"
+                      >
+                        <Flag className="mr-2" size={16} />
+                        Report Article
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Sidebar */}
-            {showSidebar && (
-              <div className="lg:w-1/3 space-y-6">
-                {/* Original Article Section (if viewing a counter opinion) */}
-                {originalArticle && (
-                  <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-white/70 transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                    <h3 className="text-xl font-serif font-bold mb-4">Original Piece</h3>
+        {/* Sidebar for Counter Opinions */}
+        {showSidebar && (
+          <div className="bg-white border-t border-gray-200">
+            <div className="max-w-4xl mx-auto px-4 py-8">
+              {/* Original Article Section (if viewing a counter opinion) */}
+              {originalArticle && (
+                <div className="mb-8">
+                  <h3 className="text-xl font-serif font-bold mb-4 flex items-center">
+                    <span className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center mr-3 text-sm">O</span>
+                    Original Piece
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-6 border-l-4 border-black">
                     <div className="flex items-center mb-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 bg-gradient-to-r ${getTierGradient(originalArticle.tier)} shadow-sm`}>
-                        <span className="text-lg">{getTierEmoji(originalArticle.tier)}</span>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 bg-gradient-to-r ${getTierGradient(originalArticle.tier)}`}>
+                        <span className="text-sm">{getTierEmoji(originalArticle.tier)}</span>
                       </div>
-                      <span className="font-bold">{originalArticle.display_name}</span>
-                      <div className={`ml-2 px-2 py-0.5 text-xs font-bold rounded-full bg-gradient-to-r ${getTierGradient(originalArticle.tier)} text-white`}>
+                      <span className="font-serif">{originalArticle.display_name}</span>
+                      <div className={`ml-2 px-2 py-0.5 text-xs font-serif rounded-full bg-gradient-to-r ${getTierGradient(originalArticle.tier)} text-white`}>
                         {originalArticle.tier?.toUpperCase()}
                       </div>
                     </div>
@@ -560,133 +673,88 @@ const ArticlePage = () => {
                     />
                     <button 
                       onClick={() => navigate(`/article/${originalArticle.id}`)}
-                      className="text-blue-600 hover:text-blue-800 font-bold flex items-center"
+                      className="text-black font-serif font-bold flex items-center hover:underline"
                     >
                       Read Original
                       <ChevronDown className="ml-1 rotate-270" size={16} />
                     </button>
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* Counter Opinions Dropdown - Only show if there are counter opinions */}
-                {counterOpinions.length > 0 && (
-                  <div id="counter-opinions-section" className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-white/70 overflow-hidden transform transition-all duration-300 hover:shadow-xl">
-                    <div 
-                      className="flex justify-between items-center p-4 cursor-pointer"
-                      onClick={() => setShowCounters(!showCounters)}
-                    >
-                      <h3 className="text-xl font-serif font-bold">This Has Been Countered</h3>
-                      {showCounters ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                    </div>
-                    
-                    {showCounters && (
-                      <div className="px-4 pb-4 space-y-4">
-                        {counterOpinions.map(opinion => (
-                          <div key={opinion.id} className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/50 shadow transform transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-                            <div className="flex items-center mb-2">
-                              <div className={`w-7 h-7 rounded-full flex items-center justify-center mr-2 bg-gradient-to-r ${getTierGradient(opinion.tier)} shadow-sm`}>
-                                <span className="text-sm">{getTierEmoji(opinion.tier)}</span>
-                              </div>
-                              <span className="font-bold">{opinion.display_name}</span>
-                              <div className={`ml-2 px-2 py-0.5 text-xs font-bold rounded-full bg-gradient-to-r ${getTierGradient(opinion.tier)} text-white`}>
-                                {opinion.tier?.toUpperCase()}
-                              </div>
+              {/* Counter Opinions Section */}
+              {counterOpinions.length > 0 && (
+                <div id="counter-opinions-section">
+                  <div 
+                    className="flex justify-between items-center mb-4 cursor-pointer"
+                    onClick={() => setShowCounters(!showCounters)}
+                  >
+                    <h3 className="text-xl font-serif font-bold flex items-center">
+                      <span className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center mr-3 text-sm">C</span>
+                      This Has Been Countered
+                    </h3>
+                    {showCounters ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                  </div>
+                  
+                  {showCounters && (
+                    <div className="space-y-4">
+                      {counterOpinions.map(opinion => (
+                        <div key={opinion.id} className="bg-gray-50 rounded-lg p-6 border-l-4 border-red-500">
+                          <div className="flex items-center mb-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 bg-gradient-to-r ${getTierGradient(opinion.tier)}`}>
+                              <span className="text-sm">{getTierEmoji(opinion.tier)}</span>
                             </div>
-                            <h4 className="font-serif font-bold mb-2">{opinion.title}</h4>
-                            <div 
-                              className="text-gray-700 text-sm mb-3 font-serif"
-                              dangerouslySetInnerHTML={{ 
-                                __html: formatContent(opinion.content.substring(0, 150) + (opinion.content.length > 150 ? '...' : ''))
-                              }}
-                            />
-                            <button 
-                              onClick={() => navigate(`/article/${opinion.id}`)}
-                              className="text-blue-600 hover:text-blue-800 text-sm font-bold flex items-center"
-                            >
-                              Read Counter
-                              <ChevronDown className="ml-1 rotate-270" size={14} />
-                            </button>
+                            <span className="font-serif">{opinion.display_name}</span>
+                            <div className={`ml-2 px-2 py-0.5 text-xs font-serif rounded-full bg-gradient-to-r ${getTierGradient(opinion.tier)} text-white`}>
+                              {opinion.tier?.toUpperCase()}
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+                          <h4 className="font-serif text-lg font-bold mb-2">{opinion.title}</h4>
+                          <div 
+                            className="text-gray-700 text-sm mb-4 font-serif"
+                            dangerouslySetInnerHTML={{ 
+                              __html: formatContent(opinion.content.substring(0, 150) + (opinion.content.length > 150 ? '...' : ''))
+                            }}
+                          />
+                          <button 
+                            onClick={() => navigate(`/article/${opinion.id}`)}
+                            className="text-black font-serif font-bold flex items-center hover:underline"
+                          >
+                            Read Counter
+                            <ChevronDown className="ml-1 rotate-270" size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Article Footer */}
-        <footer className="bg-white/80 backdrop-blur-md border-t border-gray-200">
-          <div className="max-w-4xl mx-auto px-4 py-8">
-            <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+        {/* Newspaper-style Footer */}
+        <footer className="bg-black text-white py-8">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="mb-4 md:mb-0">
-                <h3 className="text-lg font-serif font-bold mb-2 flex items-center">
-                  <Share2 className="mr-2" size={18} />
-                  Share this article
-                </h3>
-                <div className="flex space-x-4">
-                  <div className="">
-                    <FacebookShareButton url={shareUrl} quote={shareTitle}>
-                      <FacebookIcon size={32} round className="bg-white" />
-                    </FacebookShareButton>
+                <div className="flex items-center mb-2">
+                  <div className="w-10 h-10 bg-white flex items-center justify-center mr-3">
+                    <span className="text-black font-bold text-xl">U</span>
                   </div>
-                  <div className="">
-                    <TwitterShareButton url={shareUrl} title={shareTitle}>
-                      <TwitterIcon size={32} round className="bg-white" />
-                    </TwitterShareButton>
-                  </div>
-                  <div className="">
-                    <LinkedinShareButton url={shareUrl} title={shareTitle}>
-                      <LinkedinIcon size={32} round className="bg-white" />
-                    </LinkedinShareButton>
-                  </div>
-                  <div className="">
-                    <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle}>
-                      <EmailIcon size={32} round className="bg-white" />
-                    </EmailShareButton>
+                  <div>
+                    <h3 className="text-xl font-serif font-black tracking-tight">UROWN</h3>
+                    <p className="text-xs font-serif italic">Your Voice Matters</p>
                   </div>
                 </div>
+                <p className="text-xs font-serif">© {new Date().getFullYear()} UROWN. All rights reserved.</p>
               </div>
               
-              <div className="text-center">
-                <p className="text-gray-600 mb-2 font-serif">Direct link to this article:</p>
-                <div className="flex items-center">
-                  <input 
-                    type="text" 
-                    readOnly 
-                    value={shareUrl} 
-                    className="border border-gray-300 rounded-l-lg px-3 py-2 text-sm w-64 truncate font-serif bg-white/80 backdrop-blur-sm"
-                  />
-                  <button 
-                    onClick={handleCopyLink}
-                    className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-2 rounded-r-lg text-sm font-bold hover:shadow-md transform transition-all duration-300 hover:-translate-y-0.5 flex items-center"
-                  >
-                    <Copy className="mr-1" size={14} />
-                    {copied ? 'Copied!' : 'Copy'}
-                  </button>
-                </div>
+              <div className="flex space-x-6">
+                <a href="/browse" className="text-xs font-serif hover:underline">Browse Articles</a>
+                <a href="/contact" className="text-xs font-serif hover:underline">Contact Us</a>
+                <a href="/community-guidelines" className="text-xs font-serif hover:underline">Community Guidelines</a>
               </div>
-            </div>
-            
-            <div className="border-t border-gray-200 pt-8 text-center">
-              {reportSuccess ? (
-                <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4 rounded-lg font-serif">
-                  <p className="text-green-700 font-bold">Thank you for reporting this article. Our team will review it shortly.</p>
-                </div>
-              ) : (
-                <>
-                  <p className="text-gray-600 mb-4 font-serif">Found this article concerning? Report it to our moderators.</p>
-                  <button 
-                    onClick={handleReportArticle}
-                    className="bg-gradient-to-r from-red-500 to-red-700 text-white px-6 py-3 font-serif font-bold hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1 flex items-center justify-center mx-auto rounded-xl"
-                  >
-                    <Flag className="mr-2" size={18} />
-                    Report Article
-                  </button>
-                </>
-              )}
             </div>
           </div>
         </footer>
@@ -699,7 +767,7 @@ const ArticlePage = () => {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
           
           {/* Paywall Content */}
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 z-10 transform transition-all duration-300">
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 z-10">
             {/* Close Button */}
             <button
               onClick={() => setShowPaywall(false)}
@@ -711,7 +779,7 @@ const ArticlePage = () => {
             {/* Paywall Message */}
             <div className="text-center">
               <div className="mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MessageSquare size={32} className="text-white" />
                 </div>
                 <h2 className="text-2xl font-serif font-bold mb-4">Join the Conversation</h2>
@@ -724,7 +792,7 @@ const ArticlePage = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={handleSignup}
-                  className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-serif font-bold rounded-xl hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1"
+                  className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-serif font-bold rounded-xl hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1"
                 >
                   Create Free Account
                 </button>
@@ -743,7 +811,7 @@ const ArticlePage = () => {
       {/* Report Modal */}
       {showReportModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl max-w-md w-full p-6 border border-white/70 transform transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
             <h3 className="text-xl font-serif font-bold mb-4">Report Article</h3>
             {error && (
               <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-lg">
@@ -761,7 +829,7 @@ const ArticlePage = () => {
                   onChange={(e) => setReportReason(e.target.value)}
                   required
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 font-serif bg-white/80 backdrop-blur-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 font-serif"
                   placeholder="Please explain why you're reporting this article..."
                 />
               </div>
@@ -773,14 +841,14 @@ const ArticlePage = () => {
                     setReportReason('');
                     setError(null);
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg font-bold hover:bg-gray-50 font-serif transform transition-all duration-300 hover:-translate-y-0.5"
+                  className="px-4 py-2 border border-gray-300 rounded-lg font-bold hover:bg-gray-50 font-serif"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={reporting}
-                  className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 text-white rounded-lg font-bold hover:shadow-lg transform transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 font-serif"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 disabled:opacity-50 font-serif"
                 >
                   {reporting ? 'Submitting...' : 'Submit Report'}
                 </button>

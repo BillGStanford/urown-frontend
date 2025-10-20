@@ -14,7 +14,9 @@ import {
   ChevronDown,
   Shield,
   Mail,
-  Globe
+  Globe,
+  Home,
+  Sparkles
 } from 'lucide-react';
 
 function Header({ user, onLogout }) {
@@ -74,50 +76,58 @@ function Header({ user, onLogout }) {
   }, []);
 
   return (
-    <header className={`sticky top-0 z-50 transition-all duration-300 ${
+    <header className={`sticky top-0 z-50 transition-all duration-500 ${
       scrolled 
-        ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200' 
-        : 'bg-white shadow-md'
+        ? 'bg-white/90 backdrop-blur-xl shadow-xl border-b border-gray-100' 
+        : 'bg-white/80 backdrop-blur-lg shadow-lg border-b border-gray-50'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Desktop Layout */}
-        <div className="hidden lg:flex items-center justify-between py-5">
+        <div className="hidden lg:flex items-center justify-between py-4">
           {/* Left Navigation */}
-          <nav className="flex items-center space-x-1">
+          <nav className="flex items-center space-x-2">
+            <Link 
+              to="/" 
+              className="group relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-orange-600 transition-all duration-300 rounded-2xl hover:bg-orange-50"
+            >
+              <Home className="h-4 w-4" />
+              <span>Home</span>
+              <div className="absolute inset-0 rounded-2xl bg-orange-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+            </Link>
             <Link 
               to="/browse" 
-              className="group relative px-5 py-2.5 text-sm font-semibold text-gray-700 hover:text-black transition-colors duration-200 rounded-lg hover:bg-gray-50"
+              className="group relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-orange-600 transition-all duration-300 rounded-2xl hover:bg-orange-50"
             >
-              <span className="flex items-center gap-2">
-                <Search className="h-4 w-4" />
-                Browse
-              </span>
+              <Search className="h-4 w-4" />
+              <span>Browse</span>
+              <div className="absolute inset-0 rounded-2xl bg-orange-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
             </Link>
             <Link 
               to="/partners" 
-              className="group relative px-5 py-2.5 text-sm font-semibold text-gray-700 hover:text-black transition-colors duration-200 rounded-lg hover:bg-gray-50"
+              className="group relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-orange-600 transition-all duration-300 rounded-2xl hover:bg-orange-50"
             >
-              <span className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
-                Partners
-              </span>
+              <Globe className="h-4 w-4" />
+              <span>Partners</span>
+              <div className="absolute inset-0 rounded-2xl bg-orange-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
             </Link>
             <Link 
               to="/contact" 
-              className="group relative px-5 py-2.5 text-sm font-semibold text-gray-700 hover:text-black transition-colors duration-200 rounded-lg hover:bg-gray-50"
+              className="group relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-orange-600 transition-all duration-300 rounded-2xl hover:bg-orange-50"
             >
-              <span className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Contact
-              </span>
+              <Mail className="h-4 w-4" />
+              <span>Contact</span>
+              <div className="absolute inset-0 rounded-2xl bg-orange-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
             </Link>
           </nav>
 
           {/* Centered Logo */}
           <div className="absolute left-1/2 transform -translate-x-1/2">
             <Link to="/" className="group flex flex-col items-center">
-              <div className="relative">
-                <span className="text-5xl font-black bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent group-hover:from-orange-600 group-hover:via-red-600 group-hover:to-pink-600 transition-all duration-300 tracking-tight">
+              <div className="relative flex items-center gap-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+                <span className="text-4xl font-black bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent group-hover:from-orange-600 group-hover:via-red-600 group-hover:to-pink-600 transition-all duration-300 tracking-tight">
                   UROWN
                 </span>
               </div>
@@ -133,18 +143,20 @@ function Header({ user, onLogout }) {
               <>
                 <Link 
                   to="/dashboard" 
-                  className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200"
+                  className="group relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-2xl transition-all duration-300"
                 >
                   <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
+                  <span>Dashboard</span>
+                  <div className="absolute inset-0 rounded-2xl bg-orange-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
                 </Link>
 
                 <Link 
                   to="/write" 
-                  className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+                  className="group relative flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   <PenTool className="h-4 w-4" />
-                  Write
+                  <span>Write</span>
+                  <div className="absolute inset-0 rounded-2xl bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                 </Link>
 
                 {/* Navigation Dropdown - For Editorial Board and Admins */}
@@ -152,45 +164,52 @@ function Header({ user, onLogout }) {
                   <div className="relative" ref={navDropdownRef}>
                     <button
                       onClick={toggleNavDropdown}
-                      className="p-2.5 rounded-lg text-gray-700 hover:text-black hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                      className="group relative p-2.5 rounded-2xl text-gray-700 hover:text-orange-600 hover:bg-orange-50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
                       aria-expanded={isNavDropdownOpen}
                       aria-haspopup="true"
                       aria-label="Navigation menu"
                     >
                       <Menu className="h-5 w-5" />
+                      <div className="absolute inset-0 rounded-2xl bg-orange-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
                     </button>
                     {isNavDropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden animate-dropdown">
-                        <div className="py-2">
+                      <div className="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-100 overflow-hidden animate-dropdown">
+                        <div className="py-3">
                           <Link
                             to="/editorial"
-                            className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-150"
+                            className="group flex items-center gap-3 px-5 py-3 text-sm font-semibold text-gray-900 hover:bg-orange-50 transition-all duration-200"
                             onClick={() => setIsNavDropdownOpen(false)}
                             role="menuitem"
                           >
-                            <FileText className="h-4 w-4 text-blue-500" />
-                            Editorial
+                            <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                              <FileText className="h-4 w-4 text-blue-600" />
+                            </div>
+                            <span>Editorial Board</span>
                           </Link>
                           {isAdmin && (
                             <>
-                              <div className="border-t border-gray-100 my-1"></div>
+                              <div className="mx-5 my-2 h-px bg-gray-100"></div>
                               <Link
                                 to="/admin"
-                                className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-150"
+                                className="group flex items-center gap-3 px-5 py-3 text-sm font-semibold text-gray-900 hover:bg-red-50 transition-all duration-200"
                                 onClick={() => setIsNavDropdownOpen(false)}
                                 role="menuitem"
                               >
-                                <Shield className="h-4 w-4 text-red-500" />
-                                Admin Panel
+                                <div className="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                                  <Shield className="h-4 w-4 text-red-600" />
+                                </div>
+                                <span>Admin Panel</span>
                               </Link>
                               <Link
                                 to="/admin/reported-articles"
-                                className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-150"
+                                className="group flex items-center gap-3 px-5 py-3 text-sm font-semibold text-gray-900 hover:bg-red-50 transition-all duration-200"
                                 onClick={() => setIsNavDropdownOpen(false)}
                                 role="menuitem"
                               >
-                                <FileText className="h-4 w-4 text-red-500" />
-                                Reported Articles
+                                <div className="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                                  <FileText className="h-4 w-4 text-red-600" />
+                                </div>
+                                <span>Reported Articles</span>
                               </Link>
                             </>
                           )}
@@ -204,49 +223,62 @@ function Header({ user, onLogout }) {
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={toggleUserDropdown}
-                    className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                    className="group relative flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
                     aria-expanded={isUserDropdownOpen}
                     aria-haspopup="true"
                     aria-label="User menu"
                   >
-                    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
-                      {user.display_name.charAt(0).toUpperCase()}
+                    <div className="relative">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-sm font-bold shadow-md">
+                        {user.display_name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                     </div>
                     <span className="max-w-[120px] truncate">{user.display_name}</span>
-                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isUserDropdownOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isUserDropdownOpen ? 'rotate-180' : ''}`} />
+                    <div className="absolute inset-0 rounded-2xl bg-orange-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
                   </button>
                   {isUserDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden animate-dropdown">
-                      <div className="py-2">
-                        {/* New Profile Link */}
-                        <Link
-                          to={`/user/${encodeURIComponent(user.display_name)}`}
-                          className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-150"
-                          onClick={() => setIsUserDropdownOpen(false)}
-                          role="menuitem"
-                        >
-                          <User className="h-4 w-4" />
-                          View Profile
-                        </Link>
-                        <div className="border-t border-gray-100 my-1"></div>
-                        <Link
-                          to="/settings"
-                          className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-150"
-                          onClick={() => setIsUserDropdownOpen(false)}
-                          role="menuitem"
-                        >
-                          <Settings className="h-4 w-4" />
-                          Settings
-                        </Link>
-                        <div className="border-t border-gray-100 my-1"></div>
-                        <button
-                          onClick={handleLogout}
-                          className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors duration-150"
-                          role="menuitem"
-                        >
-                          <LogOut className="h-4 w-4" />
-                          Logout
-                        </button>
+                    <div className="absolute right-0 mt-3 w-72 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-100 overflow-hidden animate-dropdown">
+                      <div className="p-2">
+                        <div className="px-4 py-3 border-b border-gray-100">
+                          <p className="text-sm font-semibold text-gray-900">Account</p>
+                        </div>
+                        <div className="py-2">
+                          <Link
+                            to={`/user/${encodeURIComponent(user.display_name)}`}
+                            className="group flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-orange-50 transition-all duration-200 rounded-2xl mx-2"
+                            onClick={() => setIsUserDropdownOpen(false)}
+                            role="menuitem"
+                          >
+                            <div className="w-8 h-8 bg-orange-100 rounded-xl flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+                              <User className="h-4 w-4 text-orange-600" />
+                            </div>
+                            <span>View Profile</span>
+                          </Link>
+                          <Link
+                            to="/settings"
+                            className="group flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-orange-50 transition-all duration-200 rounded-2xl mx-2"
+                            onClick={() => setIsUserDropdownOpen(false)}
+                            role="menuitem"
+                          >
+                            <div className="w-8 h-8 bg-gray-100 rounded-xl flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                              <Settings className="h-4 w-4 text-gray-600" />
+                            </div>
+                            <span>Settings</span>
+                          </Link>
+                          <div className="mx-4 my-2 h-px bg-gray-100"></div>
+                          <button
+                            onClick={handleLogout}
+                            className="group flex items-center gap-3 w-full text-left px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-all duration-200 rounded-2xl mx-2"
+                            role="menuitem"
+                          >
+                            <div className="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                              <LogOut className="h-4 w-4 text-red-600" />
+                            </div>
+                            <span>Logout</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -256,15 +288,17 @@ function Header({ user, onLogout }) {
               <>
                 <Link 
                   to="/login" 
-                  className="px-5 py-2.5 text-sm font-semibold text-gray-700 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200"
+                  className="group relative px-5 py-2.5 text-sm font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-2xl transition-all duration-300"
                 >
-                  Login
+                  <span>Login</span>
+                  <div className="absolute inset-0 rounded-2xl bg-orange-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
                 </Link>
                 <Link 
                   to="/signup" 
-                  className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+                  className="group relative px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
-                  Sign Up
+                  <span>Sign Up</span>
+                  <div className="absolute inset-0 rounded-2xl bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                 </Link>
               </>
             )}
@@ -273,89 +307,97 @@ function Header({ user, onLogout }) {
 
         {/* Mobile/Tablet Layout */}
         <div className="lg:hidden flex items-center justify-between py-4">
-          <div className="flex-1"></div>
-          <Link to="/" className="group flex flex-col items-center">
-            <div className="relative">
-              <span className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent tracking-tight">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <span className="text-2xl font-black bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent tracking-tight">
                 UROWN
               </span>
+              <p className="text-xs text-gray-500 font-medium tracking-wide">
+                Your Voice Matters
+              </p>
             </div>
-            <span className="text-[10px] text-gray-500 mt-1 font-medium tracking-wide">
-              Your Voice Matters
-            </span>
-          </Link>
-          <div className="flex-1 flex justify-end">
-            <button
-              onClick={toggleMobileMenu}
-              className="p-3 rounded-xl text-gray-700 hover:text-black hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200"
-              aria-label="Toggle menu"
-              aria-expanded={isMobileMenuOpen}
-            >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
           </div>
+          <button
+            onClick={toggleMobileMenu}
+            className="p-3 rounded-2xl text-gray-700 hover:text-orange-600 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
+            aria-label="Toggle menu"
+            aria-expanded={isMobileMenuOpen}
+          >
+            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         </div>
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <nav className="lg:hidden pb-4 bg-gray-50 rounded-2xl animate-slide-down mt-2 border-t border-gray-200">
-            <div className="flex flex-col space-y-1 p-2">
+          <nav className="lg:hidden pb-6 bg-white/95 backdrop-blur-xl rounded-3xl mt-4 border border-gray-100 shadow-2xl animate-slide-down">
+            <div className="flex flex-col space-y-2 p-4">
               <Link 
-                to="/browse" 
-                className="flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-black hover:bg-white py-3 px-4 rounded-xl transition-all duration-200"
+                to="/" 
+                className="group flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 py-3 px-4 rounded-2xl transition-all duration-300"
                 onClick={closeMobileMenu}
               >
-                <Search className="h-4 w-4" />
-                Browse
+                <Home className="h-5 w-5" />
+                <span>Home</span>
+              </Link>
+              <Link 
+                to="/browse" 
+                className="group flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 py-3 px-4 rounded-2xl transition-all duration-300"
+                onClick={closeMobileMenu}
+              >
+                <Search className="h-5 w-5" />
+                <span>Browse</span>
               </Link>
               <Link 
                 to="/partners" 
-                className="flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-black hover:bg-white py-3 px-4 rounded-xl transition-all duration-200"
+                className="group flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 py-3 px-4 rounded-2xl transition-all duration-300"
                 onClick={closeMobileMenu}
               >
-                <Globe className="h-4 w-4" />
-                Partners
+                <Globe className="h-5 w-5" />
+                <span>Partners</span>
               </Link>
               <Link 
                 to="/contact" 
-                className="flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-black hover:bg-white py-3 px-4 rounded-xl transition-all duration-200"
+                className="group flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 py-3 px-4 rounded-2xl transition-all duration-300"
                 onClick={closeMobileMenu}
               >
-                <Mail className="h-4 w-4" />
-                Contact
+                <Mail className="h-5 w-5" />
+                <span>Contact</span>
               </Link>
               
               {user ? (
                 <>
-                  <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-2"></div>
+                  <div className="mx-4 my-3 h-px bg-gray-100"></div>
                   
                   <Link 
                     to="/dashboard" 
-                    className="flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-black hover:bg-white py-3 px-4 rounded-xl transition-all duration-200"
+                    className="group flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 py-3 px-4 rounded-2xl transition-all duration-300"
                     onClick={closeMobileMenu}
                   >
-                    <LayoutDashboard className="h-4 w-4" />
-                    Dashboard
+                    <LayoutDashboard className="h-5 w-5" />
+                    <span>Dashboard</span>
                   </Link>
                   <Link 
                     to="/write" 
-                    className="flex items-center gap-3 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 py-3 px-4 rounded-xl transition-all duration-200 shadow-sm"
+                    className="group flex items-center gap-3 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 py-3 px-4 rounded-2xl transition-all duration-300 shadow-lg"
                     onClick={closeMobileMenu}
                   >
-                    <PenTool className="h-4 w-4" />
-                    Write Article
+                    <PenTool className="h-5 w-5" />
+                    <span>Write Article</span>
                   </Link>
                   
                   {isEditorialOrAdmin && (
                     <>
-                      <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-2"></div>
+                      <div className="mx-4 my-3 h-px bg-gray-100"></div>
                       <Link 
                         to="/editorial" 
-                        className="flex items-center gap-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 py-3 px-4 rounded-xl transition-all duration-200"
+                        className="group flex items-center gap-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 py-3 px-4 rounded-2xl transition-all duration-300"
                         onClick={closeMobileMenu}
                       >
-                        <FileText className="h-4 w-4" />
-                        Editorial
+                        <FileText className="h-5 w-5" />
+                        <span>Editorial Board</span>
                       </Link>
                     </>
                   )}
@@ -364,76 +406,82 @@ function Header({ user, onLogout }) {
                     <>
                       <Link 
                         to="/admin" 
-                        className="flex items-center gap-3 text-sm font-semibold text-red-600 hover:bg-red-50 py-3 px-4 rounded-xl transition-all duration-200"
+                        className="group flex items-center gap-3 text-sm font-semibold text-red-600 hover:bg-red-50 py-3 px-4 rounded-2xl transition-all duration-300"
                         onClick={closeMobileMenu}
                       >
-                        <Shield className="h-4 w-4" />
-                        Admin Panel
+                        <Shield className="h-5 w-5" />
+                        <span>Admin Panel</span>
                       </Link>
                       <Link 
                         to="/admin/reported-articles"
-                        className="flex items-center gap-3 text-sm font-semibold text-red-600 hover:bg-red-50 py-3 px-4 rounded-xl transition-all duration-200"
+                        className="group flex items-center gap-3 text-sm font-semibold text-red-600 hover:bg-red-50 py-3 px-4 rounded-2xl transition-all duration-300"
                         onClick={closeMobileMenu}
                       >
-                        <FileText className="h-4 w-4" />
-                        Reported Articles
+                        <FileText className="h-5 w-5" />
+                        <span>Reported Articles</span>
                       </Link>
                     </>
                   )}
                   
-                  <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-2"></div>
+                  <div className="mx-4 my-3 h-px bg-gray-100"></div>
                   
                   {/* User Profile Section in Mobile Menu */}
-                  <div className="bg-white px-4 py-3 rounded-xl border border-gray-200">
+                  <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-2xl border border-orange-100">
                     <Link
                       to={`/user/${encodeURIComponent(user.display_name)}`}
-                      className="text-sm font-semibold flex items-center gap-2 text-gray-900 hover:text-orange-600 transition-colors"
+                      className="flex items-center gap-3 text-sm font-semibold text-gray-900 hover:text-orange-600 transition-colors"
                       onClick={closeMobileMenu}
                     >
-                      <div className="h-6 w-6 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
-                        {user.display_name.charAt(0).toUpperCase()}
+                      <div className="relative">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-sm font-bold shadow-md">
+                          {user.display_name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                       </div>
-                      {user.display_name}
+                      <div>
+                        <p className="font-semibold">{user.display_name}</p>
+                        <p className="text-xs text-gray-500">View Profile</p>
+                      </div>
                     </Link>
                   </div>
                   
                   <Link
                     to="/settings"
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-700 hover:text-black hover:bg-white rounded-xl transition-all duration-200"
+                    className="group flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 py-3 px-4 rounded-2xl transition-all duration-300"
                     onClick={closeMobileMenu}
                   >
-                    <Settings className="h-4 w-4" />
-                    Settings
+                    <Settings className="h-5 w-5" />
+                    <span>Settings</span>
                   </Link>
                   <button
                     onClick={() => {
                       handleLogout();
                       closeMobileMenu();
                     }}
-                    className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
+                    className="group flex items-center gap-3 w-full text-left text-sm font-semibold text-red-600 hover:bg-red-50 py-3 px-4 rounded-2xl transition-all duration-300"
                   >
-                    <LogOut className="h-4 w-4" />
-                    Logout
+                    <LogOut className="h-5 w-5" />
+                    <span>Logout</span>
                   </button>
                 </>
               ) : (
                 <>
-                  <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-2"></div>
+                  <div className="mx-4 my-3 h-px bg-gray-100"></div>
                   <Link 
                     to="/login" 
-                    className="flex items-center justify-center gap-3 text-sm font-semibold text-gray-700 hover:text-black hover:bg-white py-3 px-4 rounded-xl transition-all duration-200"
+                    className="group flex items-center justify-center gap-3 text-sm font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 py-3 px-4 rounded-2xl transition-all duration-300"
                     onClick={closeMobileMenu}
                   >
-                    <User className="h-4 w-4" />
-                    Login
+                    <User className="h-5 w-5" />
+                    <span>Login</span>
                   </Link>
                   <Link 
                     to="/signup" 
-                    className="flex items-center justify-center gap-3 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 py-3 px-4 rounded-xl transition-all duration-200 shadow-sm"
+                    className="group flex items-center justify-center gap-3 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 py-3 px-4 rounded-2xl transition-all duration-300 shadow-lg"
                     onClick={closeMobileMenu}
                   >
-                    <User className="h-4 w-4" />
-                    Sign Up
+                    <User className="h-5 w-5" />
+                    <span>Sign Up</span>
                   </Link>
                 </>
               )}
@@ -446,30 +494,30 @@ function Header({ user, onLogout }) {
         @keyframes dropdown {
           from { 
             opacity: 0; 
-            transform: translateY(-8px);
+            transform: translateY(-10px) scale(0.95);
           }
           to { 
             opacity: 1; 
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
           }
         }
         @keyframes slide-down {
           from { 
             opacity: 0; 
-            transform: translateY(-10px);
+            transform: translateY(-20px) scale(0.95);
             max-height: 0;
           }
           to { 
             opacity: 1; 
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
             max-height: 1000px;
           }
         }
         .animate-dropdown {
-          animation: dropdown 0.2s ease-out forwards;
+          animation: dropdown 0.3s ease-out forwards;
         }
         .animate-slide-down {
-          animation: slide-down 0.3s ease-out forwards;
+          animation: slide-down 0.4s ease-out forwards;
         }
       `}</style>
     </header>
