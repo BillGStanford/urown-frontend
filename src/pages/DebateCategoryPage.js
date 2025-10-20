@@ -25,52 +25,13 @@ function DebateCategoryPage() {
         setDebateTopic(topicResponse.data.topic);
         
         const opinionsResponse = await axios.get(`/debate-topics/${id}/opinions`);
+        setOpinions(opinionsResponse.data.opinions);
+        
         const winnersResponse = await axios.get(`/debate-topics/${id}/winners`);
         setWinners(winnersResponse.data.winners);
         
-        // Get winner IDs for quick lookup
-        const winnerIds = winnersResponse.data.winners.map(winner => winner.id);
-        
-        // Format opinions to ensure they have all required properties for ArticleCard
-        const formattedOpinions = opinionsResponse.data.opinions.map(opinion => {
-          // Handle display_name - use author_name for unauthenticated users
-          let displayName = "Uncreated User";
-          if (opinion.display_name) {
-            displayName = opinion.display_name;
-          } else if (opinion.author_name) {
-            displayName = opinion.author_name;
-          }
-          
-          // Handle tier - default to Guest for unauthenticated users
-          let tier = "Guest";
-          if (opinion.tier && opinion.tier !== "Guest") {
-            tier = opinion.tier;
-          }
-          
-          return {
-            ...opinion,
-            display_name: displayName,
-            tier: tier,
-            debate_topic_id: parseInt(id),
-            is_debate_winner: winnerIds.includes(opinion.id),
-            // Ensure views is a number
-            views: parseInt(opinion.views || 0),
-            // Ensure certified is a boolean
-            certified: Boolean(opinion.certified),
-            // Handle topics - ensure it's an array
-            topics: opinion.topics ? (Array.isArray(opinion.topics) ? opinion.topics : []) : []
-          };
-        });
-        
-        setOpinions(formattedOpinions);
-        
-        // Check if user has posted using localStorage
-        const postedDebates = JSON.parse(localStorage.getItem('postedDebates') || '[]');
-        if (postedDebates.includes(id)) {
-          setUserHasOpinion(true);
-        } else if (user) {
-          // Still check for logged-in users who might have posted before this change
-          const userOpinion = formattedOpinions.find(opinion => opinion.user_id === user.id);
+        if (user) {
+          const userOpinion = opinionsResponse.data.opinions.find(opinion => opinion.user_id === user.id);
           setUserHasOpinion(!!userOpinion);
         }
       } catch (error) {
@@ -110,14 +71,6 @@ function DebateCategoryPage() {
       
       const winnersResponse = await axios.get(`/debate-topics/${id}/winners`);
       setWinners(winnersResponse.data.winners);
-      
-      // Update the opinions to reflect the new winner status
-      setOpinions(prevOpinions => 
-        prevOpinions.map(opinion => ({
-          ...opinion,
-          is_debate_winner: opinion.id === articleId
-        }))
-      );
     } catch (error) {
       console.error('Error marking article as winner:', error);
       alert('Failed to mark article as winner. Please try again.');
@@ -136,14 +89,6 @@ function DebateCategoryPage() {
       
       const winnersResponse = await axios.get(`/debate-topics/${id}/winners`);
       setWinners(winnersResponse.data.winners);
-      
-      // Update the opinions to reflect the removed winner status
-      setOpinions(prevOpinions => 
-        prevOpinions.map(opinion => ({
-          ...opinion,
-          is_debate_winner: opinion.id === articleId ? false : opinion.is_debate_winner
-        }))
-      );
     } catch (error) {
       console.error('Error removing winner status:', error);
       alert('Failed to remove winner status. Please try again.');
@@ -222,9 +167,9 @@ function DebateCategoryPage() {
               {debateTopic.title}
             </h1>
             
-            <div className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed">
-              <div dangerouslySetInnerHTML={{__html: debateTopic.description.replace(/\n/g, '<br>')}} />
-            </div>
+            <p className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed">
+              {debateTopic.description}
+            </p>
             
             {/* Stats and Actions Bar */}
             <div className="flex flex-wrap gap-4 pt-6 border-t-2 border-gray-200">
@@ -242,7 +187,7 @@ function DebateCategoryPage() {
                 </div>
               )}
               
-              {!userHasOpinion && (
+              {user && !userHasOpinion && (
                 <Link 
                   to={`/debate/${id}/write`}
                   className="inline-flex items-center gap-2 bg-black text-white px-6 py-2.5 rounded-lg font-bold hover:bg-gray-800 transition-all duration-200 ml-auto"
@@ -252,7 +197,7 @@ function DebateCategoryPage() {
                 </Link>
               )}
               
-              {userHasOpinion && (
+              {user && userHasOpinion && (
                 <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2.5 rounded-lg ml-auto">
                   <MessageSquare size={20} />
                   <span className="font-bold">You've Contributed</span>
@@ -288,7 +233,7 @@ function DebateCategoryPage() {
               <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto">
                 Be the first to share your thoughts on this debate topic!
               </p>
-              {!userHasOpinion && (
+              {user && !userHasOpinion && (
                 <Link 
                   to={`/debate/${id}/write`}
                   className="inline-flex items-center gap-2 bg-black text-white px-8 py-4 text-lg font-bold hover:bg-gray-800 transition-colors rounded-lg"

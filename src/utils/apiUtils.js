@@ -8,11 +8,6 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
 
 axios.defaults.baseURL = API_BASE_URL;
 
-// Create a separate axios instance for unauthenticated requests
-export const unauthenticatedAxios = axios.create({
-  baseURL: API_BASE_URL
-});
-
 // Retry function with exponential backoff
 export const fetchWithRetry = async (axiosRequest, maxRetries = 3, initialDelay = 1000) => {
   let retryCount = 0;
@@ -136,30 +131,7 @@ export const createApiRequest = (endpoint, options = {}) => {
   };
 };
 
-// Helper function to create unauthenticated API requests
-export const createUnauthenticatedApiRequest = (endpoint, options = {}) => {
-  const { method = 'GET', data, params, headers = {} } = options;
-  
-  return () => {
-    const config = {
-      method,
-      url: endpoint, // Don't add /api here since we set it as baseURL
-      headers
-    };
-    
-    if (data) {
-      config.data = data;
-    }
-    
-    if (params) {
-      config.params = params;
-    }
-    
-    return unauthenticatedAxios(config);
-  };
-};
-
-// Add a response interceptor to handle common errors globally for authenticated requests
+// Add a response interceptor to handle common errors globally
 axios.interceptors.response.use(
   response => response,
   error => {
@@ -171,15 +143,5 @@ axios.interceptors.response.use(
   }
 );
 
-// Add a response interceptor for unauthenticated requests
-unauthenticatedAxios.interceptors.response.use(
-  response => response,
-  error => {
-    // Log errors for debugging but don't redirect to login
-    console.error('Unauthenticated request error:', error);
-    return Promise.reject(error);
-  }
-);
-
-// Export only the authenticated axios instance (unauthenticatedAxios is already exported above)
+// Export the axios instance for use in components
 export { axios };
