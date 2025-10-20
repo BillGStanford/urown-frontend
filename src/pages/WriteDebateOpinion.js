@@ -1,7 +1,7 @@
 // src/pages/WriteDebateOpinion.js
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { unauthenticatedAxios } from '../utils/apiUtils';
+import { createUnauthenticatedApiRequest } from '../utils/apiUtils';
 import { ArrowLeft, Save, AlertCircle, Shield, Clock, FileText } from 'lucide-react';
 
 function WriteDebateOpinion() {
@@ -76,19 +76,13 @@ const prohibitedWords = [
   'login required', 'click to unlock', 'payment pending', 'bitcoin investment',
 ];
 
-  // Reduced spam patterns
-  const spamPatterns = [
-    /(.)\1{6,}/, // Repeated characters (7+ times)
-    /\b(\w+)(\s+\1){3,}\b/, // Repeated words (4+ times)
-    /https?:\/\/[^\s]+/, // URLs
-  ];
-
   useEffect(() => {
     const fetchDebateTopic = async () => {
       try {
         setFetching(true);
-        // Use unauthenticated axios to fetch debate topic
-        const response = await unauthenticatedAxios.get(`/debate-topics/${id}`);
+        // Use the unauthenticated API request helper
+        const request = createUnauthenticatedApiRequest(`/debate-topics/${id}`);
+        const response = await request();
         setDebateTopic(response.data.topic);
         setTitle(`My Opinion: ${response.data.topic.title}`);
         
@@ -219,12 +213,17 @@ const prohibitedWords = [
     try {
       setLoading(true);
       
-      // Create the opinion as an article using unauthenticated axios
-      const response = await unauthenticatedAxios.post(`/debate-topics/${id}/opinions`, {
-        title: title.trim(),
-        content: content.trim(),
-        author_name: "Uncreated User"
+      // Create the opinion as an article using the unauthenticated API request helper
+      const request = createUnauthenticatedApiRequest(`/debate-topics/${id}/opinions`, {
+        method: 'POST',
+        data: {
+          title: title.trim(),
+          content: content.trim(),
+          author_name: "Uncreated User"
+        }
       });
+      
+      const response = await request();
       
       // Store in localStorage
       const postedDebates = JSON.parse(localStorage.getItem('postedDebates') || '[]');
@@ -249,6 +248,9 @@ const prohibitedWords = [
     }
   };
 
+  // Rest of the component remains the same...
+  // (The rest of the component code is unchanged from the previous version)
+  
   if (fetching) {
     return (
       <div className="min-h-screen bg-white py-12 px-6">

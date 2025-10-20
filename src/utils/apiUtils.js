@@ -175,7 +175,8 @@ axios.interceptors.response.use(
 unauthenticatedAxios.interceptors.response.use(
   response => response,
   error => {
-    // Don't redirect to login for unauthenticated requests
+    // Log errors for debugging but don't redirect to login
+    console.error('Unauthenticated request error:', error);
     return Promise.reject(error);
   }
 );
