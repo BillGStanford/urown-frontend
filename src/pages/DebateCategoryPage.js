@@ -25,18 +25,44 @@ function DebateCategoryPage() {
         setDebateTopic(topicResponse.data.topic);
         
         const opinionsResponse = await axios.get(`/debate-topics/${id}/opinions`);
-        // Ensure each opinion has the required properties for ArticleCard
-        const formattedOpinions = opinionsResponse.data.opinions.map(opinion => ({
-          ...opinion,
-          display_name: opinion.display_name || opinion.author_name || "Uncreated User",
-          tier: opinion.tier || "Guest",
-          debate_topic_id: parseInt(id),
-          is_debate_winner: winners.some(winner => winner.id === opinion.id)
-        }));
-        setOpinions(formattedOpinions);
-        
         const winnersResponse = await axios.get(`/debate-topics/${id}/winners`);
         setWinners(winnersResponse.data.winners);
+        
+        // Get winner IDs for quick lookup
+        const winnerIds = winnersResponse.data.winners.map(winner => winner.id);
+        
+        // Format opinions to ensure they have all required properties for ArticleCard
+        const formattedOpinions = opinionsResponse.data.opinions.map(opinion => {
+          // Handle display_name - use author_name for unauthenticated users
+          let displayName = "Uncreated User";
+          if (opinion.display_name) {
+            displayName = opinion.display_name;
+          } else if (opinion.author_name) {
+            displayName = opinion.author_name;
+          }
+          
+          // Handle tier - default to Guest for unauthenticated users
+          let tier = "Guest";
+          if (opinion.tier && opinion.tier !== "Guest") {
+            tier = opinion.tier;
+          }
+          
+          return {
+            ...opinion,
+            display_name: displayName,
+            tier: tier,
+            debate_topic_id: parseInt(id),
+            is_debate_winner: winnerIds.includes(opinion.id),
+            // Ensure views is a number
+            views: parseInt(opinion.views || 0),
+            // Ensure certified is a boolean
+            certified: Boolean(opinion.certified),
+            // Handle topics - ensure it's an array
+            topics: opinion.topics ? (Array.isArray(opinion.topics) ? opinion.topics : []) : []
+          };
+        });
+        
+        setOpinions(formattedOpinions);
         
         // Check if user has posted using localStorage
         const postedDebates = JSON.parse(localStorage.getItem('postedDebates') || '[]');
@@ -44,7 +70,7 @@ function DebateCategoryPage() {
           setUserHasOpinion(true);
         } else if (user) {
           // Still check for logged-in users who might have posted before this change
-          const userOpinion = opinionsResponse.data.opinions.find(opinion => opinion.user_id === user.id);
+          const userOpinion = formattedOpinions.find(opinion => opinion.user_id === user.id);
           setUserHasOpinion(!!userOpinion);
         }
       } catch (error) {
