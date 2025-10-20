@@ -1,7 +1,7 @@
 // src/pages/WriteDebateOpinion.js
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import { unauthenticatedAxios } from '../utils/apiUtils'; // Import the unauthenticated axios instance
 import { ArrowLeft, Save, AlertCircle, Shield, Clock, FileText } from 'lucide-react';
 
 function WriteDebateOpinion() {
@@ -38,10 +38,10 @@ const prohibitedWords = [
   'spaz', 'cripple', 'lame', 'mongoloid', 'invalid', 'nutcase', 'psycho',
 
   // Hate speech and violent ideologies
-  'kill yourself', 'go die', 'hang yourself', 'commit suicide', 'terrorist', 
+  'kill yourself', 'go die', 'hang yourself', 'commit suicide',
   'nazi', 'hitler', 'genocide', 'massacre', 'death to', 'murder', 'lynch', 
   'bomb', 'execute', 'behead', 'exterminate', 'shoot up', 'white power', 
-  'ethnic cleansing', 'heil hitler', 'gas them', 'holocaust denial',
+   'heil hitler', 'gas them',
 
   // Inappropriate and sexually explicit content
   'porn', 'xxx', 'sex', 'nude', 'naked', 'explicit', 'erotic', 'orgy', 
@@ -87,7 +87,8 @@ const prohibitedWords = [
     const fetchDebateTopic = async () => {
       try {
         setFetching(true);
-        const response = await axios.get(`/debate-topics/${id}`);
+        // Use unauthenticated axios to fetch debate topic
+        const response = await unauthenticatedAxios.get(`/debate-topics/${id}`);
         setDebateTopic(response.data.topic);
         setTitle(`My Opinion: ${response.data.topic.title}`);
         
@@ -218,8 +219,8 @@ const prohibitedWords = [
     try {
       setLoading(true);
       
-      // Create the opinion as an article
-      const response = await axios.post(`/debate-topics/${id}/opinions`, {
+      // Create the opinion as an article using unauthenticated axios
+      const response = await unauthenticatedAxios.post(`/debate-topics/${id}/opinions`, {
         title: title.trim(),
         content: content.trim(),
         author_name: "Uncreated User"
