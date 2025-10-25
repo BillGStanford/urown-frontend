@@ -15,8 +15,8 @@ import {
   Shield,
   Mail,
   Globe,
-  Home,
-  Sparkles
+  Sparkles,
+  Info
 } from 'lucide-react';
 
 function Header({ user, onLogout }) {
@@ -87,19 +87,19 @@ function Header({ user, onLogout }) {
           {/* Left Navigation */}
           <nav className="flex items-center space-x-2">
             <Link 
-              to="/" 
-              className="group relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-orange-600 transition-all duration-300 rounded-2xl hover:bg-orange-50"
-            >
-              <Home className="h-4 w-4" />
-              <span>Home</span>
-              <div className="absolute inset-0 rounded-2xl bg-orange-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-            </Link>
-            <Link 
               to="/browse" 
               className="group relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-orange-600 transition-all duration-300 rounded-2xl hover:bg-orange-50"
             >
               <Search className="h-4 w-4" />
               <span>Browse</span>
+              <div className="absolute inset-0 rounded-2xl bg-orange-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+            </Link>
+            <Link 
+              to="/about" 
+              className="group relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-orange-600 transition-all duration-300 rounded-2xl hover:bg-orange-50"
+            >
+              <Info className="h-4 w-4" />
+              <span>About</span>
               <div className="absolute inset-0 rounded-2xl bg-orange-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
             </Link>
             <Link 
@@ -120,10 +120,13 @@ function Header({ user, onLogout }) {
             </Link>
           </nav>
 
-          {/* Centered Logo */}
+          {/* Centered Logo - Now serves as the home button */}
           <div className="absolute left-1/2 transform -translate-x-1/2">
             <Link to="/" className="group flex flex-col items-center">
               <div className="relative flex items-center gap-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
                 <span className="text-4xl font-black bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent group-hover:from-orange-600 group-hover:via-red-600 group-hover:to-pink-600 transition-all duration-300 tracking-tight">
                   UROWN
                 </span>
@@ -305,17 +308,19 @@ function Header({ user, onLogout }) {
         {/* Mobile/Tablet Layout */}
         <div className="lg:hidden flex items-center justify-between py-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <span className="text-2xl font-black bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent tracking-tight">
-                UROWN
-              </span>
-              <p className="text-xs text-gray-500 font-medium tracking-wide">
-                Your Voice Matters
-              </p>
-            </div>
+            <Link to="/" className="group flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <Sparkles className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <span className="text-2xl font-black bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent tracking-tight">
+                  UROWN
+                </span>
+                <p className="text-xs text-gray-500 font-medium tracking-wide">
+                  Your Voice Matters
+                </p>
+              </div>
+            </Link>
           </div>
           <button
             onClick={toggleMobileMenu}
@@ -332,20 +337,20 @@ function Header({ user, onLogout }) {
           <nav className="lg:hidden pb-6 bg-white/95 backdrop-blur-xl rounded-3xl mt-4 border border-gray-100 shadow-2xl animate-slide-down">
             <div className="flex flex-col space-y-2 p-4">
               <Link 
-                to="/" 
-                className="group flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 py-3 px-4 rounded-2xl transition-all duration-300"
-                onClick={closeMobileMenu}
-              >
-                <Home className="h-5 w-5" />
-                <span>Home</span>
-              </Link>
-              <Link 
                 to="/browse" 
                 className="group flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 py-3 px-4 rounded-2xl transition-all duration-300"
                 onClick={closeMobileMenu}
               >
                 <Search className="h-5 w-5" />
                 <span>Browse</span>
+              </Link>
+              <Link 
+                to="/about" 
+                className="group flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 py-3 px-4 rounded-2xl transition-all duration-300"
+                onClick={closeMobileMenu}
+              >
+                <Info className="h-5 w-5" />
+                <span>About</span>
               </Link>
               <Link 
                 to="/partners" 
