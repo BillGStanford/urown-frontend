@@ -369,7 +369,7 @@ function ArticleCard({ article, size = 'normal', counterCount = null, viewMode =
   // Normal Size (Default) - Grid View - Used in Editorial Picks
   return (
     <div 
-      className="group bg-white rounded-lg shadow-sm hover:shadow-md border border-gray-200 overflow-hidden cursor-pointer transition-all duration-200 flex flex-col h-full"
+      className="group bg-white rounded-lg shadow-sm hover:shadow-md border border-gray-100 overflow-hidden cursor-pointer transition-all duration-200 flex flex-col h-[420px]"
       onClick={handleClick}
     >
       {/* Compact Header with Tier */}
