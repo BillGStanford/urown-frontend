@@ -228,26 +228,23 @@ function HomePage() {
               <DebateHallSection />
             </section>
             
-            {/* Editorial Picks Section */}
+{/* Editorial Picks Section */}
             {filteredArticles.length > 0 && (
               <section>
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center gap-3">
-                    <div className="w-1 h-8 bg-gradient-to-b from-yellow-500 to-orange-500 rounded-full"></div>
-                    <div>
-                      <h2 className="text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-3">
-                        Editorial Picks
-                        <Star className="w-8 h-8 text-yellow-500 fill-yellow-500" />
-                      </h2>
-                      <p className="text-gray-600 text-sm mt-1">Handpicked by our editorial board</p>
-                    </div>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      Editorial Picks
+                      <Award className="w-7 h-7 text-orange-600" />
+                    </h2>
+                    <p className="text-gray-600 text-sm">Curated content reviewed by our editorial board</p>
                   </div>
                   <Link 
                     to="/browse" 
-                    className="hidden md:flex items-center gap-2 px-6 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-all duration-200 hover:gap-3"
+                    className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white font-semibold text-sm rounded-lg hover:bg-gray-800 transition-colors duration-200"
                   >
                     View All
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-4 h-4" />
                   </Link>
                 </div>
                 
