@@ -82,113 +82,139 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section - Completely Redesigned */}
-      <div className="relative bg-black text-white overflow-hidden">
-        {/* Animated mesh gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800"></div>
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-0 -left-4 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-          <div className="absolute top-0 -right-4 w-72 h-72 bg-orange-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-red-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
-        </div>
+{/* Hero Section - Enterprise Professional */}
+      <div className="relative bg-white overflow-hidden border-b border-gray-200">
+        {/* Subtle sophisticated background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50"></div>
         
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Status Badge */}
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border border-yellow-500/30 px-4 py-2 rounded-full mb-6">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-              <span className="text-yellow-500 font-semibold text-sm tracking-wider uppercase">{filteredArticles.length} Live Debates</span>
-            </div>
-            
-            {/* Main Headline */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">
-              {user ? (
-                <>
-                  Welcome Back,
-                  <span className="block bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 bg-clip-text text-transparent mt-2">
-                    {user.display_name || user.full_name}
-                  </span>
-                </>
-              ) : (
-                <>
-                  Where Ideas
-                  <span className="block bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
-                    Collide & Evolve
-                  </span>
-                </>
-              )}
-            </h1>
-            
-            {/* Subheadline */}
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto font-light">
-              {user 
-                ? 'Your platform for intellectual combat. Write bold arguments, face fierce rebuttals, and let the best ideas win.' 
-                : 'Join the arena of ideas. Publish your perspective, challenge opposing views, and engage in debates that matter.'}
-            </p>
-            
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-              <Link 
-                to="/browse" 
-                className="group relative w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-black bg-white rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-              >
-                <span className="relative z-10 flex items-center">
-                  <BookOpen className="mr-2 w-5 h-5" />
-                  Explore Debates
-                </span>
-              </Link>
+        {/* Minimal accent elements */}
+        <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-orange-50/30 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-yellow-50/20 to-transparent"></div>
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-20 md:py-28 lg:py-32">
+            {/* Grid Layout */}
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+              {/* Left Column - Content */}
+              <div>
+                {/* Status Badge - Refined */}
+                <div className="inline-flex items-center gap-2 bg-white border border-gray-300 px-4 py-2 rounded-lg shadow-sm mb-6">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-gray-700 font-medium text-sm">{filteredArticles.length} Active Debates</span>
+                </div>
+                
+                {/* Main Headline - Clean & Professional */}
+                <h1 className="mb-6">
+                  {user ? (
+                    <>
+                      <div className="text-gray-900 text-4xl md:text-5xl lg:text-6xl font-bold mb-3 leading-tight">
+                        Welcome back,
+                      </div>
+                      <div className="text-orange-600 text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+                        {user.display_name || user.full_name}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-gray-900 text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-2">
+                        The Premier Platform
+                      </div>
+                      <div className="text-gray-900 text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+                        for Intellectual
+                      </div>
+                      <div className="text-orange-600 text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+                        Discourse
+                      </div>
+                    </>
+                  )}
+                </h1>
+                
+                {/* Subheadline - Professional Tone */}
+                <p className="text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed max-w-2xl">
+                  {user 
+                    ? 'Continue engaging with thought leaders and shaping the conversation on topics that matter.' 
+                    : 'Join industry experts, academics, and thought leaders in rigorous, evidence-based debates on the issues shaping our world.'}
+                </p>
+                
+                {/* CTA Buttons - Professional */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-10">
+                  <Link 
+                    to="/browse" 
+                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors duration-200 shadow-lg"
+                  >
+                    Explore Debates
+                    <ChevronRight className="ml-2 w-5 h-5" />
+                  </Link>
+                  
+                  {!user && (
+                    <Link 
+                      to="/signup" 
+                      className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-gray-900 bg-white border-2 border-gray-900 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                    >
+                      Create Account
+                    </Link>
+                  )}
+                </div>
+                
+                {/* Trust Indicators */}
+                <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <Award className="w-5 h-5 text-orange-600" />
+                    <span className="font-medium">Editorial Review Process</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-orange-600" />
+                    <span className="font-medium">Expert Community</span>
+                  </div>
+                </div>
+              </div>
               
-              {!user && (
-                <Link 
-                  to="/signup" 
-                  className="group relative w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-black bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-                >
-                  <span className="relative z-10 flex items-center">
-                    Join Free
-                    <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </span>
-                </Link>
-              )}
-            </div>
-            
-            {/* Stats Bar */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-              <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
-                <div className="flex items-center justify-center mb-2">
-                  <Award className="w-6 h-6 text-yellow-500" />
+              {/* Right Column - Stats Grid */}
+              <div>
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Stat Card 1 */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                      <Award className="w-6 h-6 text-orange-600" />
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">{filteredArticles.length}</div>
+                    <div className="text-sm text-gray-600 font-medium">Certified Articles</div>
+                    <div className="mt-3 text-xs text-gray-500">Reviewed by editorial board</div>
+                  </div>
+
+                  {/* Stat Card 2 */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                      <MessageSquare className="w-6 h-6 text-orange-600" />
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">Active</div>
+                    <div className="text-sm text-gray-600 font-medium">Ongoing Debates</div>
+                    <div className="mt-3 text-xs text-gray-500">Updated in real-time</div>
+                  </div>
+
+                  {/* Stat Card 3 */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                      <Users className="w-6 h-6 text-orange-600" />
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">4,000+</div>
+                    <div className="text-sm text-gray-600 font-medium">Monthly Readers</div>
+                    <div className="mt-3 text-xs text-gray-500">Growing community</div>
+                  </div>
+
+                  {/* Stat Card 4 */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                      <TrendingUp className="w-6 h-6 text-orange-600" />
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">24/7</div>
+                    <div className="text-sm text-gray-600 font-medium">Platform Access</div>
+                    <div className="mt-3 text-xs text-gray-500">Always available</div>
+                  </div>
                 </div>
-                <div className="text-2xl font-black text-white mb-1">{filteredArticles.length}</div>
-                <div className="text-xs text-gray-400 uppercase tracking-wider">Certified</div>
-              </div>
-              <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
-                <div className="flex items-center justify-center mb-2">
-                  <Flame className="w-6 h-6 text-orange-500" />
-                </div>
-                <div className="text-2xl font-black text-white mb-1">Live</div>
-                <div className="text-xs text-gray-400 uppercase tracking-wider">Active Now</div>
-              </div>
-              <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
-                <div className="flex items-center justify-center mb-2">
-                  <Users className="w-6 h-6 text-yellow-500" />
-                </div>
-                <div className="text-2xl font-black text-white mb-1">4000+</div>
-                <div className="text-xs text-gray-400 uppercase tracking-wider">Total Views</div>
-              </div>
-              <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
-                <div className="flex items-center justify-center mb-2">
-                  <MessageSquare className="w-6 h-6 text-orange-500" />
-                </div>
-                <div className="text-2xl font-black text-white mb-1">24/7</div>
-                <div className="text-xs text-gray-400 uppercase tracking-wider">Discussion</div>
               </div>
             </div>
           </div>
-        </div>
-        
-        {/* Bottom wave divider */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg className="w-full h-12 md:h-16" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M0,0 C300,80 600,80 900,40 L1200,0 L1200,120 L0,120 Z" fill="#f9fafb"></path>
-          </svg>
         </div>
       </div>
 

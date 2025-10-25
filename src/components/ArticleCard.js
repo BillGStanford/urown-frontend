@@ -1,7 +1,7 @@
 // components/ArticleCard.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Eye, MessageSquare, Award, Flame, Clock, Sparkles, Tag } from 'lucide-react';
+import { Trophy, Eye, MessageSquare, Award, Flame, Clock, Sparkles, Tag, User } from 'lucide-react';
 
 function ArticleCard({ article, size = 'normal', counterCount = null, viewMode = 'grid' }) {
   const navigate = useNavigate();
@@ -82,6 +82,12 @@ function ArticleCard({ article, size = 'normal', counterCount = null, viewMode =
     navigate(`/article/${article.id}`);
   };
 
+  // Navigate to user profile when username is clicked
+  const handleUserClick = (e) => {
+    e.stopPropagation(); // Prevent the card click from firing
+    navigate(`/user/${encodeURIComponent(article.display_name)}`);
+  };
+
   const isDebateOpinion = article.debate_topic_id !== null;
   const isWinner = article.is_debate_winner;
   const tierConfig = getTierConfig(article.tier);
@@ -137,7 +143,14 @@ function ArticleCard({ article, size = 'normal', counterCount = null, viewMode =
             <div className="flex items-start justify-between gap-4 mb-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm font-bold text-gray-900">{article.display_name}</span>
+                  {/* Make username clickable */}
+                  <button
+                    onClick={handleUserClick}
+                    className="text-sm font-bold text-gray-900 hover:text-orange-600 transition-colors flex items-center gap-1"
+                  >
+                    <User className="w-3 h-3" />
+                    {article.display_name}
+                  </button>
                   <span className="text-gray-300">•</span>
                   <span className="inline-flex items-center gap-1 text-xs font-semibold text-gray-500">
                     <Clock className="w-3 h-3" />
@@ -219,7 +232,14 @@ function ArticleCard({ article, size = 'normal', counterCount = null, viewMode =
                 <span className="text-3xl">{tierConfig.emoji}</span>
               </div>
               <div>
-                <div className="text-xl font-black">{article.display_name}</div>
+                {/* Make username clickable */}
+                <button
+                  onClick={handleUserClick}
+                  className="text-xl font-black text-white hover:text-orange-300 transition-colors flex items-center gap-2"
+                >
+                  <User className="w-4 h-4" />
+                  {article.display_name}
+                </button>
                 <div className="text-sm text-gray-400 uppercase font-bold tracking-wider">{article.tier} Tier</div>
               </div>
             </div>
@@ -287,7 +307,14 @@ function ArticleCard({ article, size = 'normal', counterCount = null, viewMode =
             <span className="text-xl">{tierConfig.emoji}</span>
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-bold text-gray-900 truncate">{article.display_name}</div>
+            {/* Make username clickable */}
+            <button
+              onClick={handleUserClick}
+              className="text-sm font-bold text-gray-900 truncate hover:text-orange-600 transition-colors flex items-center gap-1"
+            >
+              <User className="w-3 h-3" />
+              {article.display_name}
+            </button>
             <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">{article.tier}</div>
           </div>
         </div>
@@ -360,7 +387,14 @@ function ArticleCard({ article, size = 'normal', counterCount = null, viewMode =
               <span className="text-2xl drop-shadow-lg">{tierConfig.emoji}</span>
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-base font-black text-white truncate drop-shadow">{article.display_name}</div>
+              {/* Make username clickable */}
+              <button
+                onClick={handleUserClick}
+                className="text-base font-black text-white truncate drop-shadow hover:text-orange-200 transition-colors flex items-center gap-1"
+              >
+                <User className="w-4 h-4" />
+                {article.display_name}
+              </button>
               <div className="text-xs font-bold text-white/80 uppercase tracking-wider">{article.tier} Tier</div>
             </div>
           </div>

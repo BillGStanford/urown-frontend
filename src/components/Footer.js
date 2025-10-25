@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Heart } from 'lucide-react';
+import { FileText, Heart, Briefcase, Info, Mail, Users } from 'lucide-react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -10,7 +10,7 @@ const Footer = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Main Content */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             {/* Brand Section */}
             <div className="flex flex-col items-center md:items-start">
               <h3 className="text-3xl font-black bg-gradient-to-r from-orange-400 via-red-400 to-pink-400 bg-clip-text text-transparent mb-2 tracking-tight">
@@ -21,8 +21,36 @@ const Footer = () => {
               </p>
             </div>
 
-            {/* Quick Links */}
-            <div className="flex flex-col items-center">
+            {/* Company Links */}
+            <div className="flex flex-col items-center md:items-start">
+              <h4 className="text-sm font-bold text-gray-300 mb-4 uppercase tracking-wider">
+                Company
+              </h4>
+              <Link
+                to="/about"
+                className="group flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-200 mb-2"
+              >
+                <Info className="h-4 w-4" />
+                <span className="text-sm font-medium">About Us</span>
+              </Link>
+              <Link
+                to="/careers"
+                className="group flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-200 mb-2"
+              >
+                <Briefcase className="h-4 w-4" />
+                <span className="text-sm font-medium">Careers</span>
+              </Link>
+              <Link
+                to="/partners"
+                className="group flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-200 mb-2"
+              >
+                <Users className="h-4 w-4" />
+                <span className="text-sm font-medium">Partners</span>
+              </Link>
+            </div>
+
+            {/* Resources Links */}
+            <div className="flex flex-col items-center md:items-start">
               <h4 className="text-sm font-bold text-gray-300 mb-4 uppercase tracking-wider">
                 Resources
               </h4>
@@ -32,6 +60,13 @@ const Footer = () => {
               >
                 <FileText className="h-4 w-4" />
                 <span className="text-sm font-medium">Community Guidelines</span>
+              </Link>
+              <Link
+                to="/contact"
+                className="group flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-200 mb-2"
+              >
+                <Mail className="h-4 w-4" />
+                <span className="text-sm font-medium">Contact Us</span>
               </Link>
             </div>
 
