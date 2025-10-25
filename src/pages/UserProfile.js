@@ -37,15 +37,22 @@ const UserProfile = () => {
   const [stats, setStats] = useState({ totalArticles: 0, totalViews: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_URL}/users/${encodeURIComponent(display_name)}`);
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        
+        const response = await axios.get(`${API_URL}/users/${encodeURIComponent(display_name)}`, { headers });
         setUser(response.data.user);
         setArticles(response.data.articles);
         setStats(response.data.stats);
+        setIsFollowing(response.data.user.isFollowing || false);
         setError(null);
       } catch (err) {
         setError(err.response?.data?.error || 'Failed to fetch user data');
@@ -57,8 +64,55 @@ const UserProfile = () => {
     fetchUserData();
   }, [display_name]);
 
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const response = await axios.get(`${API_URL}/user/profile`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setCurrentUser(response.data.user);
+        }
+      } catch (err) {
+        console.error('Failed to fetch current user:', err);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
+  const handleFollow = async () => {
+    if (!currentUser) {
+      // Redirect to login or show login modal
+      return;
+    }
+
+    try {
+      setFollowLoading(true);
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      if (isFollowing) {
+        await axios.delete(`${API_URL}/users/${user.id}/follow`, { headers });
+        setUser(prev => ({ ...prev, followers: prev.followers - 1 }));
+      } else {
+        await axios.post(`${API_URL}/users/${user.id}/follow`, {}, { headers });
+        setUser(prev => ({ ...prev, followers: prev.followers + 1 }));
+      }
+
+      setIsFollowing(!isFollowing);
+    } catch (err) {
+      console.error('Follow/unfollow error:', err);
+      setError(err.response?.data?.error || 'Failed to follow/unfollow user');
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
   const certifiedCount = articles.filter(article => article.certified).length;
   const debateWinnerCount = articles.filter(article => article.is_debate_winner).length;
+  const isCertifiedByFollowers = user && user.followers >= 100;
 
   if (loading) {
     return (
@@ -131,7 +185,15 @@ const UserProfile = () => {
               </div>
               
               <div className="flex-grow text-center md:text-left">
-                <h1 className="text-4xl font-bold text-gray-900 mb-2">{user.display_name}</h1>
+                <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2">
+                  <h1 className="text-4xl font-bold text-gray-900">{user.display_name}</h1>
+                  {isCertifiedByFollowers && (
+                    <div className="flex items-center gap-1 bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold">
+                      <Star className="h-4 w-4" />
+                      Certified
+                    </div>
+                  )}
+                </div>
                 <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-3">
                   <span className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
                     <Star className="h-4 w-4" />
@@ -143,12 +205,32 @@ const UserProfile = () => {
                       {user.role}
                     </span>
                   )}
+                  <span className="bg-gradient-to-r from-green-100 to-blue-100 text-green-800 px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    {user.followers || 0} Followers
+                  </span>
                 </div>
                 <p className="text-gray-600 flex items-center justify-center md:justify-start gap-2">
                   <Calendar className="h-4 w-4" />
                   Joined {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}
                 </p>
               </div>
+              
+              {currentUser && currentUser.id !== user.id && (
+                <div className="flex-shrink-0">
+                  <button
+                    onClick={handleFollow}
+                    disabled={followLoading}
+                    className={`px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg ${
+                      isFollowing
+                        ? 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                        : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
+                    }`}
+                  >
+                    {followLoading ? 'Loading...' : isFollowing ? 'Unfollow' : 'Follow'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
