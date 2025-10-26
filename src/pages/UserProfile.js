@@ -23,7 +23,7 @@ import {
   Users,
   Activity,
   Zap,
-  Sparkles
+  AlertCircle
 } from 'lucide-react';
 
 const API_URL = process.env.NODE_ENV === 'production' 
@@ -84,7 +84,6 @@ const UserProfile = () => {
 
   const handleFollow = async () => {
     if (!currentUser) {
-      // Redirect to login or show login modal
       return;
     }
 
@@ -95,13 +94,15 @@ const UserProfile = () => {
 
       if (isFollowing) {
         await axios.delete(`${API_URL}/users/${user.id}/follow`, { headers });
-        setUser(prev => ({ ...prev, followers: prev.followers - 1 }));
+        setIsFollowing(false);
       } else {
         await axios.post(`${API_URL}/users/${user.id}/follow`, {}, { headers });
-        setUser(prev => ({ ...prev, followers: prev.followers + 1 }));
+        setIsFollowing(true);
       }
 
-      setIsFollowing(!isFollowing);
+      const response = await axios.get(`${API_URL}/users/${encodeURIComponent(display_name)}`, { headers });
+      setUser(response.data.user);
+      
     } catch (err) {
       console.error('Follow/unfollow error:', err);
       setError(err.response?.data?.error || 'Failed to follow/unfollow user');
@@ -116,15 +117,15 @@ const UserProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-purple-500 mx-auto"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-t-3 border-b-3 border-orange-600 mx-auto"></div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <Sparkles className="h-10 w-10 text-purple-500 animate-pulse" />
+              <User className="h-8 w-8 text-orange-600" />
             </div>
           </div>
-          <div className="mt-8 text-xl font-semibold text-gray-700 animate-pulse">Loading amazing content...</div>
+          <div className="mt-6 text-lg font-semibold text-gray-700">Loading profile...</div>
         </div>
       </div>
     );
@@ -132,20 +133,18 @@ const UserProfile = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex flex-col">
-        <div className="flex-grow container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-grow container mx-auto px-4 py-12">
           <div className="max-w-2xl mx-auto">
-            <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-12 text-center border border-white/20">
-              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+            <div className="bg-white rounded-xl shadow-sm p-10 text-center border border-gray-200">
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertCircle className="w-8 h-8 text-red-600" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">Profile Not Found</h2>
-              <p className="text-gray-600 mb-8 text-lg">{error}</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Profile Not Found</h2>
+              <p className="text-gray-600 mb-8">{error}</p>
               <Link 
                 to="/" 
-                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-2xl hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 shadow-lg"
+                className="inline-flex items-center px-6 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors duration-200 shadow-sm"
               >
                 Return to Home
               </Link>
@@ -157,60 +156,55 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section with Cover */}
       <div className="relative">
-        <div className="h-48 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 relative overflow-hidden">
-          <div className="absolute inset-0 bg-black/20"></div>
-          <div className="absolute inset-0">
-            <div className="absolute top-4 left-4 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-            <div className="absolute bottom-4 right-4 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
-          </div>
+        <div className="h-40 bg-gradient-to-r from-orange-500 to-orange-600 relative overflow-hidden">
+          <div className="absolute inset-0 bg-black/5"></div>
         </div>
         
         {/* Profile Info */}
         <div className="container mx-auto px-4 -mt-16">
-          <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/30">
+          <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 border border-gray-200">
             <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
               <div className="relative -mt-20 md:-mt-16">
-                <div className="w-32 h-32 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white">
-                  <span className="text-5xl font-bold text-white">
+                <div className="w-28 h-28 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
+                  <span className="text-4xl font-bold text-white">
                     {user.display_name.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <div className="absolute bottom-0 right-0 bg-green-500 rounded-full p-2 border-3 border-white shadow-lg">
-                  <CheckCircle className="h-5 w-5 text-white" />
+                <div className="absolute bottom-1 right-1 bg-green-500 rounded-full p-1.5 border-2 border-white shadow-sm">
+                  <CheckCircle className="h-4 w-4 text-white" />
                 </div>
               </div>
               
               <div className="flex-grow text-center md:text-left">
                 <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2">
-                  <h1 className="text-4xl font-bold text-gray-900">{user.display_name}</h1>
+                  <h1 className="text-3xl font-bold text-gray-900">{user.display_name}</h1>
                   {isCertifiedByFollowers && (
-                    <div className="flex items-center gap-1 bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold">
-                      <Star className="h-4 w-4" />
+                    <div className="flex items-center gap-1 bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold border border-orange-200">
+                      <Award className="h-4 w-4" />
                       Certified
                     </div>
                   )}
                 </div>
                 <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-3">
-                  <span className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
+                  <span className="bg-orange-50 text-orange-700 px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2 border border-orange-200">
                     <Star className="h-4 w-4" />
                     {user.tier} Tier
                   </span>
                   {user.role !== 'user' && (
-                    <span className="bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
+                    <span className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2 border border-blue-200">
                       <Shield className="h-4 w-4" />
                       {user.role}
                     </span>
                   )}
-                  <span className="bg-gradient-to-r from-green-100 to-blue-100 text-green-800 px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
+                  <span className="bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2 border border-gray-200">
                     <Users className="h-4 w-4" />
                     {user.followers || 0} Followers
                   </span>
                 </div>
-                <p className="text-gray-600 flex items-center justify-center md:justify-start gap-2">
+                <p className="text-gray-600 flex items-center justify-center md:justify-start gap-2 text-sm">
                   <Calendar className="h-4 w-4" />
                   Joined {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}
                 </p>
@@ -221,13 +215,13 @@ const UserProfile = () => {
                   <button
                     onClick={handleFollow}
                     disabled={followLoading}
-                    className={`px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg ${
+                    className={`px-6 py-2.5 rounded-lg font-semibold transition-all duration-200 shadow-sm ${
                       isFollowing
-                        ? 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                        : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
+                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                        : 'bg-orange-600 text-white hover:bg-orange-700'
                     }`}
                   >
-                    {followLoading ? 'Loading...' : isFollowing ? 'Unfollow' : 'Follow'}
+                    {followLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}
                   </button>
                 </div>
               )}
@@ -238,118 +232,118 @@ const UserProfile = () => {
 
       {/* Stats Grid */}
       <div className="container mx-auto px-4 mt-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-white/30 hover:shadow-2xl transition-shadow">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200 hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center justify-between mb-3">
-              <div className="bg-purple-100 rounded-xl p-3">
-                <FileText className="h-6 w-6 text-purple-600" />
+              <div className="bg-orange-50 rounded-lg p-2.5">
+                <FileText className="h-5 w-5 text-orange-600" />
               </div>
-              <span className="text-2xl font-bold text-purple-600">{stats.totalArticles}</span>
+              <span className="text-2xl font-bold text-gray-900">{stats.totalArticles}</span>
             </div>
-            <p className="text-gray-700 font-semibold">Articles</p>
-            <p className="text-gray-500 text-sm">Published content</p>
+            <p className="text-gray-900 font-semibold text-sm">Articles</p>
+            <p className="text-gray-500 text-xs">Published</p>
           </div>
           
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-white/30 hover:shadow-2xl transition-shadow">
+          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200 hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center justify-between mb-3">
-              <div className="bg-blue-100 rounded-xl p-3">
-                <Eye className="h-6 w-6 text-blue-600" />
+              <div className="bg-blue-50 rounded-lg p-2.5">
+                <Eye className="h-5 w-5 text-blue-600" />
               </div>
-              <span className="text-2xl font-bold text-blue-600">{stats.totalViews}</span>
+              <span className="text-2xl font-bold text-gray-900">{stats.totalViews}</span>
             </div>
-            <p className="text-gray-700 font-semibold">Total Views</p>
-            <p className="text-gray-500 text-sm">People reached</p>
+            <p className="text-gray-900 font-semibold text-sm">Total Views</p>
+            <p className="text-gray-500 text-xs">Reached</p>
           </div>
           
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-white/30 hover:shadow-2xl transition-shadow">
+          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200 hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center justify-between mb-3">
-              <div className="bg-green-100 rounded-xl p-3">
-                <Award className="h-6 w-6 text-green-600" />
+              <div className="bg-green-50 rounded-lg p-2.5">
+                <Award className="h-5 w-5 text-green-600" />
               </div>
-              <span className="text-2xl font-bold text-green-600">{certifiedCount}</span>
+              <span className="text-2xl font-bold text-gray-900">{certifiedCount}</span>
             </div>
-            <p className="text-gray-700 font-semibold">Certified</p>
-            <p className="text-gray-500 text-sm">Expert articles</p>
+            <p className="text-gray-900 font-semibold text-sm">Certified</p>
+            <p className="text-gray-500 text-xs">Expert articles</p>
           </div>
           
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-white/30 hover:shadow-2xl transition-shadow">
+          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200 hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center justify-between mb-3">
-              <div className="bg-yellow-100 rounded-xl p-3">
-                <Trophy className="h-6 w-6 text-yellow-600" />
+              <div className="bg-yellow-50 rounded-lg p-2.5">
+                <Trophy className="h-5 w-5 text-yellow-600" />
               </div>
-              <span className="text-2xl font-bold text-yellow-600">{debateWinnerCount}</span>
+              <span className="text-2xl font-bold text-gray-900">{debateWinnerCount}</span>
             </div>
-            <p className="text-gray-700 font-semibold">Debate Wins</p>
-            <p className="text-gray-500 text-sm">Champion content</p>
+            <p className="text-gray-900 font-semibold text-sm">Debate Wins</p>
+            <p className="text-gray-500 text-xs">Champion</p>
           </div>
         </div>
 
         {/* Activity Feed */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/30">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Activity className="h-8 w-8 text-purple-600" />
+        <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 border border-gray-200">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2.5">
+              <Activity className="h-6 w-6 text-orange-600" />
               Recent Activity
             </h2>
-            <div className="flex items-center gap-2 bg-purple-100 px-4 py-2 rounded-full">
-              <Zap className="h-4 w-4 text-purple-600" />
-              <span className="text-purple-800 font-semibold">{articles.length} posts</span>
+            <div className="flex items-center gap-2 bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-200">
+              <FileText className="h-4 w-4 text-orange-600" />
+              <span className="text-orange-700 font-semibold text-sm">{articles.length} posts</span>
             </div>
           </div>
           
           {articles.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <BookOpen className="h-12 w-12 text-gray-400" />
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200">
+                <BookOpen className="h-8 w-8 text-gray-400" />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-3">No articles yet</h3>
-              <p className="text-gray-500 text-lg">This user hasn't published any articles yet.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No articles yet</h3>
+              <p className="text-gray-500">This user hasn't published any articles yet.</p>
             </div>
           ) : (
-            <div className="space-y-6">
-              {articles.map((article, index) => (
+            <div className="space-y-4">
+              {articles.map((article) => (
                 <div key={article.id} className="group">
-                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100 hover:shadow-lg transition-all duration-300">
+                  <div className="bg-gray-50 rounded-lg p-5 border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-200">
                     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                       <div className="flex-grow">
                         <div className="flex items-start gap-3 mb-3">
-                          <div className="bg-white rounded-full p-2 shadow-sm">
-                            <FileText className="h-5 w-5 text-purple-600" />
+                          <div className="bg-white rounded-lg p-2 shadow-sm border border-gray-200">
+                            <FileText className="h-4 w-4 text-orange-600" />
                           </div>
                           <div className="flex-grow">
-                            <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">
+                            <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
                               <Link to={`/article/${article.id}`}>
                                 {article.title}
                               </Link>
                             </h3>
                             <div className="flex flex-wrap gap-2 mb-3">
                               {article.certified && (
-                                <span className="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
-                                  <CheckCircle className="h-3 w-3" />
+                                <span className="bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-1 rounded border border-green-200 flex items-center gap-1">
+                                  <Award className="h-3 w-3" />
                                   Certified
                                 </span>
                               )}
                               {article.is_debate_winner && (
-                                <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                                <span className="bg-yellow-50 text-yellow-700 text-xs font-semibold px-2.5 py-1 rounded border border-yellow-200 flex items-center gap-1">
                                   <Trophy className="h-3 w-3" />
-                                  Debate Winner
+                                  Winner
                                 </span>
                               )}
-                              {article.topics && article.topics.map((topic, idx) => (
-                                <span key={idx} className="bg-white text-gray-700 text-xs px-3 py-1 rounded-full border border-gray-200">
+                              {article.topics && article.topics.slice(0, 3).map((topic, idx) => (
+                                <span key={idx} className="bg-white text-gray-700 text-xs px-2.5 py-1 rounded border border-gray-200">
                                   {topic}
                                 </span>
                               ))}
                             </div>
-                            <p className="text-gray-600 mb-4 line-clamp-2">
-                              {article.content.substring(0, 200)}...
+                            <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                              {article.content.substring(0, 180)}...
                             </p>
-                            <div className="flex items-center gap-6 text-sm text-gray-500">
-                              <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-5 text-sm text-gray-500">
+                              <div className="flex items-center gap-1.5">
                                 <Eye className="h-4 w-4" />
-                                <span>{article.views || 0} views</span>
+                                <span>{article.views || 0}</span>
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1.5">
                                 <Clock className="h-4 w-4" />
                                 <span>{formatDistanceToNow(new Date(article.created_at), { addSuffix: true })}</span>
                               </div>
@@ -357,10 +351,10 @@ const UserProfile = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center">
+                      <div className="flex items-center lg:ml-4">
                         <Link 
                           to={`/article/${article.id}`} 
-                          className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 shadow-lg"
+                          className="inline-flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-orange-700 transition-colors duration-200 shadow-sm text-sm"
                         >
                           Read Article
                           <ChevronRight className="h-4 w-4" />
@@ -376,7 +370,7 @@ const UserProfile = () => {
       </div>
 
       {/* Footer Spacer */}
-      <div className="h-16"></div>
+      <div className="h-12"></div>
     </div>
   );
 };
