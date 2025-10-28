@@ -1,7 +1,8 @@
 // src/pages/AdminWriteArticle.js
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { PenTool, AlertCircle, CheckCircle, X, ArrowLeft } from 'lucide-react';
+import { fetchWithDeduplication, createApiRequest } from '../utils/apiUtils';
 
 function AdminWriteArticle() {
   const navigate = useNavigate();
@@ -22,34 +23,37 @@ function AdminWriteArticle() {
 
   const fetchTopics = async () => {
     try {
-      const response = await axios.get('/topics');
+      const response = await fetchWithDeduplication(
+        'admin-topics',
+        createApiRequest('/topics', { method: 'GET' })
+      );
       setTopics(response.data.topics);
     } catch (err) {
       console.error('Error fetching topics:', err);
+      setError('Failed to load topics. Please try again.');
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setError('');
   };
 
   const handleTopicToggle = (topicId) => {
     setFormData(prev => {
-      const newTopicIds = prev.topicIds.includes(topicId)
+      const exists = prev.topicIds.includes(topicId);
+      const newIds = exists
         ? prev.topicIds.filter(id => id !== topicId)
         : [...prev.topicIds, topicId];
-      
-      if (newTopicIds.length > 3) {
-        setError('You can select a maximum of 3 topics');
+
+      if (newIds.length > 3) {
+        setError('Maximum 3 topics allowed');
         return prev;
       }
-      
+
       setError('');
-      return { ...prev, topicIds: newTopicIds };
+      return { ...prev, topicIds: newIds };
     });
   };
 
@@ -60,88 +64,85 @@ function AdminWriteArticle() {
     setSuccess('');
 
     // Validation
-    if (!formData.username.trim()) {
-      setError('Username is required');
-      setLoading(false);
-      return;
-    }
-
-    if (!formData.title.trim()) {
-      setError('Title is required');
-      setLoading(false);
-      return;
-    }
-
-    if (!formData.content.trim()) {
-      setError('Content is required');
-      setLoading(false);
-      return;
-    }
-
-    if (formData.title.length > 255) {
-      setError('Title must be 255 characters or less');
-      setLoading(false);
-      return;
-    }
+    if (!formData.username.trim()) return setError('Author username is required');
+    if (!formData.title.trim()) return setError('Article title is required');
+    if (!formData.content.trim()) return setError('Article content is required');
+    if (formData.title.length > 255) return setError('Title must be 255 characters or less');
 
     try {
-      await axios.post('/admin/articles/create', {
-        username: formData.username.trim(),
-        title: formData.title.trim(),
-        content: formData.content.trim(),
-        topicIds: formData.topicIds
-      });
+      await fetchWithDeduplication(
+        'admin-create-article',
+        createApiRequest('/admin/articles/create', {
+          method: 'POST',
+          data: {
+            username: formData.username.trim(),
+            title: formData.title.trim(),
+            content: formData.content.trim(),
+            topicIds: formData.topicIds
+          }
+        })
+      );
 
-      setSuccess('Article posted successfully!');
-      
-      // Reset form
-      setFormData({
-        username: '',
-        title: '',
-        content: '',
-        topicIds: []
-      });
+      setSuccess('Article published successfully');
+      setFormData({ username: '', title: '', content: '', topicIds: [] });
 
-      // Redirect after 2 seconds
-      setTimeout(() => {
-        navigate('/admin');
-      }, 2000);
-
+      setTimeout(() => navigate('/admin'), 1500);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to post article');
+      setError(err.response?.data?.error || 'Failed to publish article');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Admin: Post Article</h1>
-            <p className="text-gray-600 mt-2">
-              Create and publish articles without account restrictions
-            </p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 px-6 py-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <PenTool className="text-indigo-600" size={24} />
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">Create Article</h1>
+                <p className="text-sm text-gray-500">Admin-only publishing interface</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/admin')}
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft size={18} />
+              <span>Back to Dashboard</span>
+            </button>
           </div>
+        </div>
 
+        <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          {/* Alert Messages */}
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-              {error}
+            <div className="mb-5 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <AlertCircle size={18} />
+                <span className="font-medium">{error}</span>
+              </div>
+              <button onClick={() => setError('')} className="text-red-600 hover:text-red-800">
+                <X size={18} />
+              </button>
             </div>
           )}
 
           {success && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
-              {success}
+            <div className="mb-5 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center">
+              <CheckCircle size={18} className="mr-2" />
+              <span className="font-medium">{success}</span>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Username Field */}
+            {/* Author Username */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                Author Username
+                Author Username <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -149,19 +150,19 @@ function AdminWriteArticle() {
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
-                placeholder="Enter author username"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., john_doe"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 required
               />
-              <p className="text-sm text-gray-500 mt-1">
-                This username will be displayed as the article author
+              <p className="mt-1.5 text-xs text-gray-500">
+                This user will appear as the article author
               </p>
             </div>
 
-            {/* Title Field */}
+            {/* Title */}
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                Article Title
+                Article Title <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -169,20 +170,21 @@ function AdminWriteArticle() {
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                placeholder="Enter article title"
+                placeholder="Enter a clear, descriptive title"
                 maxLength={255}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 required
               />
-              <p className="text-sm text-gray-500 mt-1">
-                {formData.title.length}/255 characters
-              </p>
+              <div className="mt-1.5 flex justify-between text-xs text-gray-500">
+                <span>Title must be accurate and under 255 characters</span>
+                <span>{formData.title.length}/255</span>
+              </div>
             </div>
 
-            {/* Topics Selection */}
+            {/* Topics */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Topics (Select up to 3)
+                Topics <span className="text-gray-500">(Max 3)</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {topics.map(topic => (
@@ -190,71 +192,79 @@ function AdminWriteArticle() {
                     key={topic.id}
                     type="button"
                     onClick={() => handleTopicToggle(topic.id)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition ${
                       formData.topicIds.includes(topic.id)
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     {topic.name}
                   </button>
                 ))}
               </div>
-              <p className="text-sm text-gray-500 mt-2">
-                {formData.topicIds.length}/3 topics selected
+              <p className="mt-1.5 text-xs text-gray-500">
+                {formData.topicIds.length} of 3 topics selected
               </p>
             </div>
 
-            {/* Content Field */}
+            {/* Content */}
             <div>
               <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
-                Article Content
+                Article Content <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="content"
                 name="content"
                 value={formData.content}
                 onChange={handleChange}
-                placeholder="Write your article content here..."
-                rows={15}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                placeholder="Write full article content here..."
+                rows={16}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm"
                 required
               />
-              <p className="text-sm text-gray-500 mt-1">
-                Write the full article content. Supports plain text formatting.
+              <p className="mt-1.5 text-xs text-gray-500">
+                Plain text only. Use markdown-style formatting if needed.
               </p>
             </div>
 
-            {/* Submit Button */}
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? 'Posting...' : 'Post Article'}
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/admin')}
-                className="px-6 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
+            {/* Actions */}
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+              <div className="text-sm text-gray-600">
+                Articles posted via admin bypass all user limits and are published immediately.
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin')}
+                  className="px-5 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`px-6 py-2.5 rounded-lg font-medium text-white transition ${
+                    loading
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-indigo-600 hover:bg-indigo-700'
+                  }`}
+                >
+                  {loading ? 'Publishing...' : 'Publish Article'}
+                </button>
+              </div>
             </div>
           </form>
+        </div>
 
-          {/* Info Box */}
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h3 className="font-medium text-blue-900 mb-2">Admin Article Posting</h3>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Articles posted through this page bypass all restrictions</li>
-              <li>• No weekly limits apply to admin-posted articles</li>
-              <li>• Articles are automatically published and visible immediately</li>
-              <li>• The username provided will be shown as the author</li>
-              <li>• These articles help build the website's content library</li>
-            </ul>
-          </div>
+        {/* Info Card */}
+        <div className="mt-6 bg-indigo-50 border border-indigo-200 rounded-lg p-5">
+          <h3 className="font-medium text-indigo-900 mb-2">Admin Publishing Privileges</h3>
+          <ul className="text-sm text-indigo-800 space-y-1">
+            <li>• No weekly article limits</li>
+            <li>• Immediate publication</li>
+            <li>• Full editorial override</li>
+            <li>• Content appears under specified username</li>
+          </ul>
         </div>
       </div>
     </div>
