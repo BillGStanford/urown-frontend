@@ -1,3 +1,4 @@
+// pages/ArticlePage.js (Completely Redesigned)
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
@@ -13,7 +14,27 @@ import {
   EmailIcon
 } from 'react-share';
 import { Helmet } from 'react-helmet';
-import { Flag, ChevronDown, ChevronUp, Award, MessageSquare, Share2, Copy, Eye, X, Clock, Shuffle, Moon, Sun } from 'lucide-react';
+import { 
+  Flag, 
+  ChevronDown, 
+  ChevronUp, 
+  Award, 
+  MessageSquare, 
+  Share2, 
+  Copy, 
+  Eye, 
+  X, 
+  Clock, 
+  Shuffle, 
+  Moon, 
+  Sun,
+  User,
+  Calendar,
+  Bookmark,
+  BookmarkCheck,
+  TrendingUp,
+  BarChart3
+} from 'lucide-react';
 
 const ArticlePage = () => {
   const { id, slug } = useParams();
@@ -36,6 +57,9 @@ const ArticlePage = () => {
   const [readingProgress, setReadingProgress] = useState(0);
   const [readingTime, setReadingTime] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [showTableOfContents, setShowTableOfContents] = useState(false);
+  const [activeSection, setActiveSection] = useState('');
   const abortControllerRef = useRef(null);
   const paywallTimerRef = useRef(null);
   const articleContentRef = useRef(null);
@@ -98,7 +122,7 @@ const ArticlePage = () => {
     return time;
   };
 
-  // Handle scroll for reading progress
+  // Handle scroll for reading progress and active section
   useEffect(() => {
     const handleScroll = () => {
       if (!articleContentRef.current) return;
@@ -110,11 +134,45 @@ const ArticlePage = () => {
       const progress = (scrollTop / trackLength) * 100;
       
       setReadingProgress(Math.min(progress, 100));
+      
+      // Update active section for table of contents
+      const headings = articleContentRef.current.querySelectorAll('h1, h2, h3');
+      let currentSection = '';
+      
+      headings.forEach(heading => {
+        const rect = heading.getBoundingClientRect();
+        if (rect.top <= 100) {
+          currentSection = heading.id || heading.textContent;
+        }
+      });
+      
+      if (currentSection !== activeSection) {
+        setActiveSection(currentSection);
+      }
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [activeSection]);
+
+  // Extract headings for table of contents
+  const extractHeadings = (content) => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = content;
+    const headings = Array.from(tempDiv.querySelectorAll('h1, h2, h3'));
+    
+    return headings.map((heading, index) => {
+      const text = heading.textContent;
+      const id = `heading-${index}`;
+      heading.id = id;
+      
+      return {
+        id,
+        text,
+        level: parseInt(heading.tagName.substring(1))
+      };
+    });
+  };
 
   // Fetch related articles based on keywords
   const fetchRelatedArticles = async (articleTitle, currentArticleId) => {
@@ -178,6 +236,12 @@ const ArticlePage = () => {
         // Calculate reading time
         const time = calculateReadingTime(currentArticle.content);
         setReadingTime(time);
+        
+        // Extract headings for table of contents
+        const headings = extractHeadings(currentArticle.content);
+        if (headings.length > 0) {
+          setShowTableOfContents(true);
+        }
         
         // Fetch related articles
         fetchRelatedArticles(currentArticle.title, id);
@@ -301,6 +365,16 @@ const ArticlePage = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleBookmark = () => {
+    if (!user) {
+      handleLogin();
+      return;
+    }
+    
+    setIsBookmarked(!isBookmarked);
+    // In a real implementation, you would call an API to save/unsave the article
+  };
+
   const handleReportArticle = () => {
     if (!user) {
       handleLogin();
@@ -371,39 +445,19 @@ const ArticlePage = () => {
     }
   };
 
-  const getStatusGradient = (status) => {
-    switch (status) {
-      case 'debate':
-        return 'from-blue-500 to-blue-700';
-      case 'certified':
-        return 'from-purple-500 to-purple-700';
-      case 'winner':
-        return 'from-yellow-500 to-orange-500';
-      default:
-        return 'from-gray-500 to-gray-700';
-    }
-  };
-
-  // Enhanced content formatting with pull quotes
+  // Enhanced content formatting with proper HTML rendering
   const formatContent = (content) => {
-    const paragraphs = content.split('\n\n').map(p => p.trim()).filter(p => p.length > 0);
+    // Create a temporary div to parse the HTML content
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = content;
     
-    return paragraphs.map((paragraph, index) => {
-      // Create pull quote for longer paragraphs (every 4th paragraph)
-      if (index > 0 && index % 4 === 0 && paragraph.length > 100) {
-        const excerpt = paragraph.substring(0, 120) + '...';
-        return `
-          <div key=${index} class="my-12">
-            <div class="border-l-4 ${darkMode ? 'border-gray-600 bg-gray-800' : 'border-gray-300 bg-gray-50'} pl-6 pr-6 py-4 italic text-2xl leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'} font-serif">
-              "${excerpt}"
-            </div>
-          </div>
-          <p key=${index}-p class="mb-10 text-lg leading-loose font-serif ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${paragraph}</p>
-        `;
-      }
-      
-      return `<p key=${index} class="mb-10 text-lg leading-loose font-serif ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${paragraph}</p>`;
-    }).join('');
+    // Add IDs to headings for table of contents
+    const headings = tempDiv.querySelectorAll('h1, h2, h3');
+    headings.forEach((heading, index) => {
+      heading.id = `heading-${index}`;
+    });
+    
+    return tempDiv.innerHTML;
   };
 
   const canWriteCounter = user && counterOpinions.length < 5;
@@ -411,10 +465,10 @@ const ArticlePage = () => {
 
   if (loading) {
     return (
-      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-white'} flex items-center justify-center`}>
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} flex items-center justify-center`}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-yellow-500 mx-auto"></div>
-          <div className={`text-2xl mt-4 font-serif font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Loading article...</div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <p className={`mt-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Loading article...</p>
         </div>
       </div>
     );
@@ -422,13 +476,13 @@ const ArticlePage = () => {
 
   if (error || !article) {
     return (
-      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-white'} flex items-center justify-center`}>
-        <div className="text-center max-w-2xl px-4">
-          <h1 className={`text-4xl font-serif mb-4 font-black ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Article Not Found</h1>
-          <p className={`text-xl mb-8 font-serif ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>The article you're looking for doesn't exist or has been removed.</p>
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} flex items-center justify-center`}>
+        <div className="text-center max-w-md p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+          <h1 className={`text-2xl font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Article Not Found</h1>
+          <p className={`mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>The article you're looking for doesn't exist or has been removed.</p>
           <button 
             onClick={() => navigate('/')}
-            className="px-6 py-3 font-serif font-bold text-white bg-yellow-500 rounded-xl hover:bg-yellow-600 transition-colors duration-300"
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
             Go to Homepage
           </button>
@@ -463,308 +517,261 @@ const ArticlePage = () => {
       </Helmet>
 
       {/* Reading Progress Bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-gray-200">
+      <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-gray-200 dark:bg-gray-700">
         <div 
-          className="h-full bg-yellow-500 transition-all duration-150"
+          className="h-full bg-blue-500 transition-all duration-150"
           style={{ width: `${readingProgress}%` }}
         />
       </div>
 
-      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-white'} transition-colors duration-300`}>
-        {/* Dark Mode Toggle & Random Article */}
-        <div className="fixed top-20 right-4 z-40 flex flex-col gap-2">
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className={`p-3 rounded-full shadow-lg ${darkMode ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-800'} hover:scale-110 transition-transform duration-300`}
-            title={darkMode ? 'Light Mode' : 'Dark Mode'}
-          >
-            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-          <button
-            onClick={handleRandomArticle}
-            className={`p-3 rounded-full shadow-lg ${darkMode ? 'bg-gray-800 text-blue-400' : 'bg-white text-blue-600'} hover:scale-110 transition-transform duration-300`}
-            title="Random Article"
-          >
-            <Shuffle size={20} />
-          </button>
-        </div>
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} transition-colors duration-300`}>
+        {/* Header */}
+        <header className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b sticky top-0 z-10`}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div className="flex items-center">
+              <button
+                onClick={() => navigate('/')}
+                className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}
+              >
+                UROWN
+              </button>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleRandomArticle}
+                className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'} transition-colors`}
+                title="Random Article"
+              >
+                <Shuffle size={20} />
+              </button>
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700 text-yellow-400' : 'hover:bg-gray-100 text-gray-600'} transition-colors`}
+                title={darkMode ? 'Light Mode' : 'Dark Mode'}
+              >
+                {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+            </div>
+          </div>
+        </header>
 
         {/* Auth Banner */}
         {!user && (
-          <div className={`${darkMode ? 'bg-gray-800' : 'bg-yellow-50'} py-3 px-4 flex justify-between items-center ${darkMode ? 'border-gray-700' : 'border-yellow-200'} border-b sticky top-0 z-10 mt-1`}>
-            <div className={`text-sm font-serif ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              Enjoying this article? <span className="font-bold text-yellow-600">Sign up</span> to save articles to read later.
-            </div>
-            <div className="flex space-x-2">
-              <button 
-                onClick={handleLogin}
-                className={`text-sm ${darkMode ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' : 'bg-white border-gray-300 hover:bg-gray-50'} border px-3 py-1 rounded-lg font-serif font-medium transition-all duration-300`}
-              >
-                Log In
-              </button>
-              <button 
-                onClick={handleSignup}
-                className="text-sm bg-yellow-500 text-white px-3 py-1 rounded-lg font-serif font-bold hover:bg-yellow-600 transition-colors duration-300"
-              >
-                Sign Up
-              </button>
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-blue-50'} py-3 px-4`}>
+            <div className="max-w-7xl mx-auto flex justify-between items-center">
+              <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Enjoying this article? <span className="font-medium text-blue-500">Sign up</span> to save articles and write your own opinions.
+              </p>
+              <div className="flex space-x-2">
+                <button 
+                  onClick={handleLogin}
+                  className={`text-sm px-3 py-1 rounded-lg font-medium ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-50'} transition-colors`}
+                >
+                  Log In
+                </button>
+                <button 
+                  onClick={handleSignup}
+                  className="text-sm px-3 py-1 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
+                >
+                  Sign Up
+                </button>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Article Header - Vox Style */}
-        <header className="max-w-4xl mx-auto px-4 py-8 md:py-12">
-          <div className="mb-6">
+        {/* Article Content */}
+        <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Article Header */}
+          <header className="mb-8">
             <div className="flex items-center mb-4">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 bg-gradient-to-r ${getTierGradient(article.tier)}`}>
-                <span className="text-xl">{getTierEmoji(article.tier)}</span>
+                <span className="text-lg">{getTierEmoji(article.tier)}</span>
               </div>
               <div>
-                <span className={`text-lg font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{article.display_name}</span>
-                <div className="inline-block ml-3 px-2 py-1 text-xs font-bold rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-white">
+                <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{article.display_name}</span>
+                <div className="inline-block ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-white">
                   {article.tier?.toUpperCase()} TIER
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center text-sm text-gray-500 mb-4">
+            <div className="flex items-center text-sm text-gray-500 mb-6">
+              <Calendar className="mr-1" size={14} />
+              <span>{formatDate(article.created_at)}</span>
+              <span className="mx-2">•</span>
               <Clock className="mr-1" size={14} />
               <span>{readingTime} min read</span>
               <span className="mx-2">•</span>
               <Eye className="mr-1" size={14} />
               <span>{article.views} views</span>
-              <span className="mx-2">•</span>
-              <span>{formatDate(article.created_at)}</span>
             </div>
-          </div>
-          
-          <h1 className={`text-4xl md:text-5xl font-serif font-black mb-6 leading-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-            {article.title}
-          </h1>
-          
-          <div className="flex flex-wrap gap-2 mb-6">
-            <div className="bg-gray-800 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center">
-              <MessageSquare className="mr-1" size={14} />
-              Opinion
+            
+            <h1 className={`text-3xl md:text-4xl font-bold mb-6 leading-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              {article.title}
+            </h1>
+            
+            <div className="flex flex-wrap gap-2 mb-6">
+              <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-sm font-medium flex items-center">
+                <MessageSquare className="mr-1" size={14} />
+                Opinion
+              </div>
+              {article.certified && (
+                <div className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full text-sm font-medium flex items-center">
+                  <Award className="mr-1" size={14} />
+                  Editorial Certified
+                </div>
+              )}
+              {article.featured && (
+                <div className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 px-3 py-1 rounded-full text-sm font-medium flex items-center">
+                  <Award className="mr-1" size={14} />
+                  Featured
+                </div>
+              )}
             </div>
-            {article.certified && (
-              <div className="bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center">
-                <Award className="mr-1" size={14} />
-                Editorial Certified
+            
+            <div className="flex items-center justify-between">
+              <div className="flex space-x-4">
+                <FacebookShareButton url={shareUrl} quote={shareTitle}>
+                  <FacebookIcon size={28} round className="hover:scale-110 transition-transform" />
+                </FacebookShareButton>
+                <TwitterShareButton url={shareUrl} title={shareTitle}>
+                  <TwitterIcon size={28} round className="hover:scale-110 transition-transform" />
+                </TwitterShareButton>
+                <LinkedinShareButton url={shareUrl} title={shareTitle}>
+                  <LinkedinIcon size={28} round className="hover:scale-110 transition-transform" />
+                </LinkedinShareButton>
+                <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle}>
+                  <EmailIcon size={28} round className="hover:scale-110 transition-transform" />
+                </EmailShareButton>
               </div>
-            )}
-            {article.featured && (
-              <div className="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center">
-                <Award className="mr-1" size={14} />
-                Featured
+              
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleBookmark}
+                  className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+                  title={isBookmarked ? "Remove bookmark" : "Bookmark this article"}
+                >
+                  {isBookmarked ? (
+                    <BookmarkCheck size={20} className={darkMode ? "text-yellow-400" : "text-yellow-500"} />
+                  ) : (
+                    <Bookmark size={20} className={darkMode ? "text-gray-400" : "text-gray-600"} />
+                  )}
+                </button>
+                <button
+                  onClick={handleCopyLink}
+                  className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+                  title="Copy link"
+                >
+                  <Copy size={20} className={darkMode ? "text-gray-400" : "text-gray-600"} />
+                </button>
               </div>
-            )}
-          </div>
-          
-          <div className="flex space-x-4">
-            <FacebookShareButton url={shareUrl} quote={shareTitle}>
-              <FacebookIcon size={32} round className="hover:scale-110 transition-transform" />
-            </FacebookShareButton>
-            <TwitterShareButton url={shareUrl} title={shareTitle}>
-              <TwitterIcon size={32} round className="hover:scale-110 transition-transform" />
-            </TwitterShareButton>
-            <LinkedinShareButton url={shareUrl} title={shareTitle}>
-              <LinkedinIcon size={32} round className="hover:scale-110 transition-transform" />
-            </LinkedinShareButton>
-            <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle}>
-              <EmailIcon size={32} round className="hover:scale-110 transition-transform" />
-            </EmailShareButton>
-          </div>
-        </header>
+            </div>
+          </header>
 
-        {/* Main Content - Vox Style */}
-        <div className="max-w-4xl mx-auto px-4 pb-16">
-          <div className="flex flex-col lg:flex-row gap-8">
-            <div className={`${showSidebar ? 'lg:w-3/4' : 'w-full'}`}>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Table of Contents */}
+            {showTableOfContents && (
+              <div className="lg:col-span-1">
+                <div className={`sticky top-24 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-4`}>
+                  <h3 className={`text-lg font-medium mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Table of Contents</h3>
+                  <nav>
+                    <ul className="space-y-2">
+                      {extractHeadings(article.content).map((heading) => (
+                        <li key={heading.id} className={`${heading.level > 2 ? 'ml-4' : ''}`}>
+                          <a
+                            href={`#${heading.id}`}
+                            className={`text-sm ${activeSection === heading.text ? 'text-blue-500 font-medium' : darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              document.getElementById(heading.id).scrollIntoView({ behavior: 'smooth' });
+                            }}
+                          >
+                            {heading.text}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            )}
+
+            {/* Main Content */}
+            <div className={`${showTableOfContents ? 'lg:col-span-3' : 'lg:col-span-4'}`}>
               <div 
                 ref={articleContentRef}
-                className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-8 md:p-12`}
+                className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6 md:p-8`}
               >
                 <div 
-                  className={`${darkMode ? 'text-gray-200' : 'text-gray-800'} leading-relaxed font-serif text-lg`}
+                  className={`prose prose-lg max-w-none ${darkMode ? 'prose-invert' : ''}`}
                   dangerouslySetInnerHTML={{ __html: formatContent(article.content) }}
                 />
               </div>
 
-              {/* Counter Opinion Section - Vox Style */}
+              {/* Counter Opinion Section */}
               <div className={`mt-8 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6`}>
-                <div className="flex flex-col sm:flex-row justify-between items-center">
-                  <h2 className={`text-2xl font-serif font-bold mb-4 sm:mb-0 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Disagree with this opinion?</h2>
+                <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
+                  <h2 className={`text-xl font-medium mb-4 sm:mb-0 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Disagree with this opinion?</h2>
                   <button
                     onClick={handleCounterOpinion}
                     disabled={!canWriteCounter}
-                    className={`px-6 py-3 font-serif font-bold text-white rounded-lg transition-all duration-300 flex items-center ${
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center ${
                       canWriteCounter
-                        ? 'bg-yellow-500 hover:bg-yellow-600'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        ? 'bg-blue-500 text-white hover:bg-blue-600'
+                        : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                     }`}
                   >
                     <MessageSquare className="mr-2" size={18} />
-                    Counter Opinion
+                    Write Counter Opinion
                   </button>
                 </div>
                 {!canWriteCounter && user && (
-                  <p className="text-red-500 mt-2 font-serif font-medium">Maximum number of counter opinions reached for this article.</p>
+                  <p className="text-sm text-red-500">Maximum number of counter opinions reached for this article.</p>
                 )}
               </div>
-            </div>
 
-            {/* Sidebar - Vox Style */}
-            {showSidebar && (
-              <div className="lg:w-1/4">
-                <div className="sticky top-24 space-y-6">
-                  {/* Original Article */}
-                  {originalArticle && (
-                    <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-4`}>
-                      <h3 className={`text-lg font-serif font-bold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Original Piece</h3>
-                      <div className="flex items-center mb-2">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-2 bg-gradient-to-r ${getTierGradient(originalArticle.tier)}`}>
-                          <span className="text-xs">{getTierEmoji(originalArticle.tier)}</span>
-                        </div>
-                        <span className={`text-sm font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{originalArticle.display_name}</span>
-                      </div>
-                      <h4 className={`font-serif text-sm font-bold mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{originalArticle.title}</h4>
-                      <p className={`text-xs mb-3 font-serif ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-                        {originalArticle.content.substring(0, 100) + (originalArticle.content.length > 100 ? '...' : '')}
-                      </p>
-                      <button 
-                        onClick={() => navigate(`/article/${originalArticle.id}`)}
-                        className="text-yellow-600 hover:text-yellow-700 font-bold text-sm"
-                      >
-                        Read Original
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Counter Opinions */}
-                  {counterOpinions.length > 0 && (
-                    <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-4`}>
-                      <div 
-                        className={`flex justify-between items-center mb-3 cursor-pointer`}
-                        onClick={() => setShowCounters(!showCounters)}
-                      >
-                        <h3 className={`text-lg font-serif font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Counter Opinions</h3>
-                        {showCounters ? <ChevronUp size={16} className={darkMode ? 'text-gray-400' : 'text-gray-600'} /> : <ChevronDown size={16} className={darkMode ? 'text-gray-400' : 'text-gray-600'} />}
-                      </div>
-                      
-                      {showCounters && (
-                        <div className="space-y-3">
-                          {counterOpinions.slice(0, 3).map(opinion => (
-                            <div key={opinion.id} className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-3 cursor-pointer hover:bg-opacity-80 transition-all`}
-                              onClick={() => navigate(`/article/${opinion.id}`)}
-                            >
-                              <div className="flex items-center mb-1">
-                                <div className={`w-5 h-5 rounded-full flex items-center justify-center mr-1 bg-gradient-to-r ${getTierGradient(opinion.tier)}`}>
-                                  <span className="text-xs">{getTierEmoji(opinion.tier)}</span>
-                                </div>
-                                <span className={`text-xs font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{opinion.display_name}</span>
-                              </div>
-                              <h4 className={`font-serif text-xs font-bold mb-1 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{opinion.title}</h4>
-                            </div>
-                          ))}
-                          {counterOpinions.length > 3 && (
-                            <button 
-                              onClick={() => document.getElementById('counter-opinions-section').scrollIntoView({ behavior: 'smooth' })}
-                              className="text-yellow-600 hover:text-yellow-700 font-bold text-sm"
-                            >
-                              View all {counterOpinions.length} counter opinions
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Related Articles */}
-                  {relatedArticles.length > 0 && (
-                    <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-4`}>
-                      <h3 className={`text-lg font-serif font-bold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Related Articles</h3>
-                      <div className="space-y-3">
-                        {relatedArticles.map(related => (
-                          <div 
-                            key={related.id}
-                            className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition-all`}
-                            onClick={() => navigate(`/article/${related.id}`)}
-                          >
-                            <div className="flex items-center mb-1">
-                              <div className={`w-5 h-5 rounded-full flex items-center justify-center mr-1 bg-gradient-to-r ${getTierGradient(related.tier)}`}>
-                                <span className="text-xs">{getTierEmoji(related.tier)}</span>
-                              </div>
-                              <span className={`text-xs font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{related.display_name}</span>
-                            </div>
-                            <h4 className={`font-serif text-xs font-bold mb-1 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{related.title}</h4>
-                            <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                              {related.views} views • {calculateReadingTime(related.content)} min read
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Share Section */}
-                  <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-4`}>
-                    <h3 className={`text-lg font-serif font-bold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Share this article</h3>
-                    <div className="flex space-x-2 mb-3">
-                      <FacebookShareButton url={shareUrl} quote={shareTitle}>
-                        <FacebookIcon size={24} round className="hover:scale-110 transition-transform" />
-                      </FacebookShareButton>
-                      <TwitterShareButton url={shareUrl} title={shareTitle}>
-                        <TwitterIcon size={24} round className="hover:scale-110 transition-transform" />
-                      </TwitterShareButton>
-                      <LinkedinShareButton url={shareUrl} title={shareTitle}>
-                        <LinkedinIcon size={24} round className="hover:scale-110 transition-transform" />
-                      </LinkedinShareButton>
-                      <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle}>
-                        <EmailIcon size={24} round className="hover:scale-110 transition-transform" />
-                      </EmailShareButton>
-                    </div>
-                    <div className="flex items-center">
-                      <input 
-                        type="text" 
-                        readOnly 
-                        value={shareUrl} 
-                        className={`${darkMode ? 'border-gray-600 bg-gray-700 text-gray-300' : 'border-gray-300 bg-white text-gray-800'} border rounded-l-lg px-2 py-1 text-xs w-full truncate`}
-                      />
-                      <button 
-                        onClick={handleCopyLink}
-                        className="bg-yellow-500 text-white px-2 py-1 rounded-r-lg text-xs font-bold hover:bg-yellow-600 transition-colors duration-300"
-                      >
-                        {copied ? 'Copied!' : 'Copy'}
-                      </button>
-                    </div>
-                  </div>
+              {/* Tags */}
+              <div className={`mt-8 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6`}>
+                <h3 className={`text-lg font-medium mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {article.topics && article.topics.map(topic => (
+                    <span
+                      key={topic.id}
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
+                    >
+                      {topic.name}
+                    </span>
+                  ))}
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Full Counter Opinions Section */}
           {counterOpinions.length > 0 && (
-            <div id="counter-opinions-section" className={`mt-8 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6`}>
-              <h3 className={`text-2xl font-serif font-bold mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>All Counter Opinions ({counterOpinions.length})</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div id="counter-opinions-section" className={`mt-12 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6`}>
+              <h2 className={`text-xl font-medium mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Counter Opinions ({counterOpinions.length})</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {counterOpinions.map(opinion => (
-                  <div key={opinion.id} className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4 hover:bg-opacity-80 transition-all cursor-pointer`}
+                  <div 
+                    key={opinion.id} 
+                    className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4 hover:shadow-md transition-all cursor-pointer`}
                     onClick={() => navigate(`/article/${opinion.id}`)}
                   >
                     <div className="flex items-center mb-2">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center mr-2 bg-gradient-to-r ${getTierGradient(opinion.tier)}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 bg-gradient-to-r ${getTierGradient(opinion.tier)}`}>
                         <span className="text-sm">{getTierEmoji(opinion.tier)}</span>
                       </div>
-                      <span className={`font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{opinion.display_name}</span>
-                      <div className={`ml-2 px-2 py-0.5 text-xs font-bold rounded-full bg-gradient-to-r ${getTierGradient(opinion.tier)} text-white`}>
+                      <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{opinion.display_name}</span>
+                      <div className={`ml-auto px-2 py-0.5 text-xs font-medium rounded-full bg-gradient-to-r ${getTierGradient(opinion.tier)} text-white`}>
                         {opinion.tier?.toUpperCase()}
                       </div>
                     </div>
-                    <h4 className={`font-serif font-bold mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{opinion.title}</h4>
-                    <p className={`text-sm mb-3 font-serif ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-                      {opinion.content.substring(0, 150) + (opinion.content.length > 150 ? '...' : '')}
+                    <h3 className={`font-medium mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{opinion.title}</h3>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} line-clamp-3`}>
+                      {opinion.content.replace(/<[^>]*>?/gm, '').substring(0, 150) + (opinion.content.length > 150 ? '...' : '')}
                     </p>
                   </div>
                 ))}
@@ -772,14 +779,44 @@ const ArticlePage = () => {
             </div>
           )}
 
-          {/* Article Footer - Vox Style */}
+          {/* Related Articles */}
+          {relatedArticles.length > 0 && (
+            <div className={`mt-12 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6`}>
+              <h2 className={`text-xl font-medium mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Related Articles</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {relatedArticles.map(related => (
+                  <div 
+                    key={related.id}
+                    className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg overflow-hidden hover:shadow-md transition-all cursor-pointer`}
+                    onClick={() => navigate(`/article/${related.id}`)}
+                  >
+                    <div className="p-4">
+                      <div className="flex items-center mb-2">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-2 bg-gradient-to-r ${getTierGradient(related.tier)}`}>
+                          <span className="text-xs">{getTierEmoji(related.tier)}</span>
+                        </div>
+                        <span className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{related.display_name}</span>
+                      </div>
+                      <h3 className={`font-medium mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{related.title}</h3>
+                      <div className="flex items-center text-xs text-gray-500">
+                        <Eye className="mr-1" size={12} />
+                        <span>{related.views} views</span>
+                        <span className="mx-2">•</span>
+                        <Clock className="mr-1" size={12} />
+                        <span>{calculateReadingTime(related.content)} min read</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Article Footer */}
           <footer className={`mt-12 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6`}>
             <div className="flex flex-col md:flex-row justify-between items-center mb-6">
               <div className="mb-4 md:mb-0">
-                <h3 className={`text-lg font-serif font-bold mb-2 flex items-center ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                  <Share2 className="mr-2" size={18} />
-                  Share this article
-                </h3>
+                <h3 className={`text-lg font-medium mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Share this article</h3>
                 <div className="flex space-x-4">
                   <FacebookShareButton url={shareUrl} quote={shareTitle}>
                     <FacebookIcon size={32} round className="hover:scale-110 transition-transform" />
@@ -797,19 +834,18 @@ const ArticlePage = () => {
               </div>
               
               <div className="text-center">
-                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2 font-serif`}>Direct link to this article:</p>
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>Direct link to this article:</p>
                 <div className="flex items-center">
                   <input 
                     type="text" 
                     readOnly 
                     value={shareUrl} 
-                    className={`${darkMode ? 'border-gray-600 bg-gray-700 text-gray-300' : 'border-gray-300 bg-white text-gray-800'} border rounded-l-lg px-3 py-2 text-sm w-64 truncate font-serif`}
+                    className={`${darkMode ? 'bg-gray-700 text-gray-300 border-gray-600' : 'bg-white text-gray-800 border-gray-300'} border rounded-l-lg px-3 py-2 text-sm w-64 truncate`}
                   />
                   <button 
                     onClick={handleCopyLink}
-                    className="bg-yellow-500 text-white px-3 py-2 rounded-r-lg text-sm font-bold hover:bg-yellow-600 transition-colors duration-300 flex items-center"
+                    className="bg-blue-500 text-white px-3 py-2 rounded-r-lg text-sm font-medium hover:bg-blue-600 transition-colors flex items-center"
                   >
-                    <Copy className="mr-1" size={14} />
                     {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
@@ -818,24 +854,24 @@ const ArticlePage = () => {
             
             <div className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border-t pt-6 text-center`}>
               {reportSuccess ? (
-                <div className={`${darkMode ? 'bg-green-900/50 border-green-700' : 'bg-green-50 border-green-500'} border-l-4 p-4 mb-4 rounded-lg font-serif`}>
-                  <p className={`${darkMode ? 'text-green-400' : 'text-green-700'} font-bold`}>Thank you for reporting this article. Our team will review it shortly.</p>
+                <div className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 p-4 rounded-lg mb-4">
+                  <p className="font-medium">Thank you for reporting this article. Our team will review it shortly.</p>
                 </div>
               ) : (
                 <>
-                  <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-4 font-serif`}>Found this article concerning? Report it to our moderators.</p>
+                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-4`}>Found this article concerning? Report it to our moderators.</p>
                   <button 
                     onClick={handleReportArticle}
-                    className="bg-red-500 text-white px-6 py-3 font-serif font-bold hover:bg-red-600 transition-colors duration-300 flex items-center justify-center mx-auto rounded-lg"
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors flex items-center justify-center mx-auto"
                   >
-                    <Flag className="mr-2" size={18} />
+                    <Flag className="mr-2" size={16} />
                     Report Article
                   </button>
                 </>
               )}
             </div>
           </footer>
-        </div>
+        </article>
       </div>
 
       {/* Paywall Modal */}
@@ -843,7 +879,7 @@ const ArticlePage = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60"></div>
           
-          <div className={`relative ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl max-w-md w-full p-8 z-10`}>
+          <div className={`relative ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-xl max-w-md w-full p-8 z-10`}>
             <button
               onClick={() => setShowPaywall(false)}
               className={`absolute top-4 right-4 ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'} transition-colors`}
@@ -852,26 +888,24 @@ const ArticlePage = () => {
             </button>
             
             <div className="text-center">
-              <div className="mb-6">
-                <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare size={32} className="text-white" />
-                </div>
-                <h2 className={`text-2xl font-serif font-bold mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Join the Conversation</h2>
-                <p className={`text-lg font-serif ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-6`}>
-                  Want to respond or publish your own? Create your free account — it takes 30 seconds.
-                </p>
+              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageSquare size={32} className="text-blue-500" />
               </div>
+              <h2 className={`text-2xl font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Join the Conversation</h2>
+              <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-6`}>
+                Want to respond or publish your own? Create your free account — it takes 30 seconds.
+              </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={handleSignup}
-                  className="px-6 py-3 bg-yellow-500 text-white font-serif font-bold rounded-xl hover:bg-yellow-600 transition-colors duration-300"
+                  className="px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
                 >
                   Create Free Account
                 </button>
                 <button
                   onClick={() => setShowPaywall(false)}
-                  className={`px-6 py-3 ${darkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'} font-serif font-bold rounded-xl transition-colors`}
+                  className={`px-6 py-3 ${darkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'} rounded-lg font-medium transition-colors`}
                 >
                   Continue Reading
                 </button>
@@ -883,17 +917,18 @@ const ArticlePage = () => {
 
       {/* Report Modal */}
       {showReportModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl max-w-md w-full p-6`}>
-            <h3 className={`text-xl font-serif font-bold mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Report Article</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60"></div>
+          <div className={`relative ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-xl max-w-md w-full p-6 z-10`}>
+            <h3 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Report Article</h3>
             {error && (
-              <div className={`${darkMode ? 'bg-red-900/50 border-red-700' : 'bg-red-50 border-red-500'} border-l-4 p-4 mb-4 rounded-lg`}>
-                <p className={`${darkMode ? 'text-red-400' : 'text-red-700'} font-serif font-bold`}>{error}</p>
+              <div className="bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 p-3 rounded-lg mb-4">
+                <p className="text-sm">{error}</p>
               </div>
             )}
             <form onSubmit={handleSubmitReport}>
               <div className="mb-4">
-                <label htmlFor="reportReason" className={`block text-sm font-bold ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-1 font-serif`}>
+                <label htmlFor="reportReason" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   Reason for reporting
                 </label>
                 <textarea
@@ -902,7 +937,7 @@ const ArticlePage = () => {
                   onChange={(e) => setReportReason(e.target.value)}
                   required
                   rows={4}
-                  className={`w-full px-3 py-2 ${darkMode ? 'border-gray-600 bg-gray-700 text-gray-200' : 'border-gray-300 bg-white text-gray-800'} border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 font-serif`}
+                  className={`w-full px-3 py-2 ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'} border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500`}
                   placeholder="Please explain why you're reporting this article..."
                 />
               </div>
@@ -914,14 +949,14 @@ const ArticlePage = () => {
                     setReportReason('');
                     setError(null);
                   }}
-                  className={`px-4 py-2 ${darkMode ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-50'} border rounded-lg font-bold font-serif transition-colors`}
+                  className={`px-4 py-2 ${darkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'} rounded-lg font-medium transition-colors`}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={reporting}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition-colors duration-300 disabled:opacity-50 font-serif"
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
                 >
                   {reporting ? 'Submitting...' : 'Submit Report'}
                 </button>
