@@ -1,13 +1,14 @@
-// pages/WriteArticle.js
+// pages/WriteArticle.js (Updated)
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { axios } from '../utils/apiUtils';
 import { useUser } from '../context/UserContext';
+import RichTextEditor from '../components/RichTextEditor';
+import { Moon, Sun } from 'lucide-react';
 
 function WriteArticle() {
   const navigate = useNavigate();
   const userContext = useUser();
-  const textareaRef = useRef(null);
   
   // Add safety check for context
   if (!userContext) {
@@ -42,6 +43,7 @@ function WriteArticle() {
   const [showGrammarPanel, setShowGrammarPanel] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState(null);
   const [applyingSuggestion, setApplyingSuggestion] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
 
   const minWords = 100;
   const maxChars = 50000;
@@ -65,9 +67,14 @@ function WriteArticle() {
 
   // Calculate word and character counts
   useEffect(() => {
-    const words = formData.content.trim().split(/\s+/).filter(word => word.length > 0);
+    // Extract text from HTML content
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = formData.content;
+    const text = tempDiv.textContent || tempDiv.innerText || '';
+    
+    const words = text.trim().split(/\s+/).filter(word => word.length > 0);
     setWordCount(words.length);
-    setCharCount(formData.content.length);
+    setCharCount(text.length);
   }, [formData.content]);
 
   // Auto-save as draft every 30 seconds
@@ -106,7 +113,10 @@ function WriteArticle() {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       const suggestions = [];
-      const text = formData.content;
+      // Extract text from HTML content for grammar checking
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = formData.content;
+      const text = tempDiv.textContent || tempDiv.innerText || '';
       
       // Mock grammar suggestions
       const passiveVoiceRegex = /\b(am|is|are|was|were|be|being|been)\s+\w+ed\b/gi;
@@ -141,20 +151,25 @@ function WriteArticle() {
   };
 
   const applySuggestion = (suggestion) => {
-    if (!suggestion || !textareaRef.current) return;
+    if (!suggestion) return;
     
     setSelectedSuggestion(suggestion);
     setApplyingSuggestion(true);
     
     try {
-      const textarea = textareaRef.current;
+      // Extract text from HTML content
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = formData.content;
+      const text = tempDiv.textContent || tempDiv.innerText || '';
+      
       const start = suggestion.offset;
       const end = start + suggestion.length;
-      const text = formData.content;
       const beforeText = text.substring(0, start);
       const afterText = text.substring(end);
       const newText = beforeText + suggestion.text + afterText;
       
+      // For simplicity, we're replacing the entire content
+      // In a real implementation, you'd need to preserve HTML structure
       setFormData(prev => ({
         ...prev,
         content: newText
@@ -173,14 +188,6 @@ function WriteArticle() {
       setApplyingSuggestion(false);
       setSelectedSuggestion(null);
     }
-  };
-
-  const highlightSuggestion = (suggestion) => {
-    if (!textareaRef.current) return;
-    
-    const textarea = textareaRef.current;
-    textarea.focus();
-    textarea.setSelectionRange(suggestion.offset, suggestion.offset + suggestion.length);
   };
 
   const handleAutoSave = async () => {
@@ -231,6 +238,24 @@ function WriteArticle() {
     if (success) setSuccess('');
     
     if (name === 'content' && grammarSuggestions.length > 0) {
+      setGrammarSuggestions([]);
+    }
+  };
+
+  const handleContentChange = (content) => {
+    if (content.length > maxChars) {
+      return;
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      content
+    }));
+    
+    if (error) setError('');
+    if (success) setSuccess('');
+    
+    if (grammarSuggestions.length > 0) {
       setGrammarSuggestions([]);
     }
   };
@@ -424,7 +449,18 @@ function WriteArticle() {
   const remainingArticles = silverLimit - (user?.weekly_articles_count || 0);
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-16">
+    <div className={`max-w-5xl mx-auto px-6 py-16 ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
+      {/* Dark Mode Toggle */}
+      <div className="fixed top-20 right-4 z-40">
+        <button
+          onClick={() => setDarkMode(!darkMode)}
+          className={`p-3 rounded-full shadow-lg ${darkMode ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-800'} hover:scale-110 transition-transform duration-300`}
+          title={darkMode ? 'Light Mode' : 'Dark Mode'}
+        >
+          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+      </div>
+
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className="text-6xl font-bold mb-6">WRITE YOUR OPINION</h1>
@@ -433,7 +469,7 @@ function WriteArticle() {
         </p>
         
         {/* Article Requirements */}
-        <div className="bg-gray-50 border-2 border-black p-6 mb-6">
+        <div className={`bg-gray-50 border-2 border-black p-6 mb-6 ${darkMode ? 'bg-gray-800 border-gray-700' : ''}`}>
           <div className="flex justify-center items-center space-x-8">
             <div className="text-xl font-bold">
               MINIMUM WORDS: 
@@ -451,7 +487,7 @@ function WriteArticle() {
         </div>
         
         {/* Weekly Limit Status */}
-        <div className="bg-gray-50 border-2 border-black p-6">
+        <div className={`bg-gray-50 border-2 border-black p-6 ${darkMode ? 'bg-gray-800 border-gray-700' : ''}`}>
           <div className="flex justify-center items-center space-x-8">
             <div className="text-xl font-bold">
               ARTICLES REMAINING THIS WEEK: 
@@ -489,7 +525,7 @@ function WriteArticle() {
       )}
 
       {/* Writing Form */}
-      <div className="bg-white border-2 border-black p-8">
+      <div className={`bg-white border-2 border-black p-8 ${darkMode ? 'bg-gray-800 border-gray-700' : ''}`}>
         {/* Title Input */}
         <div className="mb-8">
           <label className="form-label">ARTICLE TITLE *</label>
@@ -524,7 +560,7 @@ function WriteArticle() {
         {/* Topics Selection */}
         <div className="mb-8">
           <label className="form-label">SELECT TOPICS (UP TO 3)</label>
-          <div className="border-2 border-black rounded-lg p-4 bg-gray-50">
+          <div className={`border-2 border-black rounded-lg p-4 bg-gray-50 ${darkMode ? 'border-gray-700 bg-gray-800' : ''}`}>
             {topicsLoading ? (
               <div className="text-center py-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
@@ -564,7 +600,7 @@ function WriteArticle() {
           </div>
         </div>
 
-        {/* Content Textarea */}
+        {/* Rich Text Editor */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
             <label className="form-label">ARTICLE CONTENT *</label>
@@ -577,11 +613,9 @@ function WriteArticle() {
             </button>
           </div>
           
-          <textarea
-            ref={textareaRef}
-            name="content"
+          <RichTextEditor
             value={formData.content}
-            onChange={handleChange}
+            onChange={handleContentChange}
             placeholder="Start writing your opinion here... 
 
 Tips for great opinion pieces:
@@ -593,10 +627,9 @@ Tips for great opinion pieces:
 • Keep paragraphs focused and readable
 
 Remember: This is YOUR space to share what YOU think. Be authentic, be bold, be thoughtful."
-            className="input-field resize-none"
-            rows={20}
-            style={{ minHeight: '500px', fontSize: '18px', lineHeight: '1.6' }}
-            disabled={loading}
+            maxLength={maxChars}
+            minHeight="500px"
+            darkMode={darkMode}
           />
           
           {/* Writing Stats */}
@@ -691,12 +724,6 @@ Remember: This is YOUR space to share what YOU think. Be authentic, be bold, be 
                       
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => highlightSuggestion(suggestion)}
-                          className="text-sm bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded"
-                        >
-                          Highlight
-                        </button>
-                        <button
                           onClick={() => applySuggestion(suggestion)}
                           disabled={applyingSuggestion}
                           className="text-sm bg-blue-600 text-white hover:bg-blue-700 px-3 py-1 rounded disabled:opacity-50"
@@ -781,7 +808,7 @@ Remember: This is YOUR space to share what YOU think. Be authentic, be bold, be 
       </div>
 
       {/* Writing Tips */}
-      <div className="mt-12 bg-gray-50 border-2 border-black p-8">
+      <div className={`mt-12 bg-gray-50 border-2 border-black p-8 ${darkMode ? 'bg-gray-800 border-gray-700' : ''}`}>
         <h2 className="text-3xl font-bold mb-6 text-center">WRITING TIPS FOR POWERFUL OPINIONS</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
