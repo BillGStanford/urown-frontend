@@ -23,10 +23,8 @@ function Header({ user, onLogout }) {
   const { logout } = useUser();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-  const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef(null);
-  const navDropdownRef = useRef(null);
 
   const isAdmin = user && (user.role === 'admin' || user.role === 'super-admin');
   const isEditorialOrAdmin = user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin');
@@ -50,10 +48,6 @@ function Header({ user, onLogout }) {
     setIsUserDropdownOpen(!isUserDropdownOpen);
   };
 
-  const toggleNavDropdown = () => {
-    setIsNavDropdownOpen(!isNavDropdownOpen);
-  };
-
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -66,9 +60,6 @@ function Header({ user, onLogout }) {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsUserDropdownOpen(false);
-      }
-      if (navDropdownRef.current && !navDropdownRef.current.contains(event.target)) {
-        setIsNavDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -94,6 +85,7 @@ function Header({ user, onLogout }) {
               <span>Browse</span>
               <div className="absolute inset-0 rounded-2xl bg-orange-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
             </Link>
+            <div className="h-6 w-px bg-gray-300 mx-1"></div>
             <Link 
               to="/about" 
               className="group relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-orange-600 transition-all duration-300 rounded-2xl hover:bg-orange-50"
@@ -159,66 +151,6 @@ function Header({ user, onLogout }) {
                   <div className="absolute inset-0 rounded-2xl bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                 </Link>
 
-                {/* Navigation Dropdown - For Editorial Board and Admins */}
-                {isEditorialOrAdmin && (
-                  <div className="relative" ref={navDropdownRef}>
-                    <button
-                      onClick={toggleNavDropdown}
-                      className="group relative p-2.5 rounded-2xl text-gray-700 hover:text-orange-600 hover:bg-orange-50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-                      aria-expanded={isNavDropdownOpen}
-                      aria-haspopup="true"
-                      aria-label="Navigation menu"
-                    >
-                      <Menu className="h-5 w-5" />
-                      <div className="absolute inset-0 rounded-2xl bg-orange-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                    </button>
-                    {isNavDropdownOpen && (
-                      <div className="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-100 overflow-hidden animate-dropdown">
-                        <div className="py-3">
-                          <Link
-                            to="/editorial"
-                            className="group flex items-center gap-3 px-5 py-3 text-sm font-semibold text-gray-900 hover:bg-orange-50 transition-all duration-200"
-                            onClick={() => setIsNavDropdownOpen(false)}
-                            role="menuitem"
-                          >
-                            <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                              <FileText className="h-4 w-4 text-blue-600" />
-                            </div>
-                            <span>Editorial Board</span>
-                          </Link>
-                          {isAdmin && (
-                            <>
-                              <div className="mx-5 my-2 h-px bg-gray-100"></div>
-                              <Link
-                                to="/admin"
-                                className="group flex items-center gap-3 px-5 py-3 text-sm font-semibold text-gray-900 hover:bg-red-50 transition-all duration-200"
-                                onClick={() => setIsNavDropdownOpen(false)}
-                                role="menuitem"
-                              >
-                                <div className="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center group-hover:bg-red-200 transition-colors">
-                                  <Shield className="h-4 w-4 text-red-600" />
-                                </div>
-                                <span>Admin Panel</span>
-                              </Link>
-                              <Link
-                                to="/admin/reported-articles"
-                                className="group flex items-center gap-3 px-5 py-3 text-sm font-semibold text-gray-900 hover:bg-red-50 transition-all duration-200"
-                                onClick={() => setIsNavDropdownOpen(false)}
-                                role="menuitem"
-                              >
-                                <div className="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center group-hover:bg-red-200 transition-colors">
-                                  <FileText className="h-4 w-4 text-red-600" />
-                                </div>
-                                <span>Reported Articles</span>
-                              </Link>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 {/* User Dropdown */}
                 <div className="relative" ref={dropdownRef}>
                   <button
@@ -267,6 +199,48 @@ function Header({ user, onLogout }) {
                             </div>
                             <span>Settings</span>
                           </Link>
+                          {isEditorialOrAdmin && (
+                            <>
+                              <div className="mx-4 my-2 h-px bg-gray-100"></div>
+                              <Link
+                                to="/editorial"
+                                className="group flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-blue-50 transition-all duration-200 rounded-2xl mx-2"
+                                onClick={() => setIsUserDropdownOpen(false)}
+                                role="menuitem"
+                              >
+                                <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                                  <FileText className="h-4 w-4 text-blue-600" />
+                                </div>
+                                <span>Editorial Board</span>
+                              </Link>
+                            </>
+                          )}
+                          {isAdmin && (
+                            <>
+                              <Link
+                                to="/admin"
+                                className="group flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-red-50 transition-all duration-200 rounded-2xl mx-2"
+                                onClick={() => setIsUserDropdownOpen(false)}
+                                role="menuitem"
+                              >
+                                <div className="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                                  <Shield className="h-4 w-4 text-red-600" />
+                                </div>
+                                <span>Admin Panel</span>
+                              </Link>
+                              <Link
+                                to="/admin/reported-articles"
+                                className="group flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-red-50 transition-all duration-200 rounded-2xl mx-2"
+                                onClick={() => setIsUserDropdownOpen(false)}
+                                role="menuitem"
+                              >
+                                <div className="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                                  <FileText className="h-4 w-4 text-red-600" />
+                                </div>
+                                <span>Reported Articles</span>
+                              </Link>
+                            </>
+                          )}
                           <div className="mx-4 my-2 h-px bg-gray-100"></div>
                           <button
                             onClick={handleLogout}
@@ -344,6 +318,7 @@ function Header({ user, onLogout }) {
                 <Search className="h-5 w-5" />
                 <span>Browse</span>
               </Link>
+              <div className="mx-4 h-px bg-gray-300"></div>
               <Link 
                 to="/about" 
                 className="group flex items-center gap-3 text-sm font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 py-3 px-4 rounded-2xl transition-all duration-300"
@@ -390,18 +365,35 @@ function Header({ user, onLogout }) {
                     <span>Write Article</span>
                   </Link>
                   
+                  {/* User Profile Section in Mobile Menu */}
+                  <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-2xl border border-orange-100">
+                    <Link
+                      to={`/user/${encodeURIComponent(user.display_name)}`}
+                      className="flex items-center gap-3 text-sm font-semibold text-gray-900 hover:text-orange-600 transition-colors"
+                      onClick={closeMobileMenu}
+                    >
+                      <div className="relative">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-sm font-bold shadow-md">
+                          {user.display_name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                      </div>
+                      <div>
+                        <p className="font-semibold">{user.display_name}</p>
+                        <p className="text-xs text-gray-500">View Profile</p>
+                      </div>
+                    </Link>
+                  </div>
+                  
                   {isEditorialOrAdmin && (
-                    <>
-                      <div className="mx-4 my-3 h-px bg-gray-100"></div>
-                      <Link 
-                        to="/editorial" 
-                        className="group flex items-center gap-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 py-3 px-4 rounded-2xl transition-all duration-300"
-                        onClick={closeMobileMenu}
-                      >
-                        <FileText className="h-5 w-5" />
-                        <span>Editorial Board</span>
-                      </Link>
-                    </>
+                    <Link 
+                      to="/editorial" 
+                      className="group flex items-center gap-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 py-3 px-4 rounded-2xl transition-all duration-300"
+                      onClick={closeMobileMenu}
+                    >
+                      <FileText className="h-5 w-5" />
+                      <span>Editorial Board</span>
+                    </Link>
                   )}
                   
                   {isAdmin && (
@@ -424,28 +416,6 @@ function Header({ user, onLogout }) {
                       </Link>
                     </>
                   )}
-                  
-                  <div className="mx-4 my-3 h-px bg-gray-100"></div>
-                  
-                  {/* User Profile Section in Mobile Menu */}
-                  <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-2xl border border-orange-100">
-                    <Link
-                      to={`/user/${encodeURIComponent(user.display_name)}`}
-                      className="flex items-center gap-3 text-sm font-semibold text-gray-900 hover:text-orange-600 transition-colors"
-                      onClick={closeMobileMenu}
-                    >
-                      <div className="relative">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-sm font-bold shadow-md">
-                          {user.display_name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                      </div>
-                      <div>
-                        <p className="font-semibold">{user.display_name}</p>
-                        <p className="text-xs text-gray-500">View Profile</p>
-                      </div>
-                    </Link>
-                  </div>
                   
                   <Link
                     to="/settings"
