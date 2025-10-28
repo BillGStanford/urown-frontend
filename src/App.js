@@ -17,6 +17,7 @@ import WriteCounterPage from './pages/WriteCounterPage';
 import DebateCategoryPage from './pages/DebateCategoryPage';
 import WriteDebateOpinion from './pages/WriteDebateOpinion';
 import CreateDebateTopic from './pages/CreateDebateTopic';
+import AdminWriteArticle from './pages/AdminWriteArticle';
 import AdminDashboard from './pages/AdminDashboard';
 import EditorialBoard from './pages/EditorialBoard';
 import ContactPage from './pages/ContactPage';
@@ -107,6 +108,10 @@ function AppRoutes() {
     path="/admin/reported-articles" 
     element={user && (user.role === 'admin' || user.role === 'super-admin') ? <ReportedArticlesDashboard /> : <Navigate to="/" />} 
   />
+  <Route 
+  path="/admin/write-article" 
+  element={user && (user.role === 'admin' || user.role === 'super-admin') ? <AdminWriteArticle /> : <Navigate to="/" />} 
+/>
           <Route 
             path="/editorial" 
             element={user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') ? <EditorialBoard /> : <Navigate to="/" />} 

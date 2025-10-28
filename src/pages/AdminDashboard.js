@@ -14,7 +14,25 @@ import {
   ArcElement
 } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
-import { Mail, FileText, AlertTriangle, UserX, UserCheck } from 'lucide-react';
+import { 
+  Mail, 
+  FileText, 
+  AlertTriangle, 
+  UserX, 
+  UserCheck, 
+  Shield, 
+  Eye, 
+  Users, 
+  TrendingUp,
+  RefreshCw,
+  Edit,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Award,
+  PenTool
+} from 'lucide-react';
 
 // Register Chart.js components
 ChartJS.register(
@@ -43,9 +61,7 @@ function AdminDashboard() {
   const [error, setError] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedArticle, setSelectedArticle] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
-  const [showArticleModal, setShowArticleModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteType, setDeleteType] = useState(null);
@@ -59,7 +75,7 @@ function AdminDashboard() {
   // Ban system state
   const [showBanModal, setShowBanModal] = useState(false);
   const [banUserId, setBanUserId] = useState(null);
-  const [banDuration, setBanDuration] = useState({ days: 1, hours: 0 }); // default 1 day
+  const [banDuration, setBanDuration] = useState({ days: 1, hours: 0 });
   const [banReason, setBanReason] = useState('');
 
   // Fetch admin stats
@@ -176,7 +192,6 @@ function AdminDashboard() {
         })
       );
       
-      // Refresh data
       await refreshData();
       setShowUserModal(false);
     } catch (error) {
@@ -186,34 +201,32 @@ function AdminDashboard() {
   };
 
   // Handle delete confirmation
-
-const handleDeleteConfirm = async () => {
-  if (!deleteTarget || !deleteType) return;
-  
-  try {
-    await fetchWithDeduplication(
-      `delete-${deleteType}-${deleteTarget}`,
-      createApiRequest(`/admin/${deleteType}s/${deleteTarget}`, {
-        method: 'DELETE'
-      })
-    );
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget || !deleteType) return;
     
-    // Refresh data
-    await refreshData();
-    setShowDeleteConfirm(false);
-    setDeleteTarget(null);
-    setDeleteType(null);
-  } catch (error) {
-    console.error(`Error deleting ${deleteType}:`, error);
-    if (error.response?.status === 404) {
-      setError(`The ${deleteType} was not found.`);
-    } else if (error.response?.status === 403) {
-      setError(`You don't have permission to delete this ${deleteType}.`);
-    } else {
-      setError(`Failed to delete ${deleteType}. Please try again later.`);
+    try {
+      await fetchWithDeduplication(
+        `delete-${deleteType}-${deleteTarget}`,
+        createApiRequest(`/admin/${deleteType}s/${deleteTarget}`, {
+          method: 'DELETE'
+        })
+      );
+      
+      await refreshData();
+      setShowDeleteConfirm(false);
+      setDeleteTarget(null);
+      setDeleteType(null);
+    } catch (error) {
+      console.error(`Error deleting ${deleteType}:`, error);
+      if (error.response?.status === 404) {
+        setError(`The ${deleteType} was not found.`);
+      } else if (error.response?.status === 403) {
+        setError(`You don't have permission to delete this ${deleteType}.`);
+      } else {
+        setError(`Failed to delete ${deleteType}. Please try again later.`);
+      }
     }
-  }
-};
+  };
 
   // Handle article certification
   const handleCertifyArticle = async (articleId, certified) => {
@@ -226,7 +239,6 @@ const handleDeleteConfirm = async () => {
         })
       );
       
-      // Refresh data
       await refreshData();
     } catch (error) {
       console.error('Error certifying article:', error);
@@ -267,7 +279,6 @@ const handleDeleteConfirm = async () => {
       return;
     }
 
-    // Calculate ban end time from current time + duration
     const banEnd = new Date();
     banEnd.setDate(banEnd.getDate() + parseInt(banDuration.days));
     banEnd.setHours(banEnd.getHours() + parseInt(banDuration.hours));
@@ -363,18 +374,12 @@ const handleDeleteConfirm = async () => {
         label: 'Users',
         data: adminStats.userCounts.map(item => item.count),
         backgroundColor: [
-          'rgba(255, 99, 132, 0.6)',
-          'rgba(54, 162, 235, 0.6)',
-          'rgba(255, 206, 86, 0.6)',
-          'rgba(75, 192, 192, 0.6)',
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(168, 85, 247, 0.8)',
+          'rgba(234, 179, 8, 0.8)',
+          'rgba(34, 197, 94, 0.8)',
         ],
-        borderColor: [
-          'rgba(255, 99, 132, 1)',
-          'rgba(54, 162, 235, 1)',
-          'rgba(255, 206, 86, 1)',
-          'rgba(75, 192, 192, 1)',
-        ],
-        borderWidth: 1,
+        borderWidth: 0,
       },
     ],
   };
@@ -390,25 +395,28 @@ const handleDeleteConfirm = async () => {
           adminStats.articleStats.certified_articles || 0
         ],
         backgroundColor: [
-          'rgba(75, 192, 192, 0.6)',
-          'rgba(255, 99, 132, 0.6)',
-          'rgba(153, 102, 255, 0.6)',
+          'rgba(34, 197, 94, 0.8)',
+          'rgba(251, 146, 60, 0.8)',
+          'rgba(168, 85, 247, 0.8)',
         ],
-        borderColor: [
-          'rgba(75, 192, 192, 1)',
-          'rgba(255, 99, 132, 1)',
-          'rgba(153, 102, 255, 1)',
-        ],
-        borderWidth: 1,
+        borderWidth: 0,
       },
     ],
   };
 
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top',
+        position: 'bottom',
+        labels: {
+          padding: 20,
+          font: {
+            size: 12,
+            weight: 'bold'
+          }
+        }
       },
     },
   };
@@ -426,19 +434,21 @@ const handleDeleteConfirm = async () => {
 
   const getRoleBadgeColor = (role) => {
     switch (role) {
-      case 'super-admin': return 'bg-red-100 text-red-800';
-      case 'admin': return 'bg-purple-100 text-purple-800';
-      case 'editorial-board': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'super-admin': return 'bg-gradient-to-r from-red-500 to-pink-500 text-white';
+      case 'admin': return 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white';
+      case 'editorial-board': return 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white';
+      default: return 'bg-gradient-to-r from-gray-400 to-gray-500 text-white';
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-          <div className="text-2xl font-bold mt-4">LOADING ADMIN DASHBOARD...</div>
+          <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-blue-600 mx-auto"></div>
+          <div className="text-2xl font-bold mt-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Loading Dashboard...
+          </div>
         </div>
       </div>
     );
@@ -446,12 +456,15 @@ const handleDeleteConfirm = async () => {
 
   if (!user || (user.role !== 'admin' && user.role !== 'super-admin')) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center max-w-2xl px-4">
-          <h1 className="text-4xl font-bold mb-4">Access Denied</h1>
-          <p className="text-xl mb-8">You don't have permission to access the admin dashboard.</p>
-          <Link to="/" className="bg-black text-white px-6 py-3 font-bold hover:bg-gray-800 transition-colors">
-            GO TO HOMEPAGE
+          <Shield className="mx-auto mb-6 text-red-500" size={80} />
+          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+            Access Denied
+          </h1>
+          <p className="text-xl text-gray-600 mb-8">You don't have permission to access the admin dashboard.</p>
+          <Link to="/" className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+            Return to Homepage
           </Link>
         </div>
       </div>
@@ -459,338 +472,332 @@ const handleDeleteConfirm = async () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-16">
-      {/* Error Banner */}
-      {error && (
-        <div className="bg-red-50 border-2 border-red-500 text-red-700 p-4 mb-8 text-center">
-          <div className="text-xl font-bold">{error}</div>
-          <button 
-            onClick={() => setError(null)}
-            className="mt-2 px-4 py-2 bg-red-500 text-white rounded font-bold hover:bg-red-600"
-          >
-            DISMISS
-          </button>
-        </div>
-      )}
-
-      {/* Welcome Section */}
-      <div className="text-center mb-16">
-        <h1 className="text-7xl font-bold mb-6">
-          ADMIN DASHBOARD
-        </h1>
-        <p className="text-2xl font-bold text-gray-600">
-          Welcome back, {user.display_name}! ({user.role})
-        </p>
-        <div className="flex justify-center space-x-4 mt-4">
-          <button 
-            onClick={refreshData}
-            disabled={isRefreshing}
-            className={`px-6 py-3 font-bold ${
-              isRefreshing 
-                ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
-                : 'bg-black text-white hover:bg-gray-800'
-            }`}
-          >
-            {isRefreshing ? 'REFRESHING...' : 'REFRESH DATA'}
-          </button>
-          
-          {user.role === 'super-admin' && (
-            <Link 
-              to="/admin/contacts"
-              className="px-6 py-3 bg-blue-600 text-white font-bold hover:bg-blue-700 flex items-center"
-            >
-              <Mail className="mr-2" size={18} />
-              MANAGE CONTACT MESSAGES
-            </Link>
-          )}
-          
-          {user.role === 'super-admin' && (
-            <Link 
-              to="/admin/reported-articles"
-              className="px-6 py-3 bg-red-600 text-white font-bold hover:bg-red-700 flex items-center"
-            >
-              <FileText className="mr-2" size={18} />
-              MANAGE REPORTED ARTICLES
-            </Link>
-          )}
-        </div>
-      </div>
-
-      {/* Admin Tabs */}
-      <div className="mb-8">
-        <div className="flex border-b border-gray-200">
-          <button
-            className={`py-4 px-6 font-bold text-lg ${activeTab === 'overview' ? 'border-b-4 border-black' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            Overview
-          </button>
-          <button
-            className={`py-4 px-6 font-bold text-lg ${activeTab === 'users' ? 'border-b-4 border-black' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('users')}
-          >
-            Users
-          </button>
-          <button
-            className={`py-4 px-6 font-bold text-lg ${activeTab === 'articles' ? 'border-b-4 border-black' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('articles')}
-          >
-            Articles
-          </button>
-          {user.role === 'super-admin' && (
-            <button
-              className={`py-4 px-6 font-bold text-lg ${activeTab === 'warnings' ? 'border-b-4 border-black' : 'text-gray-500'}`}
-              onClick={() => setActiveTab('warnings')}
-            >
-              <div className="flex items-center">
-                <AlertTriangle className="mr-2" size={18} />
-                Warnings
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Error Banner */}
+        {error && (
+          <div className="mb-6 bg-gradient-to-r from-red-500 to-pink-500 text-white p-6 rounded-2xl shadow-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <AlertTriangle size={24} />
+                <span className="font-semibold">{error}</span>
               </div>
-            </button>
-          )}
-          {user.role === 'super-admin' && (
-            <button
-              className={`py-4 px-6 font-bold text-lg ${activeTab === 'audit-log' ? 'border-b-4 border-black' : 'text-gray-500'}`}
-              onClick={() => setActiveTab('audit-log')}
-            >
-              Audit Log
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === 'overview' && (
-        <div className="mb-16">
-          <h2 className="text-4xl font-bold mb-8 text-center">SYSTEM OVERVIEW</h2>
-          
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-            <div className="bg-white p-6 border-2 border-black text-center">
-              <div className="text-3xl font-bold mb-2">
-                {adminStats.userCounts.reduce((sum, item) => sum + parseInt(item.count), 0)}
-              </div>
-              <div className="text-lg font-bold">Total Users</div>
-            </div>
-            <div className="bg-white p-6 border-2 border-black text-center">
-              <div className="text-3xl font-bold mb-2">
-                {adminStats.articleStats.total_articles || 0}
-              </div>
-              <div className="text-lg font-bold">Total Articles</div>
-            </div>
-            <div className="bg-white p-6 border-2 border-black text-center">
-              <div className="text-3xl font-bold mb-2">
-                {adminStats.totalViews}
-              </div>
-              <div className="text-lg font-bold">Total Views</div>
-            </div>
-            <div className="bg-white p-6 border-2 border-black text-center">
-              <div className="text-3xl font-bold mb-2">
-                {adminStats.articleStats.certified_articles || 0}
-              </div>
-              <div className="text-lg font-bold">Certified Articles</div>
+              <button 
+                onClick={() => setError(null)}
+                className="bg-white text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-red-50 transition-colors"
+              >
+                Dismiss
+              </button>
             </div>
           </div>
+        )}
 
-          {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
-            <div className="bg-white p-8 border-2 border-black">
-              <h3 className="text-2xl font-bold mb-6 text-center">User Distribution by Role</h3>
-              <div className="h-80">
-                <Pie data={userRoleData} options={chartOptions} />
+        {/* Header Section */}
+        <div className="mb-8">
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                  Admin Dashboard
+                </h1>
+                <p className="text-lg text-gray-600">
+                  Welcome back, <span className="font-semibold text-gray-900">{user.display_name}</span>
+                  <span className={`ml-3 px-3 py-1 rounded-full text-xs font-bold ${getRoleBadgeColor(user.role)}`}>
+                    {user.role.toUpperCase().replace('-', ' ')}
+                  </span>
+                </p>
               </div>
+              <button 
+                onClick={refreshData}
+                disabled={isRefreshing}
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-bold shadow-lg transition-all duration-200 ${
+                  isRefreshing 
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                    : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-xl transform hover:scale-105'
+                }`}
+              >
+                <RefreshCw size={18} className={isRefreshing ? 'animate-spin' : ''} />
+                <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+              </button>
             </div>
-
-            <div className="bg-white p-8 border-2 border-black">
-              <h3 className="text-2xl font-bold mb-6 text-center">Article Status</h3>
-              <div className="h-80">
-                <Pie data={articleStatusData} options={chartOptions} />
-              </div>
+            
+            {/* Quick Action Buttons */}
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link 
+                to="/admin/write-article"
+                className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+              >
+                <PenTool size={18} />
+                <span>Post Admin Article</span>
+              </Link>
+              
+              {user.role === 'super-admin' && (
+                <>
+                  <Link 
+                    to="/admin/contacts"
+                    className="flex items-center space-x-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                  >
+                    <Mail size={18} />
+                    <span>Contact Messages</span>
+                  </Link>
+                  
+                  <Link 
+                    to="/admin/reported-articles"
+                    className="flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                  >
+                    <FileText size={18} />
+                    <span>Reported Articles</span>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
+        </div>
 
-          {/* Recent Activity */}
-          <div className="bg-white p-8 border-2 border-black">
-            <h3 className="text-2xl font-bold mb-6">Recent Admin Activity</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Admin
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Action
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Target
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {adminStats.recentActivity.length > 0 ? (
-                    adminStats.recentActivity.map((activity, index) => (
-                      <tr key={index}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-bold text-gray-900">{activity.admin_name || 'System'}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            activity.action === 'delete' ? 'bg-red-100 text-red-800' :
-                            activity.action === 'update_role' ? 'bg-yellow-100 text-yellow-800' :
-                            activity.action === 'certify' ? 'bg-green-100 text-green-800' :
-                            'bg-blue-100 text-blue-800'
-                          }`}>
-                            {activity.action}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {activity.target_type} #{activity.target_id}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(activity.created_at)}
+        {/* Tabs */}
+        <div className="mb-6">
+          <div className="bg-white rounded-2xl shadow-lg p-2 flex flex-wrap gap-2">
+            {[
+              { id: 'overview', label: 'Overview', icon: TrendingUp },
+              { id: 'users', label: 'Users', icon: Users },
+              { id: 'articles', label: 'Articles', icon: FileText },
+              ...(user.role === 'super-admin' ? [
+                { id: 'warnings', label: 'Warnings', icon: AlertTriangle },
+                { id: 'audit-log', label: 'Audit Log', icon: Shield }
+              ] : [])
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-bold transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <tab.icon size={18} />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-xl">
+                <div className="flex items-center justify-between mb-3">
+                  <Users size={32} className="opacity-80" />
+                  <div className="text-4xl font-bold">
+                    {adminStats.userCounts.reduce((sum, item) => sum + parseInt(item.count), 0)}
+                  </div>
+                </div>
+                <div className="text-lg font-semibold opacity-90">Total Users</div>
+              </div>
+
+              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white shadow-xl">
+                <div className="flex items-center justify-between mb-3">
+                  <FileText size={32} className="opacity-80" />
+                  <div className="text-4xl font-bold">
+                    {adminStats.articleStats.total_articles || 0}
+                  </div>
+                </div>
+                <div className="text-lg font-semibold opacity-90">Total Articles</div>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-6 text-white shadow-xl">
+                <div className="flex items-center justify-between mb-3">
+                  <Eye size={32} className="opacity-80" />
+                  <div className="text-4xl font-bold">
+                    {adminStats.totalViews.toLocaleString()}
+                  </div>
+                </div>
+                <div className="text-lg font-semibold opacity-90">Total Views</div>
+              </div>
+
+              <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl p-6 text-white shadow-xl">
+                <div className="flex items-center justify-between mb-3">
+                  <Award size={32} className="opacity-80" />
+                  <div className="text-4xl font-bold">
+                    {adminStats.articleStats.certified_articles || 0}
+                  </div>
+                </div>
+                <div className="text-lg font-semibold opacity-90">Certified</div>
+              </div>
+            </div>
+
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-200">
+                <h3 className="text-2xl font-bold mb-6 text-gray-800">User Distribution</h3>
+                <div style={{ height: '300px' }}>
+                  <Pie data={userRoleData} options={chartOptions} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-200">
+                <h3 className="text-2xl font-bold mb-6 text-gray-800">Article Status</h3>
+                <div style={{ height: '300px' }}>
+                  <Pie data={articleStatusData} options={chartOptions} />
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Activity */}
+            <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-200">
+              <h3 className="text-2xl font-bold mb-6 text-gray-800">Recent Activity</h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead>
+                    <tr className="border-b-2 border-gray-200">
+                      <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Admin</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Action</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Target</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {adminStats.recentActivity.length > 0 ? (
+                      adminStats.recentActivity.map((activity, index) => (
+                        <tr key={index} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="font-semibold text-gray-900">{activity.admin_name || 'System'}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                              activity.action === 'delete' ? 'bg-red-100 text-red-700' :
+                              activity.action === 'update_role' ? 'bg-yellow-100 text-yellow-700' :
+                              activity.action === 'certify' ? 'bg-green-100 text-green-700' :
+                              'bg-blue-100 text-blue-700'
+                            }`}>
+                              {activity.action}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-gray-600">
+                            {activity.target_type} #{activity.target_id}
+                          </td>
+                          <td className="px-6 py-4 text-gray-500 text-sm">
+                            {formatDate(activity.created_at)}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
+                          No recent activity
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">
-                        No recent activity
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {activeTab === 'users' && (
-        <div className="mb-16">
-          <h2 className="text-4xl font-bold mb-8 text-center">USER MANAGEMENT</h2>
-          
-          <div className="bg-white p-8 border-2 border-black mb-8">
+        {activeTab === 'users' && (
+          <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-200">
+            <h2 className="text-3xl font-bold mb-6 text-gray-800">User Management</h2>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Display Name
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Tier
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Role
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Joined
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b-2 border-gray-200">
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">ID</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">User</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Email</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Tier</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Role</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Status</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-100">
                   {users.length > 0 ? (
                     users.map((userItem) => (
-                      <tr key={userItem.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {userItem.id}
+                      <tr key={userItem.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 text-gray-600">#{userItem.id}</td>
+                        <td className="px-6 py-4">
+                          <div className="font-bold text-gray-900">{userItem.display_name}</div>
+                          <div className="text-xs text-gray-500">{formatDate(userItem.created_at)}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-bold text-gray-900">{userItem.display_name}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {userItem.email || 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {userItem.tier}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadgeColor(userItem.role)}`}>
-                            {userItem.role}
+                        <td className="px-6 py-4 text-gray-600">{userItem.email || 'N/A'}</td>
+                        <td className="px-6 py-4">
+                          <span className="px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-yellow-400 to-orange-400 text-white">
+                            {userItem.tier}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${getRoleBadgeColor(userItem.role)}`}>
+                            {userItem.role.replace('-', ' ').toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
                           {userItem.ban_end ? (
-                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">
                               Banned
                             </span>
                           ) : (
-                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">
                               Active
                             </span>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(userItem.created_at)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          {user.role === 'super-admin' && (
-                            <>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-2">
+                            {user.role === 'super-admin' && (
                               <button
                                 onClick={() => {
                                   setSelectedUser(userItem);
                                   setShowUserModal(true);
                                 }}
-                                className="text-indigo-600 hover:text-indigo-900 mr-3"
+                                className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                                title="Edit Role"
                               >
-                                Edit Role
+                                <Edit size={16} />
                               </button>
-                            </>
-                          )}
-                          {userItem.ban_end ? (
-                            <button
-                              onClick={() => handleUnbanUser(userItem.id)}
-                              className="text-green-600 hover:text-green-900 mr-3"
-                            >
-                              <UserCheck className="inline mr-1" size={16} />
-                              Unban
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => {
-                                setBanUserId(userItem.id);
-                                setShowBanModal(true);
-                              }}
-                              className="text-red-600 hover:text-red-900 mr-3"
-                            >
-                              <UserX className="inline mr-1" size={16} />
-                              Ban
-                            </button>
-                          )}
-                          {userItem.id !== user.id && (
-                            <button
-                              onClick={() => {
-                                setDeleteTarget(userItem.id);
-                                setDeleteType('user');
-                                setShowDeleteConfirm(true);
-                              }}
-                              className="text-red-600 hover:text-red-900"
-                            >
-                              Delete
-                            </button>
-                          )}
+                            )}
+                            {userItem.ban_end ? (
+                              <button
+                                onClick={() => handleUnbanUser(userItem.id)}
+                                className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
+                                title="Unban User"
+                              >
+                                <UserCheck size={16} />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setBanUserId(userItem.id);
+                                  setShowBanModal(true);
+                                }}
+                                className="p-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200 transition-colors"
+                                title="Ban User"
+                              >
+                                <UserX size={16} />
+                              </button>
+                            )}
+                            {userItem.id !== user.id && (
+                              <button
+                                onClick={() => {
+                                  setDeleteTarget(userItem.id);
+                                  setDeleteType('user');
+                                  setShowDeleteConfirm(true);
+                                }}
+                                className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                                title="Delete User"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
                         No users found
                       </td>
                     </tr>
@@ -799,103 +806,95 @@ const handleDeleteConfirm = async () => {
               </table>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {activeTab === 'articles' && (
-        <div className="mb-16">
-          <h2 className="text-4xl font-bold mb-8 text-center">ARTICLE MANAGEMENT</h2>
-          
-          <div className="bg-white p-8 border-2 border-black mb-8">
+        {activeTab === 'articles' && (
+          <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-200">
+            <h2 className="text-3xl font-bold mb-6 text-gray-800">Article Management</h2>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Title
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Author
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Views
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Certified
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b-2 border-gray-200">
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">ID</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Title</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Author</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Status</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Views</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Certified</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-100">
                   {articles.length > 0 ? (
                     articles.map((article) => (
-                      <tr key={article.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {article.id}
-                        </td>
+                      <tr key={article.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 text-gray-600">#{article.id}</td>
                         <td className="px-6 py-4">
-                          <div className="text-sm font-bold text-gray-900 max-w-xs truncate">
+                          <div className="font-bold text-gray-900 max-w-xs truncate">
                             {article.title}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{article.display_name}</div>
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-gray-900">{article.display_name}</div>
                           <div className="text-xs text-gray-500">{article.tier}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                             article.published 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-yellow-100 text-yellow-700'
                           }`}>
                             {article.published ? 'Published' : 'Draft'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {article.views || 0}
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-1 text-gray-600">
+                            <Eye size={14} />
+                            <span className="font-semibold">{article.views || 0}</span>
+                          </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                             article.certified 
-                              ? 'bg-purple-100 text-purple-800' 
-                              : 'bg-gray-100 text-gray-800'
+                              ? 'bg-purple-100 text-purple-700' 
+                              : 'bg-gray-100 text-gray-600'
                           }`}>
                             {article.certified ? 'Yes' : 'No'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          {(user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') && (
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-2">
+                            {(user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') && (
+                              <button
+                                onClick={() => handleCertifyArticle(article.id, !article.certified)}
+                                className={`p-2 rounded-lg transition-colors ${
+                                  article.certified 
+                                    ? 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200' 
+                                    : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
+                                }`}
+                                title={article.certified ? 'Uncertify' : 'Certify'}
+                              >
+                                {article.certified ? <XCircle size={16} /> : <CheckCircle size={16} />}
+                              </button>
+                            )}
                             <button
-                              onClick={() => handleCertifyArticle(article.id, !article.certified)}
-                              className={`mr-3 ${article.certified ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'}`}
+                              onClick={() => {
+                                setDeleteTarget(article.id);
+                                setDeleteType('article');
+                                setShowDeleteConfirm(true);
+                              }}
+                              className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                              title="Delete Article"
                             >
-                              {article.certified ? 'Uncertify' : 'Certify'}
+                              <Trash2 size={16} />
                             </button>
-                          )}
-                          <button
-                            onClick={() => {
-                              setDeleteTarget(article.id);
-                              setDeleteType('article');
-                              setShowDeleteConfirm(true);
-                            }}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            Delete
-                          </button>
+                          </div>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
                         No articles found
                       </td>
                     </tr>
@@ -904,111 +903,97 @@ const handleDeleteConfirm = async () => {
               </table>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {activeTab === 'warnings' && user.role === 'super-admin' && (
-        <div className="mb-16">
-          <h2 className="text-4xl font-bold mb-8 text-center">USER WARNINGS</h2>
-          
-          <div className="bg-white p-8 border-2 border-black mb-8">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold">Accounts To Delete</h3>
-              <div className="space-x-4">
+        {activeTab === 'warnings' && user.role === 'super-admin' && (
+          <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-200">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl font-bold text-gray-800">User Warnings</h2>
+              <div className="flex space-x-3">
                 <button
                   onClick={handleCleanupWarnings}
-                  className="px-4 py-2 bg-yellow-600 text-white font-bold hover:bg-yellow-700"
+                  className="flex items-center space-x-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-5 py-2.5 rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                 >
-                  Clean Old Warnings
+                  <Clock size={18} />
+                  <span>Clean Old Warnings</span>
                 </button>
                 <button
                   onClick={handleHardDeleteAccounts}
-                  className="px-4 py-2 bg-red-600 text-white font-bold hover:bg-red-700"
+                  className="flex items-center space-x-2 bg-gradient-to-r from-red-500 to-pink-500 text-white px-5 py-2.5 rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                 >
-                  Hard Delete Accounts
+                  <Trash2 size={18} />
+                  <span>Hard Delete Accounts</span>
                 </button>
               </div>
             </div>
             
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Display Name
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Warnings
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Last Warning
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b-2 border-gray-200">
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">ID</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">User</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Email</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Status</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Warnings</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Last Warning</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-100">
                   {accountsToDelete.length > 0 ? (
-                    accountsToDelete.map((user) => (
-                      <tr key={user.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.id}
+                    accountsToDelete.map((userItem) => (
+                      <tr key={userItem.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 text-gray-600">#{userItem.id}</td>
+                        <td className="px-6 py-4">
+                          <div className="font-bold text-gray-900">{userItem.display_name}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-bold text-gray-900">{user.display_name}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.email || 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            user.account_status === 'soft_deleted' 
-                              ? 'bg-red-100 text-red-800' 
-                              : 'bg-yellow-100 text-yellow-800'
+                        <td className="px-6 py-4 text-gray-600">{userItem.email || 'N/A'}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                            userItem.account_status === 'soft_deleted' 
+                              ? 'bg-red-100 text-red-700' 
+                              : 'bg-yellow-100 text-yellow-700'
                           }`}>
-                            {user.account_status === 'soft_deleted' ? 'Deleted' : 'Active'}
+                            {userItem.account_status === 'soft_deleted' ? 'Deleted' : 'Active'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.warning_count}
+                        <td className="px-6 py-4">
+                          <span className="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">
+                            {userItem.warning_count} warnings
+                          </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.last_warning_at ? formatDate(user.last_warning_at) : 'N/A'}
+                        <td className="px-6 py-4 text-gray-600 text-sm">
+                          {userItem.last_warning_at ? formatDate(userItem.last_warning_at) : 'N/A'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            onClick={() => {
-                              setWarningUserId(user.id);
-                              setShowWarningModal(true);
-                            }}
-                            className="text-yellow-600 hover:text-yellow-900 mr-3"
-                          >
-                            Add Warning
-                          </button>
-                          {user.account_status === 'soft_deleted' && (
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-2">
                             <button
-                              onClick={() => handleUndoDelete(user.id)}
-                              className="text-green-600 hover:text-green-900"
+                              onClick={() => {
+                                setWarningUserId(userItem.id);
+                                setShowWarningModal(true);
+                              }}
+                              className="p-2 bg-yellow-100 text-yellow-600 rounded-lg hover:bg-yellow-200 transition-colors"
+                              title="Add Warning"
                             >
-                              Undo Delete
+                              <AlertTriangle size={16} />
                             </button>
-                          )}
+                            {userItem.account_status === 'soft_deleted' && (
+                              <button
+                                onClick={() => handleUndoDelete(userItem.id)}
+                                className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
+                                title="Undo Delete"
+                              >
+                                <UserCheck size={16} />
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
                         No accounts with warnings found
                       </td>
                     </tr>
@@ -1017,78 +1002,55 @@ const handleDeleteConfirm = async () => {
               </table>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {activeTab === 'audit-log' && user.role === 'super-admin' && (
-        <div className="mb-16">
-          <h2 className="text-4xl font-bold mb-8 text-center">AUDIT LOG</h2>
-          
-          <div className="bg-white p-8 border-2 border-black mb-8">
+        {activeTab === 'audit-log' && user.role === 'super-admin' && (
+          <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-200">
+            <h2 className="text-3xl font-bold mb-6 text-gray-800">Audit Log</h2>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Admin
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Action
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Target Type
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Target ID
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Details
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b-2 border-gray-200">
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">ID</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Admin</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Action</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Target</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Details</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase">Date</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-100">
                   {auditLog.length > 0 ? (
                     auditLog.map((log) => (
-                      <tr key={log.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {log.id}
+                      <tr key={log.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 text-gray-600">#{log.id}</td>
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-gray-900">{log.admin_name || 'System'}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-bold text-gray-900">{log.admin_name || 'System'}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            log.action === 'delete' ? 'bg-red-100 text-red-800' :
-                            log.action === 'update_role' ? 'bg-yellow-100 text-yellow-800' :
-                            log.action === 'certify' ? 'bg-green-100 text-green-800' :
-                            'bg-blue-100 text-blue-800'
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                            log.action === 'delete' ? 'bg-red-100 text-red-700' :
+                            log.action === 'update_role' ? 'bg-yellow-100 text-yellow-700' :
+                            log.action === 'certify' ? 'bg-green-100 text-green-700' :
+                            'bg-blue-100 text-blue-700'
                           }`}>
                             {log.action}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {log.target_type}
+                        <td className="px-6 py-4 text-gray-600">
+                          {log.target_type} #{log.target_id}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {log.target_id}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                        <td className="px-6 py-4 text-gray-600">
                           <div className="max-w-xs truncate">{log.details || 'N/A'}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 text-gray-500 text-sm">
                           {formatDate(log.created_at)}
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
                         No audit log entries found
                       </td>
                     </tr>
@@ -1097,193 +1059,195 @@ const handleDeleteConfirm = async () => {
               </table>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* User Role Modal */}
-      {showUserModal && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-8 rounded-lg max-w-md w-full">
-            <h3 className="text-2xl font-bold mb-6">Update User Role</h3>
-            <div className="mb-6">
-              <p className="font-bold mb-2">User: {selectedUser.display_name}</p>
-              <p className="text-gray-600 mb-4">Current Role: {selectedUser.role}</p>
+        {/* Modals */}
+        {showUserModal && selectedUser && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+              <h3 className="text-2xl font-bold mb-6 text-gray-800">Update User Role</h3>
+              <div className="mb-6">
+                <p className="font-bold mb-2 text-gray-800">User: {selectedUser.display_name}</p>
+                <p className="text-gray-600 mb-4">Current Role: <span className="font-semibold">{selectedUser.role}</span></p>
+                
+                <div className="space-y-3">
+                  {['user', 'editorial-board', 'admin', 'super-admin'].map((role) => (
+                    <label key={role} className="flex items-center p-3 border-2 border-gray-200 rounded-xl hover:border-blue-400 cursor-pointer transition-colors">
+                      <input
+                        type="radio"
+                        name="role"
+                        value={role}
+                        checked={selectedUser.role === role}
+                        onChange={() => setSelectedUser({...selectedUser, role})}
+                        className="mr-3 w-5 h-5"
+                      />
+                      <span className="font-semibold capitalize">{role.replace('-', ' ')}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
               
-              <div className="space-y-2">
-                {['user', 'editorial-board', 'admin', 'super-admin'].map((role) => (
-                  <label key={role} className="flex items-center">
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowUserModal(false)}
+                  className="px-6 py-3 border-2 border-gray-300 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleUpdateUserRole(selectedUser.id, selectedUser.role)}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                >
+                  Update Role
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showWarningModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+              <h3 className="text-2xl font-bold mb-6 text-gray-800">Add User Warning</h3>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Reason for Warning
+                </label>
+                <textarea
+                  value={warningReason}
+                  onChange={(e) => setWarningReason(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                  rows="4"
+                  placeholder="Enter reason for warning..."
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowWarningModal(false);
+                    setWarningReason('');
+                    setWarningUserId(null);
+                  }}
+                  className="px-6 py-3 border-2 border-gray-300 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddWarning}
+                  className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                >
+                  Add Warning
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showBanModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+              <h3 className="text-2xl font-bold mb-6 text-gray-800">Ban User</h3>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Ban Duration
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm text-gray-600 block mb-1">Days</label>
                     <input
-                      type="radio"
-                      name="role"
-                      value={role}
-                      checked={selectedUser.role === role}
-                      onChange={() => setSelectedUser({...selectedUser, role})}
-                      className="mr-2"
+                      type="number"
+                      min="0"
+                      value={banDuration.days}
+                      onChange={(e) => setBanDuration({...banDuration, days: parseInt(e.target.value) || 0})}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     />
-                    <span className="capitalize">{role.replace('-', ' ')}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => setShowUserModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded font-bold hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleUpdateUserRole(selectedUser.id, selectedUser.role)}
-                className="px-4 py-2 bg-black text-white rounded font-bold hover:bg-gray-800"
-              >
-                Update Role
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Warning Modal */}
-      {showWarningModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-8 rounded-lg max-w-md w-full">
-            <h3 className="text-2xl font-bold mb-6">Add User Warning</h3>
-            
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Reason for Warning
-              </label>
-              <textarea
-                value={warningReason}
-                onChange={(e) => setWarningReason(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                rows="4"
-                placeholder="Enter reason for warning..."
-              />
-            </div>
-            
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => {
-                  setShowWarningModal(false);
-                  setWarningReason('');
-                  setWarningUserId(null);
-                }}
-                className="px-4 py-2 border border-gray-300 rounded font-bold hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddWarning}
-                className="px-4 py-2 bg-yellow-600 text-white rounded font-bold hover:bg-yellow-700"
-              >
-                Add Warning
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Ban Modal */}
-      {showBanModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-8 rounded-lg max-w-md w-full">
-            <h3 className="text-2xl font-bold mb-6">Ban User</h3>
-            
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Ban Duration
-              </label>
-              <div className="flex space-x-4">
-                <div>
-                  <label className="text-sm text-gray-600">Days</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={banDuration.days}
-                    onChange={(e) => setBanDuration({...banDuration, days: parseInt(e.target.value) || 0})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-600">Hours</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={banDuration.hours}
-                    onChange={(e) => setBanDuration({...banDuration, hours: parseInt(e.target.value) || 0})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600 block mb-1">Hours</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={banDuration.hours}
+                      onChange={(e) => setBanDuration({...banDuration, hours: parseInt(e.target.value) || 0})}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Reason for Ban
-              </label>
-              <textarea
-                value={banReason}
-                onChange={(e) => setBanReason(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                rows="4"
-                placeholder="Enter reason for ban..."
-              />
-            </div>
-            
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => {
-                  setShowBanModal(false);
-                  setBanReason('');
-                  setBanDuration({ days: 1, hours: 0 });
-                }}
-                className="px-4 py-2 border border-gray-300 rounded font-bold hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleBanUser}
-                className="px-4 py-2 bg-red-600 text-white rounded font-bold hover:bg-red-700"
-              >
-                Ban User
-              </button>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Reason for Ban
+                </label>
+                <textarea
+                  value={banReason}
+                  onChange={(e) => setBanReason(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  rows="4"
+                  placeholder="Enter reason for ban..."
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowBanModal(false);
+                    setBanReason('');
+                    setBanDuration({ days: 1, hours: 0 });
+                  }}
+                  className="px-6 py-3 border-2 border-gray-300 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBanUser}
+                  className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                >
+                  Ban User
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-8 rounded-lg max-w-md w-full">
-            <h3 className="text-2xl font-bold mb-4">Confirm Deletion</h3>
-            <p className="mb-6">
-              Are you sure you want to delete this {deleteType}? This action cannot be undone.
-            </p>
-            
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => {
-                  setShowDeleteConfirm(false);
-                  setDeleteTarget(null);
-                  setDeleteType(null);
-                }}
-                className="px-4 py-2 border border-gray-300 rounded font-bold hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                className="px-4 py-2 bg-red-600 text-white rounded font-bold hover:bg-red-700"
-              >
-                Delete
-              </button>
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+              <div className="flex items-center justify-center mb-6">
+                <div className="bg-red-100 p-4 rounded-full">
+                  <AlertTriangle className="text-red-600" size={32} />
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold mb-4 text-center text-gray-800">Confirm Deletion</h3>
+              <p className="mb-6 text-center text-gray-600">
+                Are you sure you want to delete this {deleteType}? This action cannot be undone.
+              </p>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeleteTarget(null);
+                    setDeleteType(null);
+                  }}
+                  className="px-6 py-3 border-2 border-gray-300 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
