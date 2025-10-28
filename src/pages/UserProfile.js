@@ -12,18 +12,13 @@ import {
   Shield, 
   ChevronRight,
   BookOpen,
-  TrendingUp,
   Clock,
-  Heart,
-  MessageCircle,
-  Share2,
   CheckCircle,
-  Trophy,
   Star,
   Users,
-  Activity,
-  Zap,
-  AlertCircle
+  AlertCircle,
+  MapPin,
+  Link2
 } from 'lucide-react';
 
 const API_URL = process.env.NODE_ENV === 'production' 
@@ -112,12 +107,11 @@ const UserProfile = () => {
   };
 
   const certifiedCount = articles.filter(article => article.certified).length;
-  const debateWinnerCount = articles.filter(article => article.is_debate_winner).length;
   const isCertifiedByFollowers = user && user.followers >= 100;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-20">
         <div className="text-center">
           <div className="relative">
             <div className="animate-spin rounded-full h-16 w-16 border-t-3 border-b-3 border-orange-600 mx-auto"></div>
@@ -133,7 +127,7 @@ const UserProfile = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="min-h-screen bg-gray-50 flex flex-col pt-20">
         <div className="flex-grow container mx-auto px-4 py-12">
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-xl shadow-sm p-10 text-center border border-gray-200">
@@ -156,66 +150,55 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section with Cover */}
-      <div className="relative">
-        <div className="h-40 bg-gradient-to-r from-orange-500 to-orange-600 relative overflow-hidden">
-          <div className="absolute inset-0 bg-black/5"></div>
-        </div>
-        
-        {/* Profile Info */}
-        <div className="container mx-auto px-4 -mt-16">
-          <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 border border-gray-200">
-            <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
-              <div className="relative -mt-20 md:-mt-16">
-                <div className="w-28 h-28 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
-                  <span className="text-4xl font-bold text-white">
-                    {user.display_name.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <div className="absolute bottom-1 right-1 bg-green-500 rounded-full p-1.5 border-2 border-white shadow-sm">
-                  <CheckCircle className="h-4 w-4 text-white" />
-                </div>
-              </div>
+    <div className="min-h-screen bg-gray-50 pt-16">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Sidebar - Profile Card */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden sticky top-20">
+              {/* Cover */}
+              <div className="h-24 bg-gradient-to-r from-orange-500 to-orange-600"></div>
               
-              <div className="flex-grow text-center md:text-left">
-                <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2">
-                  <h1 className="text-3xl font-bold text-gray-900">{user.display_name}</h1>
+              {/* Profile Info */}
+              <div className="px-6 pb-6">
+                <div className="relative -mt-12 mb-4">
+                  <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
+                    <span className="text-3xl font-bold text-white">
+                      {user.display_name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
                   {isCertifiedByFollowers && (
-                    <div className="flex items-center gap-1 bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold border border-orange-200">
-                      <Award className="h-4 w-4" />
-                      Certified
+                    <div className="absolute bottom-0 right-0 bg-orange-500 rounded-full p-1.5 border-2 border-white shadow-sm">
+                      <Award className="h-4 w-4 text-white" />
                     </div>
                   )}
                 </div>
-                <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-3">
-                  <span className="bg-orange-50 text-orange-700 px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2 border border-orange-200">
-                    <Star className="h-4 w-4" />
-                    {user.tier} Tier
+
+                <h1 className="text-xl font-bold text-gray-900 mb-1">{user.display_name}</h1>
+                
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <span className="bg-orange-50 text-orange-700 px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1 border border-orange-200">
+                    <Star className="h-3 w-3" />
+                    {user.tier}
                   </span>
                   {user.role !== 'user' && (
-                    <span className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2 border border-blue-200">
-                      <Shield className="h-4 w-4" />
+                    <span className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1 border border-blue-200">
+                      <Shield className="h-3 w-3" />
                       {user.role}
                     </span>
                   )}
-                  <span className="bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2 border border-gray-200">
-                    <Users className="h-4 w-4" />
-                    {user.followers || 0} Followers
-                  </span>
                 </div>
-                <p className="text-gray-600 flex items-center justify-center md:justify-start gap-2 text-sm">
+
+                <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
                   <Calendar className="h-4 w-4" />
-                  Joined {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}
-                </p>
-              </div>
-              
-              {currentUser && currentUser.id !== user.id && (
-                <div className="flex-shrink-0">
+                  <span>Joined {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}</span>
+                </div>
+
+                {currentUser && currentUser.id !== user.id && (
                   <button
                     onClick={handleFollow}
                     disabled={followLoading}
-                    className={`px-6 py-2.5 rounded-lg font-semibold transition-all duration-200 shadow-sm ${
+                    className={`w-full py-2.5 rounded-lg font-semibold transition-all duration-200 shadow-sm ${
                       isFollowing
                         ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
                         : 'bg-orange-600 text-white hover:bg-orange-700'
@@ -223,153 +206,130 @@ const UserProfile = () => {
                   >
                     {followLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}
                   </button>
+                )}
+
+                <div className="border-t border-gray-200 mt-6 pt-6">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-bold text-gray-900">{stats.totalArticles}</div>
+                      <div className="text-xs text-gray-500 mt-1">Articles</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-gray-900">{user.followers || 0}</div>
+                      <div className="text-xs text-gray-500 mt-1">Followers</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-gray-900">{stats.totalViews}</div>
+                      <div className="text-xs text-gray-500 mt-1">Views</div>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Stats Grid */}
-      <div className="container mx-auto px-4 mt-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center justify-between mb-3">
-              <div className="bg-orange-50 rounded-lg p-2.5">
-                <FileText className="h-5 w-5 text-orange-600" />
+                {certifiedCount > 0 && (
+                  <div className="border-t border-gray-200 mt-6 pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-green-50 rounded-lg p-2">
+                        <Award className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-gray-900">{certifiedCount} Certified Articles</div>
+                        <div className="text-xs text-gray-500">Expert recognition</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              <span className="text-2xl font-bold text-gray-900">{stats.totalArticles}</span>
             </div>
-            <p className="text-gray-900 font-semibold text-sm">Articles</p>
-            <p className="text-gray-500 text-xs">Published</p>
           </div>
-          
-          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center justify-between mb-3">
-              <div className="bg-blue-50 rounded-lg p-2.5">
-                <Eye className="h-5 w-5 text-blue-600" />
-              </div>
-              <span className="text-2xl font-bold text-gray-900">{stats.totalViews}</span>
-            </div>
-            <p className="text-gray-900 font-semibold text-sm">Total Views</p>
-            <p className="text-gray-500 text-xs">Reached</p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center justify-between mb-3">
-              <div className="bg-green-50 rounded-lg p-2.5">
-                <Award className="h-5 w-5 text-green-600" />
-              </div>
-              <span className="text-2xl font-bold text-gray-900">{certifiedCount}</span>
-            </div>
-            <p className="text-gray-900 font-semibold text-sm">Certified</p>
-            <p className="text-gray-500 text-xs">Expert articles</p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center justify-between mb-3">
-              <div className="bg-yellow-50 rounded-lg p-2.5">
-                <Trophy className="h-5 w-5 text-yellow-600" />
-              </div>
-              <span className="text-2xl font-bold text-gray-900">{debateWinnerCount}</span>
-            </div>
-            <p className="text-gray-900 font-semibold text-sm">Debate Wins</p>
-            <p className="text-gray-500 text-xs">Champion</p>
-          </div>
-        </div>
 
-        {/* Activity Feed */}
-        <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 border border-gray-200">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2.5">
-              <Activity className="h-6 w-6 text-orange-600" />
-              Recent Activity
-            </h2>
-            <div className="flex items-center gap-2 bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-200">
-              <FileText className="h-4 w-4 text-orange-600" />
-              <span className="text-orange-700 font-semibold text-sm">{articles.length} posts</span>
+          {/* Right Content - Articles Feed */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-1">Articles</h2>
+              <p className="text-sm text-gray-500">{articles.length} published</p>
             </div>
-          </div>
-          
-          {articles.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200">
-                <BookOpen className="h-8 w-8 text-gray-400" />
+
+            {articles.length === 0 ? (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200">
+                  <BookOpen className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No articles yet</h3>
+                <p className="text-gray-500">This user hasn't published any articles yet.</p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No articles yet</h3>
-              <p className="text-gray-500">This user hasn't published any articles yet.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {articles.map((article) => (
-                <div key={article.id} className="group">
-                  <div className="bg-gray-50 rounded-lg p-5 border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-200">
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                      <div className="flex-grow">
-                        <div className="flex items-start gap-3 mb-3">
-                          <div className="bg-white rounded-lg p-2 shadow-sm border border-gray-200">
-                            <FileText className="h-4 w-4 text-orange-600" />
+            ) : (
+              <div className="space-y-4">
+                {articles.map((article) => (
+                  <div key={article.id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <div className="p-6">
+                      <div className="flex items-start gap-3 mb-4">
+                        <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-bold text-white">
+                            {user.display_name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex-grow min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold text-gray-900">{user.display_name}</span>
+                            {isCertifiedByFollowers && (
+                              <CheckCircle className="h-4 w-4 text-orange-500 flex-shrink-0" />
+                            )}
                           </div>
-                          <div className="flex-grow">
-                            <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
-                              <Link to={`/article/${article.id}`}>
-                                {article.title}
-                              </Link>
-                            </h3>
-                            <div className="flex flex-wrap gap-2 mb-3">
-                              {article.certified && (
-                                <span className="bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-1 rounded border border-green-200 flex items-center gap-1">
-                                  <Award className="h-3 w-3" />
-                                  Certified
-                                </span>
-                              )}
-                              {article.is_debate_winner && (
-                                <span className="bg-yellow-50 text-yellow-700 text-xs font-semibold px-2.5 py-1 rounded border border-yellow-200 flex items-center gap-1">
-                                  <Trophy className="h-3 w-3" />
-                                  Winner
-                                </span>
-                              )}
-                              {article.topics && article.topics.slice(0, 3).map((topic, idx) => (
-                                <span key={idx} className="bg-white text-gray-700 text-xs px-2.5 py-1 rounded border border-gray-200">
-                                  {topic}
-                                </span>
-                              ))}
-                            </div>
-                            <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                              {article.content.substring(0, 180)}...
-                            </p>
-                            <div className="flex items-center gap-5 text-sm text-gray-500">
-                              <div className="flex items-center gap-1.5">
-                                <Eye className="h-4 w-4" />
-                                <span>{article.views || 0}</span>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <Clock className="h-4 w-4" />
-                                <span>{formatDistanceToNow(new Date(article.created_at), { addSuffix: true })}</span>
-                              </div>
-                            </div>
+                          <div className="text-xs text-gray-500">
+                            {formatDistanceToNow(new Date(article.created_at), { addSuffix: true })}
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center lg:ml-4">
+
+                      <Link to={`/article/${article.id}`} className="block group">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
+                          {article.title}
+                        </h3>
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                          {article.content.substring(0, 200)}...
+                        </p>
+                      </Link>
+
+                      {(article.certified || article.topics?.length > 0) && (
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {article.certified && (
+                            <span className="bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-green-200 flex items-center gap-1">
+                              <Award className="h-3 w-3" />
+                              Certified
+                            </span>
+                          )}
+                          {article.topics && article.topics.slice(0, 3).map((topic, idx) => (
+                            <span key={idx} className="bg-gray-50 text-gray-700 text-xs px-2.5 py-1 rounded-md border border-gray-200">
+                              {topic}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-1.5">
+                            <Eye className="h-4 w-4" />
+                            <span>{article.views || 0}</span>
+                          </div>
+                        </div>
                         <Link 
                           to={`/article/${article.id}`} 
-                          className="inline-flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-orange-700 transition-colors duration-200 shadow-sm text-sm"
+                          className="inline-flex items-center gap-1.5 text-orange-600 hover:text-orange-700 font-semibold text-sm transition-colors"
                         >
-                          Read Article
+                          Read more
                           <ChevronRight className="h-4 w-4" />
                         </Link>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Footer Spacer */}
       <div className="h-12"></div>
     </div>
   );
