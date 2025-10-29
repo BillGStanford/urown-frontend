@@ -424,13 +424,6 @@ const ArticlePage = () => {
         >
           {darkMode ? <Sun size={20} /> : <Moon size={20} />}
         </button>
-        <button
-          onClick={() => setBookmarked(!bookmarked)}
-          className={`p-3 rounded-full shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'} hover:scale-110 transition-all duration-300 border ${darkMode ? 'border-gray-700' : 'border-gray-200'} ${bookmarked ? 'text-yellow-500' : darkMode ? 'text-gray-400' : 'text-gray-600'}`}
-          title={bookmarked ? 'Remove Bookmark' : 'Bookmark Article'}
-        >
-          {bookmarked ? <Bookmark size={20} fill="currentColor" /> : <BookmarkPlus size={20} />}
-        </button>
         <div className="relative">
           <button
             onClick={() => setShowShareMenu(!showShareMenu)}
@@ -513,7 +506,6 @@ const ArticlePage = () => {
                   <span className={`px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r ${getTierColor(article.tier)} text-white`}>
                     {article.tier?.toUpperCase()}
                   </span>
-                  <span>{article.engagement_score || 85}% engagement</span>
                 </div>
               </div>
             </div>
@@ -653,9 +645,6 @@ const ArticlePage = () => {
                           <h4 className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                             {opinion.display_name}
                           </h4>
-                          <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                            {opinion.tier?.toUpperCase()} • {opinion.engagement_score || 85}% engagement
-                          </span>
                         </div>
                       </div>
                       <ExternalLink size={16} className={`${darkMode ? 'text-gray-600' : 'text-gray-400'} group-hover:text-yellow-500 transition-colors`} />
