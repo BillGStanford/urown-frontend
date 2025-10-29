@@ -1,4 +1,4 @@
-// components/RichTextEditor.js
+// components/RichTextEditor.js (Updated)
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Bold, 
@@ -512,10 +512,22 @@ const RichTextEditor = ({
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             className={`editor-content p-6 outline-none ${darkMode ? 'text-gray-200' : 'text-gray-800'} prose prose-lg max-w-none`}
-            style={{ minHeight: '400px' }}
+            style={{ 
+              minHeight: '400px',
+              whiteSpace: 'pre-wrap',
+              wordWrap: 'break-word'
+            }}
             suppressContentEditableWarning={true}
-            data-placeholder={placeholder}
           />
+          {/* Custom placeholder */}
+          {!value && !isFocused && (
+            <div 
+              className={`absolute top-6 left-6 pointer-events-none ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}
+              style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
+            >
+              {placeholder}
+            </div>
+          )}
         </div>
 
         {/* Status Bar */}
@@ -589,11 +601,8 @@ const RichTextEditor = ({
       )}
 
       <style jsx>{`
-        .editor-content:empty:before {
-          content: attr(data-placeholder);
-          color: ${darkMode ? '#9CA3AF' : '#9CA3AF'};
-          pointer-events: none;
-          position: absolute;
+        .editor-container {
+          position: relative;
         }
         
         .editor-content:focus {
