@@ -56,7 +56,6 @@ const ArticlePage = () => {
   const [readingProgress, setReadingProgress] = useState(0);
   const [readingTime, setReadingTime] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
-  const [bookmarked, setBookmarked] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const abortControllerRef = useRef(null);
   const paywallTimerRef = useRef(null);
