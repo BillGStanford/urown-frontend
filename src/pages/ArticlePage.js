@@ -13,7 +13,7 @@ import {
   EmailIcon
 } from 'react-share';
 import { Helmet } from 'react-helmet';
-import { Flag, ChevronDown, ChevronUp, Award, MessageSquare, Share2, Copy, Eye, X, Clock, Shuffle, Moon, Sun } from 'lucide-react';
+import { Flag, ChevronDown, ChevronUp, Award, MessageSquare, Share2, Copy, Eye, X, Clock, Shuffle, Moon, Sun, TrendingUp, ExternalLink } from 'lucide-react';
 
 const ArticlePage = () => {
   const { id, slug } = useParams();
@@ -36,6 +36,7 @@ const ArticlePage = () => {
   const [readingProgress, setReadingProgress] = useState(0);
   const [readingTime, setReadingTime] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
+  const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const abortControllerRef = useRef(null);
   const paywallTimerRef = useRef(null);
   const articleContentRef = useRef(null);
@@ -384,30 +385,46 @@ const ArticlePage = () => {
     }
   };
 
-  // Enhanced content formatting with pull quotes
+  // Enhanced content formatting with drop cap and pull quotes
   const formatContent = (content) => {
     const paragraphs = content.split('\n\n').map(p => p.trim()).filter(p => p.length > 0);
     
     return paragraphs.map((paragraph, index) => {
+      // Add drop cap to first paragraph
+      if (index === 0) {
+        const firstLetter = paragraph.charAt(0);
+        const restOfParagraph = paragraph.substring(1);
+        return `
+          <p key=${index} class="mb-10 text-xl leading-loose font-serif ${darkMode ? 'text-gray-200' : 'text-gray-800'}">
+            <span class="float-left text-6xl font-bold leading-none mr-2 mt-1 ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}">${firstLetter}</span>${restOfParagraph}
+          </p>
+        `;
+      }
+      
       // Create pull quote for longer paragraphs (every 4th paragraph)
       if (index > 0 && index % 4 === 0 && paragraph.length > 100) {
         const excerpt = paragraph.substring(0, 120) + '...';
         return `
           <div key=${index} class="my-12">
-            <div class="border-l-4 ${darkMode ? 'border-gray-600 bg-gray-800' : 'border-gray-300 bg-gray-50'} pl-6 pr-6 py-4 italic text-2xl leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'} font-serif">
+            <div class="border-l-4 ${darkMode ? 'border-yellow-500 bg-gray-800' : 'border-yellow-500 bg-yellow-50'} pl-6 pr-6 py-4 italic text-2xl leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'} font-serif">
               "${excerpt}"
             </div>
           </div>
-          <p key=${index}-p class="mb-10 text-lg leading-loose font-serif ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${paragraph}</p>
+          <p key=${index}-p class="mb-10 text-xl leading-loose font-serif ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${paragraph}</p>
         `;
       }
       
-      return `<p key=${index} class="mb-10 text-lg leading-loose font-serif ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${paragraph}</p>`;
+      return `<p key=${index} class="mb-10 text-xl leading-loose font-serif ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${paragraph}</p>`;
     }).join('');
   };
 
   const canWriteCounter = user && counterOpinions.length < 5;
   const showSidebar = originalArticle || counterOpinions.length > 0 || relatedArticles.length > 0;
+
+  // Format view count with commas
+  const formatViewCount = (count) => {
+    return count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
 
   if (loading) {
     return (
@@ -465,24 +482,65 @@ const ArticlePage = () => {
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-gray-200">
         <div 
-          className="h-full bg-yellow-500 transition-all duration-150"
+          className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all duration-150"
           style={{ width: `${readingProgress}%` }}
         />
       </div>
 
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-white'} transition-colors duration-300`}>
-        {/* Dark Mode Toggle & Random Article */}
+        {/* Floating Action Bar (Right Side) */}
         <div className="fixed top-20 right-4 z-40 flex flex-col gap-2">
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className={`p-3 rounded-full shadow-lg ${darkMode ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-800'} hover:scale-110 transition-transform duration-300`}
+            className={`p-3 rounded-full shadow-lg ${darkMode ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-800'} hover:scale-110 transition-all duration-300 hover:shadow-xl`}
             title={darkMode ? 'Light Mode' : 'Dark Mode'}
           >
             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
+          
+          <div className="relative">
+            <button
+              onClick={() => setShareMenuOpen(!shareMenuOpen)}
+              className={`p-3 rounded-full shadow-lg ${darkMode ? 'bg-gray-800 text-blue-400' : 'bg-white text-blue-600'} hover:scale-110 transition-all duration-300 hover:shadow-xl`}
+              title="Share Article"
+            >
+              <Share2 size={20} />
+            </button>
+            
+            {shareMenuOpen && (
+              <div className={`absolute right-0 mt-2 w-48 rounded-lg shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'} overflow-hidden z-50`}>
+                <div className="p-2">
+                  <FacebookShareButton url={shareUrl} quote={shareTitle} className="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <FacebookIcon size={20} round className="mr-2" />
+                    <span className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Facebook</span>
+                  </FacebookShareButton>
+                  <TwitterShareButton url={shareUrl} title={shareTitle} className="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <TwitterIcon size={20} round className="mr-2" />
+                    <span className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Twitter</span>
+                  </TwitterShareButton>
+                  <LinkedinShareButton url={shareUrl} title={shareTitle} className="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <LinkedinIcon size={20} round className="mr-2" />
+                    <span className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>LinkedIn</span>
+                  </LinkedinShareButton>
+                  <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle} className="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <EmailIcon size={20} round className="mr-2" />
+                    <span className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Email</span>
+                  </EmailShareButton>
+                  <button
+                    onClick={handleCopyLink}
+                    className="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors w-full text-left"
+                  >
+                    <Copy size={20} className="mr-2" />
+                    <span className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{copied ? 'Copied!' : 'Copy Link'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          
           <button
             onClick={handleRandomArticle}
-            className={`p-3 rounded-full shadow-lg ${darkMode ? 'bg-gray-800 text-blue-400' : 'bg-white text-blue-600'} hover:scale-110 transition-transform duration-300`}
+            className={`p-3 rounded-full shadow-lg ${darkMode ? 'bg-gray-800 text-green-400' : 'bg-white text-green-600'} hover:scale-110 transition-all duration-300 hover:shadow-xl`}
             title="Random Article"
           >
             <Shuffle size={20} />
@@ -512,8 +570,21 @@ const ArticlePage = () => {
           </div>
         )}
 
-        {/* Article Header - Vox Style */}
+        {/* Article Header */}
         <header className="max-w-4xl mx-auto px-4 py-8 md:py-12">
+          {/* Topic Tags */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            <span className="px-3 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+              Technology
+            </span>
+            <span className="px-3 py-1 text-xs font-bold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+              Innovation
+            </span>
+            <span className="px-3 py-1 text-xs font-bold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+              Future
+            </span>
+          </div>
+          
           <div className="mb-6">
             <div className="flex items-center mb-4">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 bg-gradient-to-r ${getTierGradient(article.tier)}`}>
@@ -527,18 +598,28 @@ const ArticlePage = () => {
               </div>
             </div>
             
+            {/* Comprehensive Stats Bar */}
             <div className="flex items-center text-sm text-gray-500 mb-4">
               <Clock className="mr-1" size={14} />
               <span>{readingTime} min read</span>
               <span className="mx-2">•</span>
               <Eye className="mr-1" size={14} />
-              <span>{article.views} views</span>
+              <span>{formatViewCount(article.views)} views</span>
               <span className="mx-2">•</span>
               <span>{formatDate(article.created_at)}</span>
+              {article.trending && (
+                <>
+                  <span className="mx-2">•</span>
+                  <div className="flex items-center text-red-500">
+                    <TrendingUp className="mr-1" size={14} />
+                    <span>Trending</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
           
-          <h1 className={`text-4xl md:text-5xl font-serif font-black mb-6 leading-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+          <h1 className={`text-4xl md:text-6xl font-serif font-black mb-6 leading-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
             {article.title}
           </h1>
           
@@ -560,24 +641,9 @@ const ArticlePage = () => {
               </div>
             )}
           </div>
-          
-          <div className="flex space-x-4">
-            <FacebookShareButton url={shareUrl} quote={shareTitle}>
-              <FacebookIcon size={32} round className="hover:scale-110 transition-transform" />
-            </FacebookShareButton>
-            <TwitterShareButton url={shareUrl} title={shareTitle}>
-              <TwitterIcon size={32} round className="hover:scale-110 transition-transform" />
-            </TwitterShareButton>
-            <LinkedinShareButton url={shareUrl} title={shareTitle}>
-              <LinkedinIcon size={32} round className="hover:scale-110 transition-transform" />
-            </LinkedinShareButton>
-            <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle}>
-              <EmailIcon size={32} round className="hover:scale-110 transition-transform" />
-            </EmailShareButton>
-          </div>
         </header>
 
-        {/* Main Content - Vox Style */}
+        {/* Main Content */}
         <div className="max-w-4xl mx-auto px-4 pb-16">
           <div className="flex flex-col lg:flex-row gap-8">
             <div className={`${showSidebar ? 'lg:w-3/4' : 'w-full'}`}>
@@ -586,26 +652,26 @@ const ArticlePage = () => {
                 className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-8 md:p-12`}
               >
                 <div 
-                  className={`${darkMode ? 'text-gray-200' : 'text-gray-800'} leading-relaxed font-serif text-lg`}
+                  className={`${darkMode ? 'text-gray-200' : 'text-gray-800'} leading-relaxed font-serif`}
                   dangerouslySetInnerHTML={{ __html: formatContent(article.content) }}
                 />
               </div>
 
-              {/* Counter Opinion Section - Vox Style */}
+              {/* Engagement Section */}
               <div className={`mt-8 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6`}>
                 <div className="flex flex-col sm:flex-row justify-between items-center">
-                  <h2 className={`text-2xl font-serif font-bold mb-4 sm:mb-0 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Disagree with this opinion?</h2>
+                  <h2 className={`text-2xl font-serif font-bold mb-4 sm:mb-0 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Disagree with this Article?</h2>
                   <button
                     onClick={handleCounterOpinion}
                     disabled={!canWriteCounter}
                     className={`px-6 py-3 font-serif font-bold text-white rounded-lg transition-all duration-300 flex items-center ${
                       canWriteCounter
-                        ? 'bg-yellow-500 hover:bg-yellow-600'
+                        ? 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 hover:shadow-lg transform hover:-translate-y-1'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                   >
                     <MessageSquare className="mr-2" size={18} />
-                    Counter Opinion
+                    Write a Counter Opinion
                   </button>
                 </div>
                 {!canWriteCounter && user && (
@@ -614,7 +680,7 @@ const ArticlePage = () => {
               </div>
             </div>
 
-            {/* Sidebar - Vox Style */}
+            {/* Sidebar */}
             {showSidebar && (
               <div className="lg:w-1/4">
                 <div className="sticky top-24 space-y-6">
@@ -634,9 +700,10 @@ const ArticlePage = () => {
                       </p>
                       <button 
                         onClick={() => navigate(`/article/${originalArticle.id}`)}
-                        className="text-yellow-600 hover:text-yellow-700 font-bold text-sm"
+                        className="text-yellow-600 hover:text-yellow-700 font-bold text-sm flex items-center"
                       >
                         Read Original
+                        <ExternalLink size={14} className="ml-1" />
                       </button>
                     </div>
                   )}
@@ -655,7 +722,7 @@ const ArticlePage = () => {
                       {showCounters && (
                         <div className="space-y-3">
                           {counterOpinions.slice(0, 3).map(opinion => (
-                            <div key={opinion.id} className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-3 cursor-pointer hover:bg-opacity-80 transition-all`}
+                            <div key={opinion.id} className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-3 cursor-pointer hover:bg-opacity-80 transition-all group`}
                               onClick={() => navigate(`/article/${opinion.id}`)}
                             >
                               <div className="flex items-center mb-1">
@@ -665,6 +732,11 @@ const ArticlePage = () => {
                                 <span className={`text-xs font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{opinion.display_name}</span>
                               </div>
                               <h4 className={`font-serif text-xs font-bold mb-1 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{opinion.title}</h4>
+                              <div className="flex items-center text-xs text-gray-500">
+                                <Eye size={12} className="mr-1" />
+                                <span>{formatViewCount(opinion.views)} views</span>
+                              </div>
+                              <ExternalLink size={12} className={`ml-auto ${darkMode ? 'text-gray-400' : 'text-gray-600'} opacity-0 group-hover:opacity-100 transition-opacity`} />
                             </div>
                           ))}
                           {counterOpinions.length > 3 && (
@@ -684,11 +756,11 @@ const ArticlePage = () => {
                   {relatedArticles.length > 0 && (
                     <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-4`}>
                       <h3 className={`text-lg font-serif font-bold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Related Articles</h3>
-                      <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
                         {relatedArticles.map(related => (
                           <div 
                             key={related.id}
-                            className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition-all`}
+                            className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition-all group`}
                             onClick={() => navigate(`/article/${related.id}`)}
                           >
                             <div className="flex items-center mb-1">
@@ -699,46 +771,14 @@ const ArticlePage = () => {
                             </div>
                             <h4 className={`font-serif text-xs font-bold mb-1 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{related.title}</h4>
                             <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                              {related.views} views • {calculateReadingTime(related.content)} min read
+                              {formatViewCount(related.views)} views • {calculateReadingTime(related.content)} min
                             </p>
+                            <ExternalLink size={12} className={`ml-auto ${darkMode ? 'text-gray-400' : 'text-gray-600'} opacity-0 group-hover:opacity-100 transition-opacity mt-1`} />
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
-
-                  {/* Share Section */}
-                  <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-4`}>
-                    <h3 className={`text-lg font-serif font-bold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Share this article</h3>
-                    <div className="flex space-x-2 mb-3">
-                      <FacebookShareButton url={shareUrl} quote={shareTitle}>
-                        <FacebookIcon size={24} round className="hover:scale-110 transition-transform" />
-                      </FacebookShareButton>
-                      <TwitterShareButton url={shareUrl} title={shareTitle}>
-                        <TwitterIcon size={24} round className="hover:scale-110 transition-transform" />
-                      </TwitterShareButton>
-                      <LinkedinShareButton url={shareUrl} title={shareTitle}>
-                        <LinkedinIcon size={24} round className="hover:scale-110 transition-transform" />
-                      </LinkedinShareButton>
-                      <EmailShareButton url={shareUrl} subject={shareTitle} body={shareTitle}>
-                        <EmailIcon size={24} round className="hover:scale-110 transition-transform" />
-                      </EmailShareButton>
-                    </div>
-                    <div className="flex items-center">
-                      <input 
-                        type="text" 
-                        readOnly 
-                        value={shareUrl} 
-                        className={`${darkMode ? 'border-gray-600 bg-gray-700 text-gray-300' : 'border-gray-300 bg-white text-gray-800'} border rounded-l-lg px-2 py-1 text-xs w-full truncate`}
-                      />
-                      <button 
-                        onClick={handleCopyLink}
-                        className="bg-yellow-500 text-white px-2 py-1 rounded-r-lg text-xs font-bold hover:bg-yellow-600 transition-colors duration-300"
-                      >
-                        {copied ? 'Copied!' : 'Copy'}
-                      </button>
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
@@ -750,7 +790,7 @@ const ArticlePage = () => {
               <h3 className={`text-2xl font-serif font-bold mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>All Counter Opinions ({counterOpinions.length})</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {counterOpinions.map(opinion => (
-                  <div key={opinion.id} className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4 hover:bg-opacity-80 transition-all cursor-pointer`}
+                  <div key={opinion.id} className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4 hover:bg-opacity-80 transition-all cursor-pointer group`}
                     onClick={() => navigate(`/article/${opinion.id}`)}
                   >
                     <div className="flex items-center mb-2">
@@ -766,13 +806,20 @@ const ArticlePage = () => {
                     <p className={`text-sm mb-3 font-serif ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
                       {opinion.content.substring(0, 150) + (opinion.content.length > 150 ? '...' : '')}
                     </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Eye size={14} className="mr-1" />
+                        <span>{formatViewCount(opinion.views)} views</span>
+                      </div>
+                      <ExternalLink size={14} className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} opacity-0 group-hover:opacity-100 transition-opacity`} />
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Article Footer - Vox Style */}
+          {/* Article Footer */}
           <footer className={`mt-12 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6`}>
             <div className="flex flex-col md:flex-row justify-between items-center mb-6">
               <div className="mb-4 md:mb-0">
@@ -841,7 +888,7 @@ const ArticlePage = () => {
       {/* Paywall Modal */}
       {showPaywall && !user && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60"></div>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
           
           <div className={`relative ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl max-w-md w-full p-8 z-10`}>
             <button
@@ -853,7 +900,7 @@ const ArticlePage = () => {
             
             <div className="text-center">
               <div className="mb-6">
-                <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MessageSquare size={32} className="text-white" />
                 </div>
                 <h2 className={`text-2xl font-serif font-bold mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Join the Conversation</h2>
@@ -865,7 +912,7 @@ const ArticlePage = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={handleSignup}
-                  className="px-6 py-3 bg-yellow-500 text-white font-serif font-bold rounded-xl hover:bg-yellow-600 transition-colors duration-300"
+                  className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-serif font-bold rounded-xl hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg"
                 >
                   Create Free Account
                 </button>
@@ -883,7 +930,7 @@ const ArticlePage = () => {
 
       {/* Report Modal */}
       {showReportModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl max-w-md w-full p-6`}>
             <h3 className={`text-xl font-serif font-bold mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Report Article</h3>
             {error && (
