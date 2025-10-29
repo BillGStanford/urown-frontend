@@ -51,6 +51,18 @@ const ArticlePage = () => {
   const articleContentRef = useRef(null);
   const abortControllerRef = useRef(null);
 
+  // Generate slug from title
+  const generateSlug = (title) => {
+    return title
+      .toString()
+      .toLowerCase()
+      .replace(/\s+/g, '-')           // Replace spaces with -
+      .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+      .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+      .replace(/^-+/, '')             // Trim - from start of text
+      .replace(/-+$/, '');            // Trim - from end of text
+  };
+
   // Generate or retrieve browser fingerprint
   const getBrowserFingerprint = () => {
     let fingerprint = localStorage.getItem('browser_fingerprint');
@@ -162,7 +174,7 @@ const ArticlePage = () => {
       const articles = response.data.articles;
       if (articles.length > 0) {
         const randomArticle = articles[Math.floor(Math.random() * articles.length)];
-        navigate(`/article/${randomArticle.id}`);
+        navigate(`/article/${randomArticle.id}/${generateSlug(randomArticle.title)}`);
       }
     } catch (err) {
       console.error('Error fetching random article:', err);
@@ -184,8 +196,18 @@ const ArticlePage = () => {
         const response = await axios.get(`/articles/${id}`, {
           signal: abortControllerRef.current.signal
         });
+        
         const currentArticle = response.data.article;
         setArticle(currentArticle);
+        
+        // Generate the correct slug from the title
+        const correctSlug = generateSlug(currentArticle.title);
+        
+        // If slug is missing or incorrect, redirect
+        if (!slug || slug !== correctSlug) {
+          navigate(`/article/${id}/${correctSlug}`, { replace: true });
+          return;
+        }
         
         // Calculate reading time
         const time = calculateReadingTime(currentArticle.content);
@@ -230,7 +252,7 @@ const ArticlePage = () => {
         abortControllerRef.current.abort();
       }
     };
-  }, [id]);
+  }, [id, slug, navigate]);
 
   useEffect(() => {
     if (article) {
@@ -577,7 +599,7 @@ const ArticlePage = () => {
               Original Article
             </h2>
             <div
-              onClick={() => navigate(`/article/${originalArticle.id}`)}
+              onClick={() => navigate(`/article/${originalArticle.id}/${generateSlug(originalArticle.title)}`)}
               className={`p-6 rounded-xl ${darkMode ? 'bg-gray-900 border-gray-800 hover:border-gray-700' : 'bg-white border-gray-200 hover:border-gray-300'} border cursor-pointer transition-all duration-300 hover:shadow-xl group`}
             >
               <div className="flex items-center gap-3 mb-4">
@@ -633,7 +655,7 @@ const ArticlePage = () => {
                 {counterOpinions.map(opinion => (
                   <div
                     key={opinion.id}
-                    onClick={() => navigate(`/article/${opinion.id}`)}
+                    onClick={() => navigate(`/article/${opinion.id}/${generateSlug(opinion.title)}`)}
                     className={`p-6 rounded-xl ${darkMode ? 'bg-gray-900 border-gray-800 hover:border-gray-700' : 'bg-white border-gray-200 hover:border-gray-300'} border cursor-pointer transition-all duration-300 hover:shadow-xl group`}
                   >
                     <div className="flex items-start justify-between mb-4">
@@ -682,7 +704,7 @@ const ArticlePage = () => {
               {relatedArticles.map(related => (
                 <div
                   key={related.id}
-                  onClick={() => navigate(`/article/${related.id}`)}
+                  onClick={() => navigate(`/article/${related.id}/${generateSlug(related.title)}`)}
                   className={`p-6 rounded-xl ${darkMode ? 'bg-gray-900 border-gray-800 hover:border-gray-700' : 'bg-white border-gray-200 hover:border-gray-300'} border cursor-pointer transition-all duration-300 hover:shadow-xl group`}
                 >
                   <div className="flex items-center gap-2 mb-3">
