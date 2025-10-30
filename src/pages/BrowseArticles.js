@@ -1,4 +1,4 @@
-// pages/BrowseArticles.js
+// pages/BrowseArticles.js - FIXED VERSION
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { axios } from '../utils/apiUtils';
@@ -21,6 +21,7 @@ function BrowseArticles() {
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [isTopicFilterOpen, setIsTopicFilterOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [totalArticleCount, setTotalArticleCount] = useState(0); // FIX: Track total count
   const articlesPerPage = 12;
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,22 +46,23 @@ function BrowseArticles() {
     const topicId = urlParams.get('topic');
     const newTopicId = topicId ? parseInt(topicId) : null;
     
-    // Only update and fetch if topic actually changed
     if (newTopicId !== selectedTopic) {
       setSelectedTopic(newTopicId);
-      setArticles([]); // Clear existing articles
-      setCurrentPage(1); // Reset to page 1
+      setArticles([]);
+      setCurrentPage(1);
+      setTotalArticleCount(0); // FIX: Reset count
     }
   }, [location.search]);
 
   // Fetch articles when component mounts or when topic changes
   useEffect(() => {
-    setArticles([]); // Clear existing articles
-    setCurrentPage(1); // Reset to page 1
-    fetchArticles(true); // Force refresh
+    setArticles([]);
+    setCurrentPage(1);
+    setTotalArticleCount(0); // FIX: Reset count
+    fetchArticles(true);
   }, [selectedTopic]);
 
-  // Fetch more articles when page changes (but not on topic change)
+  // Fetch more articles when page changes
   useEffect(() => {
     if (currentPage > 1) {
       fetchArticles();
@@ -92,8 +94,9 @@ function BrowseArticles() {
       setRefreshing(true);
       const offset = reset ? 0 : (currentPage - 1) * articlesPerPage;
       
+      // FIX: Don't cache when resetting to ensure fresh data
       const cacheKey = `articles-${articlesPerPage}-${offset}-false-${selectedTopic || 'all'}`;
-      let cachedData = getCachedData(cacheKey);
+      let cachedData = reset ? null : getCachedData(cacheKey);
       
       if (!cachedData) {
         const params = {
@@ -106,35 +109,55 @@ function BrowseArticles() {
           params.topicId = selectedTopic;
         }
         
+        console.log('Fetching articles with params:', params); // DEBUG
+        
         const response = await fetchWithRetry(() => 
           axios.get('/articles', { params })
         );
         cachedData = response.data.articles;
-        setCachedData(cacheKey, cachedData);
+        
+        console.log('Received articles:', cachedData.length); // DEBUG
+        console.log('Articles data:', cachedData); // DEBUG
+        
+        // FIX: Only cache if not resetting
+        if (!reset) {
+          setCachedData(cacheKey, cachedData);
+        }
       }
       
       let newArticles = cachedData;
       
+      // FIX: Sort by certified first, then views
       newArticles = [...newArticles].sort((a, b) => {
         if (a.certified && !b.certified) return -1;
         if (!a.certified && b.certified) return 1;
         return (b.views || 0) - (a.views || 0);
       });
       
+      console.log('Sorted articles:', newArticles.length); // DEBUG
+      
       if (reset) {
         setArticles(newArticles);
+        // FIX: Set initial total count
+        setTotalArticleCount(newArticles.length);
       } else {
         setArticles(prev => {
           const existingIds = new Set(prev.map(article => article.id));
           const uniqueNewArticles = newArticles.filter(article => !existingIds.has(article.id));
-          return [...prev, ...uniqueNewArticles];
+          const combined = [...prev, ...uniqueNewArticles];
+          // FIX: Update total count as we load more
+          setTotalArticleCount(combined.length);
+          return combined;
         });
       }
 
       const articleIds = newArticles.map(article => article.id);
       fetchCounterCounts(articleIds);
 
+      // FIX: Determine if there are more articles to load
       setHasMore(newArticles.length === articlesPerPage);
+      
+      console.log('Has more articles:', newArticles.length === articlesPerPage); // DEBUG
     } catch (error) {
       console.error('Error fetching articles:', error);
       setError('Failed to load articles');
@@ -167,11 +190,8 @@ function BrowseArticles() {
   };
 
   const handleTopicSelect = (topicId) => {
-    // Topic change is handled by useEffect watching selectedTopic
-    // No need to manually clear articles or set page here
     setIsTopicFilterOpen(false);
     
-    // Update URL
     if (topicId) {
       navigate(`/browse?topic=${topicId}`);
     } else {
@@ -194,6 +214,7 @@ function BrowseArticles() {
     return topic ? topic.name : 'Unknown Topic';
   };
 
+  // FIX: Improved filtering logic
   const filteredArticles = articles.filter(article => {
     const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          article.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -217,6 +238,8 @@ function BrowseArticles() {
 
   const handleRefresh = () => {
     setCurrentPage(1);
+    setArticles([]);
+    setTotalArticleCount(0);
     fetchArticles(true);
   };
 
@@ -231,7 +254,8 @@ function BrowseArticles() {
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border border-yellow-500/30 px-4 py-2 rounded-full mb-4">
                 <Zap className="w-4 h-4 text-yellow-600" />
                 <span className="text-yellow-700 font-bold text-xs uppercase tracking-wider">
-                  {filteredArticles.length} Active Debates
+                  {/* FIX: Show filtered count when searching, otherwise total loaded */}
+                  {searchTerm ? filteredArticles.length : totalArticleCount} Active Debates
                 </span>
               </div>
               
@@ -322,13 +346,13 @@ function BrowseArticles() {
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 sm:p-6 mb-6 md:mb-8">
               {/* Top Row: Stats and Actions */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                {/* Article Count */}
+                {/* Article Count - FIX: Use correct count */}
                 <div className="flex items-baseline gap-2">
                   <div className="text-3xl md:text-4xl font-black bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-                    {searchTerm ? filteredArticles.length : articles.length}
+                    {searchTerm ? filteredArticles.length : totalArticleCount}
                   </div>
                   <div className="text-sm font-bold text-gray-600 uppercase tracking-wide">
-                    {searchTerm ? 'Results' : 'Articles'}
+                    {searchTerm ? 'Results' : 'Articles Loaded'}
                   </div>
                   {selectedTopic && (
                     <div className="text-sm font-medium text-orange-600 ml-2">
