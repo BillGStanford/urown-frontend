@@ -197,7 +197,7 @@ function HomePage() {
                     <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
                       <Users className="w-6 h-6 text-orange-600" />
                     </div>
-                    <div className="text-3xl font-bold text-gray-900 mb-1">4,000+</div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">15,000+</div>
                     <div className="text-sm text-gray-600 font-medium">Monthly Readers</div>
                     <div className="mt-3 text-xs text-gray-500">Growing community</div>
                   </div>
