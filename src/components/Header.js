@@ -82,7 +82,7 @@ function Header({ user, onLogout }) {
               className="group relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-orange-600 transition-all duration-300 rounded-2xl hover:bg-orange-50"
             >
               <Search className="h-4 w-4" />
-              <span>Browse</span>
+              <span>Browse Debates</span>
               <div className="absolute inset-0 rounded-2xl bg-orange-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
             </Link>
             <div className="h-6 w-px bg-gray-300 mx-1"></div>
@@ -313,7 +313,7 @@ function Header({ user, onLogout }) {
                 onClick={closeMobileMenu}
               >
                 <Search className="h-5 w-5" />
-                <span>Browse</span>
+                <span>Browse Debates</span>
               </Link>
               <div className="mx-4 h-px bg-gray-300"></div>
               <Link 
