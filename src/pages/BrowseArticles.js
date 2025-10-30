@@ -27,106 +27,85 @@ function BrowseArticles() {
   const abortControllerRef = useRef(null);
 
   // Fetch topics
-  const fetchTopics = useCallback(async () => {
-    try {
-      const response = await axios.get('/api/topics');
-      setTopics(response.data.topics || []);
-    } catch (error) {
-      console.error('Error fetching topics:', error);
-    }
-  }, []);
+// Fetch topics
+const fetchTopics = useCallback(async () => {
+  try {
+    const response = await axios.get('/api/topics');
+    setTopics(response.data.topics || []);
+  } catch (error) {
+    console.error('Error fetching topics:', error);
+  }
+}, []);
 
-  // Fetch counter counts for articles
-  const fetchCounterCounts = useCallback(async (articleIds) => {
-    if (!articleIds.length) return;
-    
-    try {
-      const counterPromises = articleIds.map(id => 
-        axios.get(`/articles?parent_article_id=${id}`)
-      );
-      
-      const responses = await Promise.all(counterPromises);
-      
-      const countsMap = {};
-      articleIds.forEach((id, index) => {
-        countsMap[id] = responses[index].data.articles.length;
-      });
-      
-      setCounterCounts(countsMap);
-    } catch (error) {
-      console.error('Error fetching counter counts:', error);
-    }
-  }, []);
-
-  // Fetch articles
-  const fetchArticles = useCallback(async (reset = false, forceRefresh = false) => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
+// Fetch articles
+const fetchArticles = useCallback(async (reset = false, forceRefresh = false) => {
+  if (abortControllerRef.current) {
+    abortControllerRef.current.abort();
+  }
+  
+  abortControllerRef.current = new AbortController();
+  
+  try {
+    if (reset) {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
     }
     
-    abortControllerRef.current = new AbortController();
+    const offset = reset ? 0 : (currentPage - 1) * articlesPerPage;
     
-    try {
-      if (reset) {
-        setLoading(true);
-      } else {
-        setRefreshing(true);
-      }
-      
-      const offset = reset ? 0 : (currentPage - 1) * articlesPerPage;
-      
-      const params = {
-        limit: articlesPerPage,
-        offset: offset,
-        featured: 'false'
-      };
-      
-      if (selectedTopic) {
-        params.topicId = selectedTopic;
-      }
-      
-      if (forceRefresh) {
-        params._t = Date.now();
-      }
-      
-      const response = await axios.get('/api/articles', { 
-        params,
-        signal: abortControllerRef.current.signal
-      });
-      
-      let newArticles = response.data.articles || [];
-      
-      newArticles = [...newArticles].sort((a, b) => {
-        if (a.certified && !b.certified) return -1;
-        if (!a.certified && b.certified) return 1;
-        return (b.views || 0) - (a.views || 0);
-      });
-      
-      if (reset) {
-        setArticles(newArticles);
-      } else {
-        setArticles(prev => {
-          const existingIds = new Set(prev.map(article => article.id));
-          const uniqueNewArticles = newArticles.filter(article => !existingIds.has(article.id));
-          return [...prev, ...uniqueNewArticles];
-        });
-      }
-
-      const articleIds = newArticles.map(article => article.id);
-      fetchCounterCounts(articleIds);
-
-      setHasMore(newArticles.length === articlesPerPage);
-      setLastUpdate(Date.now());
-    } catch (error) {
-      if (error.name !== 'CanceledError') {
-        console.error('Error fetching articles:', error);
-        setError('Failed to load articles');
-      }
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+    const params = {
+      limit: articlesPerPage,
+      offset: offset,
+      featured: 'false'
+    };
+    
+    if (selectedTopic) {
+      params.topicId = selectedTopic;
     }
-  }, [currentPage, selectedTopic, fetchCounterCounts]);
+    
+    if (forceRefresh) {
+      params._t = Date.now();
+    }
+    
+    const response = await axios.get('/api/articles', { 
+      params,
+      signal: abortControllerRef.current.signal
+    });
+    
+    let newArticles = response.data.articles || [];
+    
+    newArticles = [...newArticles].sort((a, b) => {
+      if (a.certified && !b.certified) return -1;
+      if (!a.certified && b.certified) return 1;
+      return (b.views || 0) - (a.views || 0);
+    });
+    
+    if (reset) {
+      setArticles(newArticles);
+    } else {
+      setArticles(prev => {
+        const existingIds = new Set(prev.map(article => article.id));
+        const uniqueNewArticles = newArticles.filter(article => !existingIds.has(article.id));
+        return [...prev, ...uniqueNewArticles];
+      });
+    }
+
+    const articleIds = newArticles.map(article => article.id);
+    fetchCounterCounts(articleIds);
+
+    setHasMore(newArticles.length === articlesPerPage);
+    setLastUpdate(Date.now());
+  } catch (error) {
+    if (error.name !== 'CanceledError') {
+      console.error('Error fetching articles:', error);
+      setError('Failed to load articles');
+    }
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+}, [currentPage, selectedTopic, fetchCounterCounts]);
 
   useEffect(() => {
     fetchTopics();
@@ -158,38 +137,38 @@ function BrowseArticles() {
     }
   }, [currentPage, fetchArticles]);
 
-  useEffect(() => {
-    const eventSource = new EventSource('/api/updates');
+useEffect(() => {
+  const eventSource = new EventSource('/api/updates');
+  
+  eventSource.onmessage = (event) => {
+    const data = JSON.parse(event.data);
     
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      
-      if (data.type === 'article_reported' || 
-          data.type === 'article_created' ||
-          data.type === 'article_updated' ||
-          data.type === 'article_deleted' ||
-          data.type === 'certification_changed' ||
-          data.type === 'certification_expired') {
-        fetchArticles(true, true);
-      }
-    };
-    
-    eventSource.onerror = (error) => {
-      console.error('SSE error:', error);
-      eventSource.close();
-    };
-    
-    eventSourceRef.current = eventSource;
-    
-    return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [fetchArticles]);
+    if (data.type === 'article_reported' || 
+        data.type === 'article_created' ||
+        data.type === 'article_updated' ||
+        data.type === 'article_deleted' ||
+        data.type === 'certification_changed' ||
+        data.type === 'certification_expired') {
+      fetchArticles(true, true);
+    }
+  };
+  
+  eventSource.onerror = (error) => {
+    console.error('SSE error:', error);
+    eventSource.close();
+  };
+  
+  eventSourceRef.current = eventSource;
+  
+  return () => {
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+    }
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  };
+}, [fetchArticles]);
 
   const openRandomArticle = () => {
     const availableArticles = filteredArticles.length > 0 ? filteredArticles : articles;

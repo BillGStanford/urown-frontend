@@ -17,27 +17,27 @@ function HomePage() {
   const eventSourceRef = useRef(null);
 
   // Fetch certified articles
-  const fetchFeaturedArticles = async (forceRefresh = false) => {
-    try {
-      if (forceRefresh) {
-        setRefreshing(true);
-      }
-      
-      const params = { certified: 'true' };
-      if (forceRefresh) {
-        params._t = Date.now(); // Cache busting parameter
-      }
-      
-      const response = await axios.get('/api/articles', { params });
-      setFeaturedArticles(response.data.articles || []);
-      setLastUpdate(Date.now());
-    } catch (error) {
-      console.error('Error fetching featured articles:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+const fetchFeaturedArticles = async (forceRefresh = false) => {
+  try {
+    if (forceRefresh) {
+      setRefreshing(true);
     }
-  };
+    
+    const params = { certified: 'true' };
+    if (forceRefresh) {
+      params._t = Date.now(); // Cache busting parameter
+    }
+    
+    const response = await axios.get('/api/articles', { params });
+    setFeaturedArticles(response.data.articles || []);
+    setLastUpdate(Date.now());
+  } catch (error) {
+    console.error('Error fetching featured articles:', error);
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
 
   // Initial fetch
   useEffect(() => {
@@ -45,33 +45,33 @@ function HomePage() {
   }, []);
 
   // Set up SSE for real-time updates
-  useEffect(() => {
-    const eventSource = new EventSource('/api/updates');
+useEffect(() => {
+  const eventSource = new EventSource('/api/updates');
+  
+  eventSource.onmessage = (event) => {
+    const data = JSON.parse(event.data);
     
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      
-      // Refresh articles on relevant updates
-      if (data.type === 'certification_changed' || 
-          data.type === 'article_deleted' ||
-          data.type === 'certification_expired') {
-        fetchFeaturedArticles(true);
-      }
-    };
-    
-    eventSource.onerror = (error) => {
-      console.error('SSE error:', error);
-      eventSource.close();
-    };
-    
-    eventSourceRef.current = eventSource;
-    
-    return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
-    };
-  }, []);
+    // Refresh articles on relevant updates
+    if (data.type === 'certification_changed' || 
+        data.type === 'article_deleted' ||
+        data.type === 'certification_expired') {
+      fetchFeaturedArticles(true);
+    }
+  };
+  
+  eventSource.onerror = (error) => {
+    console.error('SSE error:', error);
+    eventSource.close();
+  };
+  
+  eventSourceRef.current = eventSource;
+  
+  return () => {
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+    }
+  };
+}, []);
 
   const handleArticleClick = (article) => {
     console.log('Navigate to article:', article.id);
