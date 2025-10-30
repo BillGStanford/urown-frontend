@@ -1,77 +1,48 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+// src/pages/HomePage.js
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import ArticleCard from '../components/ArticleCard';
 import DebateHallSection from '../components/DebateHallSection';
 import TrendingOpinions from '../components/TrendingOpinions';
+import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import { useUser } from '../context/UserContext';
-import { ChevronLeft, ChevronRight, BookOpen, Calendar, Star, TrendingUp, Flame, ArrowRight, Zap, Users, MessageSquare, Award, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen, Calendar, Star, TrendingUp, Flame, ArrowRight, Zap, Users, MessageSquare, Award } from 'lucide-react';
 
 function HomePage() {
   const [featuredArticles, setFeaturedArticles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [lastUpdate, setLastUpdate] = useState(Date.now());
   const { user } = useUser();
-  const eventSourceRef = useRef(null);
 
-  // Fetch certified articles
-const fetchFeaturedArticles = async (forceRefresh = false) => {
-  try {
-    if (forceRefresh) {
-      setRefreshing(true);
-    }
-    
-    const params = { certified: 'true' };
-    if (forceRefresh) {
-      params._t = Date.now(); // Cache busting parameter
-    }
-    
-    const response = await axios.get('/api/articles', { params });
-    setFeaturedArticles(response.data.articles || []);
-    setLastUpdate(Date.now());
-  } catch (error) {
-    console.error('Error fetching featured articles:', error);
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-};
-
-  // Initial fetch
   useEffect(() => {
-    fetchFeaturedArticles();
-  }, []);
-
-  // Set up SSE for real-time updates
-useEffect(() => {
-  const eventSource = new EventSource('/api/updates');
-  
-  eventSource.onmessage = (event) => {
-    const data = JSON.parse(event.data);
+    const fetchArticles = async () => {
+      try {
+        setLoading(true);
+        
+        const featuredCacheKey = 'articles-certified';
+        let featuredData = getCachedData(featuredCacheKey);
+        
+        if (!featuredData) {
+          const featuredResponse = await fetchWithRetry(() => 
+            axios.get('/articles', {
+              params: { certified: 'true' }
+            })
+          );
+          featuredData = featuredResponse.data.articles;
+          setCachedData(featuredCacheKey, featuredData);
+        }
+        setFeaturedArticles(featuredData);
+        
+      } catch (error) {
+        console.error('Error fetching articles:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    // Refresh articles on relevant updates
-    if (data.type === 'certification_changed' || 
-        data.type === 'article_deleted' ||
-        data.type === 'certification_expired') {
-      fetchFeaturedArticles(true);
-    }
-  };
-  
-  eventSource.onerror = (error) => {
-    console.error('SSE error:', error);
-    eventSource.close();
-  };
-  
-  eventSourceRef.current = eventSource;
-  
-  return () => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-    }
-  };
-}, []);
+    fetchArticles();
+  }, []);
 
   const handleArticleClick = (article) => {
     console.log('Navigate to article:', article.id);
@@ -108,32 +79,31 @@ useEffect(() => {
     );
   };
 
-  const handleRefresh = () => {
-    fetchFeaturedArticles(true);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
+      {/* Hero Section - Completely Redesigned */}
+{/* Hero Section - Enterprise Professional */}
       <div className="relative bg-white overflow-hidden border-b border-gray-200">
+        {/* Subtle sophisticated background */}
         <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50"></div>
+        
+        {/* Minimal accent elements */}
         <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-orange-50/30 to-transparent"></div>
         <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-yellow-50/20 to-transparent"></div>
         
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-20 md:py-28 lg:py-32">
+            {/* Grid Layout */}
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+              {/* Left Column - Content */}
               <div>
+                {/* Status Badge - Refined */}
                 <div className="inline-flex items-center gap-2 bg-white border border-gray-300 px-4 py-2 rounded-lg shadow-sm mb-6">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   <span className="text-gray-700 font-medium text-sm">{filteredArticles.length} Active Debates</span>
-                  {lastUpdate && (
-                    <span className="text-xs text-gray-500">
-                      Updated {new Date(lastUpdate).toLocaleTimeString()}
-                    </span>
-                  )}
                 </div>
                 
+                {/* Main Headline - Clean & Professional */}
                 <h1 className="mb-6">
                   {user ? (
                     <>
@@ -159,12 +129,14 @@ useEffect(() => {
                   )}
                 </h1>
                 
+                {/* Subheadline - Professional Tone */}
                 <p className="text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed max-w-2xl">
                   {user 
                     ? 'Continue engaging with thought leaders and shaping the conversation on topics that matter.' 
                     : 'Join industry experts, academics, and thought leaders in rigorous, evidence-based debates on the issues shaping our world.'}
                 </p>
                 
+                {/* CTA Buttons - Professional */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-10">
                   <Link 
                     to="/browse" 
@@ -184,6 +156,7 @@ useEffect(() => {
                   )}
                 </div>
                 
+                {/* Trust Indicators */}
                 <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
                     <Award className="w-5 h-5 text-orange-600" />
@@ -196,8 +169,10 @@ useEffect(() => {
                 </div>
               </div>
               
+              {/* Right Column - Stats Grid */}
               <div>
                 <div className="grid grid-cols-2 gap-6">
+                  {/* Stat Card 1 */}
                   <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
                     <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
                       <Award className="w-6 h-6 text-orange-600" />
@@ -207,6 +182,7 @@ useEffect(() => {
                     <div className="mt-3 text-xs text-gray-500">Reviewed by editorial board</div>
                   </div>
 
+                  {/* Stat Card 2 */}
                   <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
                     <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
                       <MessageSquare className="w-6 h-6 text-orange-600" />
@@ -216,6 +192,7 @@ useEffect(() => {
                     <div className="mt-3 text-xs text-gray-500">Updated in real-time</div>
                   </div>
 
+                  {/* Stat Card 3 */}
                   <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
                     <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
                       <Users className="w-6 h-6 text-orange-600" />
@@ -225,6 +202,7 @@ useEffect(() => {
                     <div className="mt-3 text-xs text-gray-500">Growing community</div>
                   </div>
 
+                  {/* Stat Card 4 */}
                   <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
                     <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
                       <TrendingUp className="w-6 h-6 text-orange-600" />
@@ -243,11 +221,14 @@ useEffect(() => {
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+          {/* Main Content - Takes 2 columns */}
           <div className="lg:col-span-2 space-y-12">
+            {/* Debate Hall Section */}
             <section>
               <DebateHallSection />
             </section>
             
+{/* Editorial Picks Section */}
             {filteredArticles.length > 0 && (
               <section>
                 <div className="flex items-center justify-between mb-6">
@@ -258,26 +239,18 @@ useEffect(() => {
                     </h2>
                     <p className="text-gray-600 text-sm">Curated content reviewed by our editorial board</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleRefresh}
-                      className="hidden md:flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                      disabled={refreshing}
-                    >
-                      <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
-                      Refresh
-                    </button>
-                    <Link 
-                      to="/browse" 
-                      className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white font-semibold text-sm rounded-lg hover:bg-gray-800 transition-colors duration-200"
-                    >
-                      View All
-                      <ChevronRight className="w-4 h-4" />
-                    </Link>
-                  </div>
+                  <Link 
+                    to="/browse" 
+                    className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white font-semibold text-sm rounded-lg hover:bg-gray-800 transition-colors duration-200"
+                  >
+                    View All
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
                 </div>
                 
+                {/* Carousel Container */}
                 <div className="relative">
+                  {/* Articles Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {currentArticles.map((article) => (
                       <div 
@@ -292,8 +265,10 @@ useEffect(() => {
                     ))}
                   </div>
                   
+                  {/* Navigation */}
                   {totalPages > 1 && (
                     <>
+                      {/* Desktop Navigation Arrows */}
                       <button 
                         onClick={goToPrev}
                         className="hidden lg:flex absolute -left-6 top-1/2 -translate-y-1/2 w-12 h-12 items-center justify-center bg-white border-2 border-gray-900 text-gray-900 rounded-full shadow-lg hover:bg-gray-900 hover:text-white transition-all duration-200"
@@ -309,6 +284,7 @@ useEffect(() => {
                         <ChevronRight className="w-6 h-6" />
                       </button>
                       
+                      {/* Dot Indicators */}
                       <div className="flex justify-center items-center gap-2 mt-8">
                         {Array.from({ length: totalPages }).map((_, index) => (
                           <button
@@ -327,6 +303,7 @@ useEffect(() => {
                   )}
                 </div>
                 
+                {/* Mobile View All Button */}
                 <Link 
                   to="/browse" 
                   className="md:hidden flex items-center justify-center gap-2 w-full mt-6 px-6 py-4 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-all duration-200"
@@ -338,8 +315,10 @@ useEffect(() => {
             )}
           </div>
           
+          {/* Sidebar - Takes 1 column */}
           <aside className="lg:col-span-1">
             <div className="sticky top-6 space-y-6">
+              {/* Trending Section */}
               <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
                 <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6">
                   <div className="flex items-center gap-3 mb-2">
@@ -353,6 +332,7 @@ useEffect(() => {
                 </div>
               </div>
               
+              {/* How It Works - Only for non-logged-in users */}
               {!user && (
                 <div className="bg-gradient-to-br from-gray-900 to-black text-white rounded-2xl p-6 shadow-xl">
                   <h3 className="text-xl font-black mb-4 flex items-center gap-2">
@@ -396,6 +376,7 @@ useEffect(() => {
         </div>
       </div>
 
+      {/* Bottom CTA Section - Only for non-logged-in users */}
       {!user && (
         <section className="bg-black text-white py-20 md:py-28 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800"></div>

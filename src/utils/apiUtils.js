@@ -3,8 +3,8 @@ import axios from 'axios';
 
 // Set base URL for all API requests based on environment
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://urown-backend.onrender.com'  // Remove /api from here
-  : 'http://localhost:5000';             // Remove /api from here
+  ? 'https://urown-backend.onrender.com/api' 
+  : 'http://localhost:5000/api';
 
 axios.defaults.baseURL = API_BASE_URL;
 
