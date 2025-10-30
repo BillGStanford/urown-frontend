@@ -116,9 +116,6 @@ function Header({ user, onLogout }) {
           <div className="absolute left-1/2 transform -translate-x-1/2">
             <Link to="/" className="group flex flex-col items-center">
               <div className="relative flex items-center gap-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-                  
-                </div>
                 <span className="text-4xl font-black bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent group-hover:from-orange-600 group-hover:via-red-600 group-hover:to-pink-600 transition-all duration-300 tracking-tight">
                   UROWN
                 </span>
