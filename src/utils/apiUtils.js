@@ -1,4 +1,3 @@
-// utils/apiUtils.js
 import axios from 'axios';
 
 // Set base URL for all API requests based on environment
@@ -7,6 +6,33 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
   : 'http://localhost:5000/api';
 
 axios.defaults.baseURL = API_BASE_URL;
+
+// Add request interceptor for debugging
+axios.interceptors.request.use(
+  config => {
+    console.log(`Making ${config.method?.toUpperCase()} request to: ${config.baseURL}${config.url}`);
+    if (config.data) {
+      console.log('Request data:', config.data);
+    }
+    return config;
+  },
+  error => {
+    console.error('Request error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for debugging
+axios.interceptors.response.use(
+  response => {
+    console.log(`Response from ${response.config.url}:`, response.status, response.data);
+    return response;
+  },
+  error => {
+    console.error('Response error:', error.response?.status, error.response?.data);
+    return Promise.reject(error);
+  }
+);
 
 // Retry function with exponential backoff
 export const fetchWithRetry = async (axiosRequest, maxRetries = 3, initialDelay = 1000) => {
@@ -110,7 +136,10 @@ export const createApiRequest = (endpoint, options = {}) => {
     const config = {
       method,
       url: endpoint, // Don't add /api here since we set it as baseURL
-      headers
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers
+      }
     };
     
     // Add authorization token if available
@@ -145,3 +174,10 @@ axios.interceptors.response.use(
 
 // Export the axios instance for use in components
 export { axios };
+
+// Debug function to check API configuration
+export const debugApiConfig = () => {
+  console.log('API Base URL:', axios.defaults.baseURL);
+  console.log('Default headers:', axios.defaults.headers);
+  console.log('Token in localStorage:', localStorage.getItem('token') ? 'Present' : 'Missing');
+};

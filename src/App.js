@@ -3,6 +3,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import { UserProvider, useUser } from './context/UserContext';
+import './utils/debugApi';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';

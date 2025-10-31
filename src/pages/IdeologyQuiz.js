@@ -1,7 +1,6 @@
-// src/pages/IdeologyQuiz.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { axios, createApiRequest } from '../utils/apiUtils';
 
 const QUESTIONS_10 = [
   {
@@ -350,17 +349,38 @@ const IdeologyQuiz = () => {
   const saveResult = async (isPublic) => {
     setLoading(true);
     try {
-      await axios.put('/api/user/ideology', {
+      const requestData = {
         ideology: result.ideology,
         ideology_details: result.details || null,
         ideology_public: isPublic
+      };
+      
+      console.log('Saving ideology with data:', requestData);
+      console.log('Making request to:', axios.defaults.baseURL + '/user/ideology');
+      
+      // Use the createApiRequest helper function
+      const apiRequest = createApiRequest('/user/ideology', {
+        method: 'PUT',
+        data: requestData
       });
+      
+      const response = await apiRequest();
+      console.log('Save response:', response);
       
       alert('Your ideology result has been saved!');
       navigate('/dashboard');
     } catch (error) {
       console.error('Save ideology error:', error);
-      alert(error.response?.data?.error || 'Failed to save ideology');
+      console.error('Error response:', error.response);
+      console.error('Error config:', error.config);
+      
+      if (error.response?.status === 404) {
+        alert('API endpoint not found. Please check if the server is running correctly.');
+      } else if (error.response?.status === 401) {
+        alert('You need to be logged in to save your ideology.');
+      } else {
+        alert(error.response?.data?.error || 'Failed to save ideology. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -494,7 +514,7 @@ const IdeologyQuiz = () => {
                   disabled={loading}
                   className="bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 font-semibold"
                 >
-                  Show Ideology Publicly
+                  {loading ? 'Saving...' : 'Show Ideology Publicly'}
                 </button>
                 
                 <button
@@ -502,7 +522,7 @@ const IdeologyQuiz = () => {
                   disabled={loading}
                   className="bg-gray-600 text-white px-6 py-4 rounded-lg hover:bg-gray-700 transition disabled:opacity-50 font-semibold"
                 >
-                  Keep This Private
+                  {loading ? 'Saving...' : 'Keep This Private'}
                 </button>
               </div>
 
