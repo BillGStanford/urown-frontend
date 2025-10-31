@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { axios, createApiRequest } from '../utils/apiUtils';
+import { createApiRequest } from '../utils/apiUtils';
+import { useIdeology } from '../hooks/useIdeology';
 
 const QUESTIONS_10 = [
   {
@@ -217,6 +218,7 @@ const IdeologyQuiz = () => {
   const [result, setResult] = useState(null);
   const [showResult, setShowResult] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { refetch: refetchIdeology } = useIdeology();
 
   const questions = quizType === '10' ? QUESTIONS_10 : QUESTIONS_40;
 
@@ -356,7 +358,6 @@ const IdeologyQuiz = () => {
       };
       
       console.log('Saving ideology with data:', requestData);
-      console.log('Making request to:', axios.defaults.baseURL + '/user/ideology');
       
       // Use the createApiRequest helper function
       const apiRequest = createApiRequest('/user/ideology', {
@@ -367,12 +368,14 @@ const IdeologyQuiz = () => {
       const response = await apiRequest();
       console.log('Save response:', response);
       
-      alert('Your ideology result has been saved!');
-      navigate('/dashboard');
+      // Refetch ideology data to get the latest state from server
+      await refetchIdeology();
+      
+      alert(`Your ideology has been saved and is now ${isPublic ? 'public' : 'private'}!`);
+      navigate('/profile');
     } catch (error) {
       console.error('Save ideology error:', error);
       console.error('Error response:', error.response);
-      console.error('Error config:', error.config);
       
       if (error.response?.status === 404) {
         alert('API endpoint not found. Please check if the server is running correctly.');
@@ -392,6 +395,18 @@ const IdeologyQuiz = () => {
     setAnswers({});
     setResult(null);
     setShowResult(false);
+  };
+
+  const goBack = () => {
+    if (showResult) {
+      setShowResult(false);
+      setCurrentQuestion(0);
+      setAnswers({});
+    } else if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1);
+    } else {
+      setQuizType(null);
+    }
   };
 
   if (!quizType) {
@@ -434,12 +449,18 @@ const IdeologyQuiz = () => {
               </div>
             </div>
 
-            <div className="mt-8 text-center">
+            <div className="mt-8 text-center space-x-4">
               <button
                 onClick={() => navigate('/dashboard')}
                 className="text-gray-600 hover:text-gray-800 underline"
               >
                 Back to Dashboard
+              </button>
+              <button
+                onClick={() => navigate('/profile')}
+                className="text-gray-600 hover:text-gray-800 underline"
+              >
+                View Profile
               </button>
             </div>
           </div>
@@ -508,7 +529,7 @@ const IdeologyQuiz = () => {
             <div className="border-t pt-6">
               <h3 className="text-xl font-bold mb-4">What would you like to do?</h3>
               
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
                 <button
                   onClick={() => saveResult(true)}
                   disabled={loading}
@@ -526,12 +547,18 @@ const IdeologyQuiz = () => {
                 </button>
               </div>
 
-              <div className="mt-6 text-center">
+              <div className="text-center space-x-4">
                 <button
                   onClick={retakeQuiz}
                   className="text-blue-600 hover:text-blue-800 underline"
                 >
                   Retake Quiz
+                </button>
+                <button
+                  onClick={goBack}
+                  className="text-gray-600 hover:text-gray-800 underline"
+                >
+                  Go Back
                 </button>
               </div>
             </div>
@@ -584,16 +611,14 @@ const IdeologyQuiz = () => {
             ))}
           </div>
 
-          {currentQuestion > 0 && (
-            <div className="mt-6 text-center">
-              <button
-                onClick={() => setCurrentQuestion(currentQuestion - 1)}
-                className="text-gray-600 hover:text-gray-800 underline"
-              >
-                Previous Question
-              </button>
-            </div>
-          )}
+          <div className="mt-6 text-center">
+            <button
+              onClick={goBack}
+              className="text-gray-600 hover:text-gray-800 underline"
+            >
+              {currentQuestion > 0 ? 'Previous Question' : 'Back to Quiz Selection'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
