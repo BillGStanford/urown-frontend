@@ -1,6 +1,6 @@
 // src/pages/UserProfile.js
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
 import { 
@@ -18,7 +18,9 @@ import {
   Users,
   AlertCircle,
   MapPin,
-  Link2
+  Link2,
+  EyeOff,
+  TrendingUp
 } from 'lucide-react';
 
 const API_URL = process.env.NODE_ENV === 'production' 
@@ -27,6 +29,7 @@ const API_URL = process.env.NODE_ENV === 'production'
 
 const UserProfile = () => {
   const { display_name } = useParams();
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [articles, setArticles] = useState([]);
   const [stats, setStats] = useState({ totalArticles: 0, totalViews: 0 });
@@ -35,6 +38,8 @@ const UserProfile = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [showIdeologyToggle, setShowIdeologyToggle] = useState(false);
+  const [ideologyPublic, setIdeologyPublic] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -48,6 +53,7 @@ const UserProfile = () => {
         setArticles(response.data.articles);
         setStats(response.data.stats);
         setIsFollowing(response.data.user.isFollowing || false);
+        setIdeologyPublic(response.data.user.ideology_public || false);
         setError(null);
       } catch (err) {
         setError(err.response?.data?.error || 'Failed to fetch user data');
@@ -77,6 +83,12 @@ const UserProfile = () => {
     fetchCurrentUser();
   }, []);
 
+  useEffect(() => {
+    if (currentUser && user) {
+      setShowIdeologyToggle(currentUser.id === user.id);
+    }
+  }, [currentUser, user]);
+
   const handleFollow = async () => {
     if (!currentUser) {
       return;
@@ -103,6 +115,28 @@ const UserProfile = () => {
       setError(err.response?.data?.error || 'Failed to follow/unfollow user');
     } finally {
       setFollowLoading(false);
+    }
+  };
+
+  const toggleIdeologyVisibility = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      const response = await axios.put(`${API_URL}/user/ideology/visibility`, {
+        ideology_public: !ideologyPublic
+      }, { headers });
+      
+      setIdeologyPublic(response.data.ideology_public);
+      
+      // Refresh profile data
+      const profileResponse = await axios.get(`${API_URL}/users/${encodeURIComponent(display_name)}`, { headers });
+      setUser(profileResponse.data.user);
+      
+      alert('Ideology visibility updated successfully');
+    } catch (error) {
+      console.error('Toggle ideology visibility error:', error);
+      alert(error.response?.data?.error || 'Failed to update ideology visibility');
     }
   };
 
@@ -242,9 +276,108 @@ const UserProfile = () => {
             </div>
           </div>
 
-          {/* Right Content - Articles Feed */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          {/* Right Content - Ideology & Articles Feed */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Ideology Section */}
+            {(user.ideology || (showIdeologyToggle && currentUser?.ideology)) && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-indigo-600" />
+                      <h2 className="text-xl font-bold text-gray-900">Political Ideology</h2>
+                    </div>
+                    
+                    {showIdeologyToggle && currentUser?.ideology && (
+                      <button
+                        onClick={toggleIdeologyVisibility}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition text-sm font-medium ${
+                          ideologyPublic 
+                            ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200' 
+                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                        }`}
+                        title={ideologyPublic ? 'Click to make private' : 'Click to make public'}
+                      >
+                        {ideologyPublic ? (
+                          <>
+                            <Eye className="w-4 h-4" />
+                            <span>Public</span>
+                          </>
+                        ) : (
+                          <>
+                            <EyeOff className="w-4 h-4" />
+                            <span>Private</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+
+                  {(user.ideology || (showIdeologyToggle && currentUser?.ideology)) ? (
+                    <div className="space-y-4">
+                      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg p-6">
+                        <h3 className="text-2xl font-bold mb-2">
+                          {showIdeologyToggle ? currentUser.ideology : user.ideology}
+                        </h3>
+                        {((showIdeologyToggle && currentUser.ideology_details) || user.ideology_details) && (
+                          <div className="space-y-1 text-sm opacity-90">
+                            <p>Economic: {showIdeologyToggle ? currentUser.ideology_details.economic : user.ideology_details.economic}</p>
+                            <p>Social: {showIdeologyToggle ? currentUser.ideology_details.social : user.ideology_details.social}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {showIdeologyToggle && !ideologyPublic && currentUser?.ideology && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <p className="text-sm text-yellow-800">
+                            <strong>Note:</strong> Your ideology is currently private. Only you can see it. 
+                            Click the button above to make it visible to others.
+                          </p>
+                        </div>
+                      )}
+
+                      {((showIdeologyToggle && currentUser.ideology_details?.scores) || (user.ideology_details?.scores)) && (
+                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          <h4 className="font-semibold mb-3 text-gray-700">Detailed Scores:</h4>
+                          <div className="space-y-2 text-sm">
+                            {Object.entries(
+                              showIdeologyToggle ? currentUser.ideology_details.scores : user.ideology_details.scores
+                            ).map(([key, value]) => (
+                              <div key={key} className="flex justify-between items-center">
+                                <span className="text-gray-600 capitalize">
+                                  {key === 'economic' && 'Economic (Left ← → Right)'}
+                                  {key === 'social' && 'Social (Progressive ← → Conservative)'}
+                                  {key === 'foreign' && 'Foreign Policy (Dovish ← → Hawkish)'}
+                                  {key === 'authority' && 'Authority (Libertarian ← → Authoritarian)'}
+                                  {key === 'environmental' && 'Environment (Green ← → Brown)'}
+                                </span>
+                                <span className="font-mono font-medium text-gray-900">{value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : showIdeologyToggle ? (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-200">
+                        <TrendingUp className="h-8 w-8 text-indigo-600" />
+                      </div>
+                      <p className="text-gray-600 mb-4">You haven't taken the ideology quiz yet.</p>
+                      <button
+                        onClick={() => navigate('/ideology-quiz')}
+                        className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition font-semibold shadow-sm"
+                      >
+                        Take the Quiz
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            )}
+
+            {/* Articles Section */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-1">Articles</h2>
               <p className="text-sm text-gray-500">{articles.length} published</p>
             </div>

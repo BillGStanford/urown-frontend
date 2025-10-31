@@ -22,6 +22,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import EditorialBoard from './pages/EditorialBoard';
 import ContactPage from './pages/ContactPage';
 import ContactDashboard from './pages/ContactDashboard';
+import IdeologyQuiz from './pages/IdeologyQuiz';
 import ReportedArticlesDashboard from './pages/ReportedArticlesDashboard';
 import CommunityGuidelines from './pages/important/CommunityGuidelines';
 import PartnersPage from './pages/PartnersPage';
@@ -120,6 +121,10 @@ function AppRoutes() {
             path="/editorial/create-debate" 
             element={user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') ? <CreateDebateTopic /> : <Navigate to="/" />} 
           />
+          <Route 
+  path="/ideology-quiz" 
+  element={user ? <IdeologyQuiz /> : <Navigate to="/login" />} 
+/>
           <Route path="/community-guidelines" element={<CommunityGuidelines />} />
           <Route path="/about" element={<About />} />
           <Route path="/partners" element={<PartnersPage />} />
