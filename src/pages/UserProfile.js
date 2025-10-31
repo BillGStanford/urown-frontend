@@ -1,179 +1,125 @@
+// src/pages/UserProfile.js
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { axios, createApiRequest } from '../utils/apiUtils';
-import { useIdeology } from '../hooks/useIdeology';
+import { useParams, Link } from 'react-router-dom';
+import axios from 'axios';
+import { formatDistanceToNow } from 'date-fns';
+import { 
+  User, 
+  FileText, 
+  Eye, 
+  Calendar, 
+  Award, 
+  Shield, 
+  ChevronRight,
+  BookOpen,
+  Clock,
+  CheckCircle,
+  Star,
+  Users,
+  AlertCircle,
+  MapPin,
+  Link2
+} from 'lucide-react';
+
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://urown-backend.onrender.com/api'  
+  : 'http://localhost:5000/api';
 
 const UserProfile = () => {
-  const navigate = useNavigate();
+  const { display_name } = useParams();
   const [user, setUser] = useState(null);
+  const [articles, setArticles] = useState([]);
+  const [stats, setStats] = useState({ totalArticles: 0, totalViews: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({
-    display_name: '',
-    email: '',
-    phone: '',
-    full_name: ''
-  });
-  const [updateLoading, setUpdateLoading] = useState(false);
-  const [passwordData, setPasswordData] = useState({
-    current_password: '',
-    new_password: '',
-    confirm_password: ''
-  });
-  const [passwordLoading, setPasswordLoading] = useState(false);
-  
-  const { ideology, refetch: refetchIdeology, toggleVisibility } = useIdeology();
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    fetchUserProfile();
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        
+        const response = await axios.get(`${API_URL}/users/${encodeURIComponent(display_name)}`, { headers });
+        setUser(response.data.user);
+        setArticles(response.data.articles);
+        setStats(response.data.stats);
+        setIsFollowing(response.data.user.isFollowing || false);
+        setError(null);
+      } catch (err) {
+        setError(err.response?.data?.error || 'Failed to fetch user data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [display_name]);
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const response = await axios.get(`${API_URL}/user/profile`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setCurrentUser(response.data.user);
+        }
+      } catch (err) {
+        console.error('Failed to fetch current user:', err);
+      }
+    };
+
+    fetchCurrentUser();
   }, []);
 
-  const fetchUserProfile = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const apiRequest = createApiRequest('/user/profile');
-      const response = await apiRequest();
-      
-      setUser(response.data.user);
-      setFormData({
-        display_name: response.data.user.display_name || '',
-        email: response.data.user.email || '',
-        phone: response.data.user.phone || '',
-        full_name: response.data.user.full_name || ''
-      });
-    } catch (err) {
-      console.error('Failed to fetch user profile:', err);
-      setError(err.response?.data?.error || 'Failed to fetch profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handlePasswordChange = (e) => {
-    const { name, value } = e.target;
-    setPasswordData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleUpdateProfile = async (e) => {
-    e.preventDefault();
-    setUpdateLoading(true);
-    
-    try {
-      const apiRequest = createApiRequest('/user/profile', {
-        method: 'PUT',
-        data: formData
-      });
-      
-      const response = await apiRequest();
-      
-      setUser(response.data.user);
-      setEditMode(false);
-      
-      // Update localStorage if needed
-      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-      localStorage.setItem('user', JSON.stringify({
-        ...currentUser,
-        ...response.data.user
-      }));
-      
-      alert('Profile updated successfully!');
-    } catch (err) {
-      console.error('Failed to update profile:', err);
-      alert(err.response?.data?.error || 'Failed to update profile');
-    } finally {
-      setUpdateLoading(false);
-    }
-  };
-
-  const handlePasswordUpdate = async (e) => {
-    e.preventDefault();
-    
-    if (passwordData.new_password !== passwordData.confirm_password) {
-      alert('New passwords do not match');
+  const handleFollow = async () => {
+    if (!currentUser) {
       return;
     }
-    
-    if (passwordData.new_password.length < 8) {
-      alert('Password must be at least 8 characters long');
-      return;
-    }
-    
-    setPasswordLoading(true);
-    
+
     try {
-      const apiRequest = createApiRequest('/user/password', {
-        method: 'PUT',
-        data: {
-          current_password: passwordData.current_password,
-          new_password: passwordData.new_password
-        }
-      });
+      setFollowLoading(true);
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      if (isFollowing) {
+        await axios.delete(`${API_URL}/users/${user.id}/follow`, { headers });
+        setIsFollowing(false);
+      } else {
+        await axios.post(`${API_URL}/users/${user.id}/follow`, {}, { headers });
+        setIsFollowing(true);
+      }
+
+      const response = await axios.get(`${API_URL}/users/${encodeURIComponent(display_name)}`, { headers });
+      setUser(response.data.user);
       
-      await apiRequest();
-      
-      setPasswordData({
-        current_password: '',
-        new_password: '',
-        confirm_password: ''
-      });
-      
-      alert('Password updated successfully!');
     } catch (err) {
-      console.error('Failed to update password:', err);
-      alert(err.response?.data?.error || 'Failed to update password');
+      console.error('Follow/unfollow error:', err);
+      setError(err.response?.data?.error || 'Failed to follow/unfollow user');
     } finally {
-      setPasswordLoading(false);
+      setFollowLoading(false);
     }
   };
 
-  const handleToggleIdeologyVisibility = async () => {
-    if (!ideology) return;
-    
-    try {
-      const newVisibility = !ideology.ideology_public;
-      await toggleVisibility(newVisibility);
-      
-      // Refetch user data to get updated profile
-      await fetchUserProfile();
-      
-      alert(`Your ideology is now ${newVisibility ? 'public' : 'private'}!`);
-    } catch (err) {
-      console.error('Failed to toggle ideology visibility:', err);
-      alert(err.response?.data?.error || 'Failed to update ideology visibility');
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Not set';
-    return new Date(dateString).toLocaleDateString();
-  };
-
-  const getCooldownDays = (lastUpdate) => {
-    if (!lastUpdate) return 0;
-    const daysSinceUpdate = Math.floor((Date.now() - new Date(lastUpdate)) / (1000 * 60 * 60 * 24));
-    return Math.max(0, 14 - daysSinceUpdate);
-  };
+  const certifiedCount = articles.filter(article => article.certified).length;
+  const isCertifiedByFollowers = user && user.followers >= 100;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-20">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading profile...</p>
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-3 border-b-3 border-orange-600 mx-auto"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <User className="h-8 w-8 text-orange-600" />
+            </div>
+          </div>
+          <div className="mt-6 text-lg font-semibold text-gray-700">Loading profile...</div>
         </div>
       </div>
     );
@@ -181,312 +127,210 @@ const UserProfile = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button 
-            onClick={fetchUserProfile}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Retry
-          </button>
+      <div className="min-h-screen bg-gray-50 flex flex-col pt-20">
+        <div className="flex-grow container mx-auto px-4 py-12">
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-white rounded-xl shadow-sm p-10 text-center border border-gray-200">
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertCircle className="w-8 h-8 text-red-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Profile Not Found</h2>
+              <p className="text-gray-600 mb-8">{error}</p>
+              <Link 
+                to="/" 
+                className="inline-flex items-center px-6 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors duration-200 shadow-sm"
+              >
+                Return to Home
+              </Link>
+            </div>
+          </div>
         </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-600">User not found</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">User Profile</h1>
-          
-          {/* Basic Info Section */}
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-700">Basic Information</h2>
-              {!editMode && (
-                <button
-                  onClick={() => setEditMode(true)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                >
-                  Edit Profile
-                </button>
-              )}
-            </div>
-            
-            {editMode ? (
-              <form onSubmit={handleUpdateProfile} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Display Name
-                  </label>
-                  <input
-                    type="text"
-                    name="display_name"
-                    value={formData.display_name}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                  {user.display_name_updated_at && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Can change again in {getCooldownDays(user.display_name_updated_at)} days
-                    </p>
-                  )}
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                  {user.email_updated_at && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Can change again in {getCooldownDays(user.email_updated_at)} days
-                    </p>
-                  )}
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  {user.phone_updated_at && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Can change again in {getCooldownDays(user.phone_updated_at)} days
-                    </p>
-                  )}
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    name="full_name"
-                    value={formData.full_name}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div className="flex space-x-4">
-                  <button
-                    type="submit"
-                    disabled={updateLoading}
-                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
-                  >
-                    {updateLoading ? 'Saving...' : 'Save Changes'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditMode(false);
-                      setFormData({
-                        display_name: user.display_name || '',
-                        email: user.email || '',
-                        phone: user.phone || '',
-                        full_name: user.full_name || ''
-                      });
-                    }}
-                    className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-600">Display Name:</span>
-                  <span className="font-medium">{user.display_name}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-600">Email:</span>
-                  <span className="font-medium">{user.email}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-600">Phone:</span>
-                  <span className="font-medium">{user.phone || 'Not set'}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-600">Full Name:</span>
-                  <span className="font-medium">{user.full_name || 'Not set'}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-600">Member Since:</span>
-                  <span className="font-medium">{formatDate(user.created_at)}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-600">Account Type:</span>
-                  <span className="font-medium capitalize">{user.tier}</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Ideology Section */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Political Ideology</h2>
-            
-            {ideology ? (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="text-lg font-semibold text-blue-900">{ideology.ideology}</h3>
-                    {ideology.ideology_details?.description && (
-                      <p className="text-gray-700 mt-1">{ideology.ideology_details.description}</p>
-                    )}
-                    <p className="text-sm text-gray-500 mt-2">
-                      Last updated: {formatDate(ideology.ideology_updated_at)}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => navigate('/ideology-quiz')}
-                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
-                  >
-                    Retake Quiz
-                  </button>
-                </div>
-                
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-blue-200">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium">Visibility:</span>
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                      ideology.ideology_public 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {ideology.ideology_public ? 'Public' : 'Private'}
+    <div className="min-h-screen bg-gray-50 pt-16">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Sidebar - Profile Card */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden sticky top-20">
+              {/* Cover */}
+              <div className="h-24 bg-gradient-to-r from-orange-500 to-orange-600"></div>
+              
+              {/* Profile Info */}
+              <div className="px-6 pb-6">
+                <div className="relative -mt-12 mb-4">
+                  <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
+                    <span className="text-3xl font-bold text-white">
+                      {user.display_name.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <button
-                    onClick={handleToggleIdeologyVisibility}
-                    className="bg-white border border-blue-300 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-50"
-                  >
-                    Make {ideology.ideology_public ? 'Private' : 'Public'}
-                  </button>
+                  {isCertifiedByFollowers && (
+                    <div className="absolute bottom-0 right-0 bg-orange-500 rounded-full p-1.5 border-2 border-white shadow-sm">
+                      <Award className="h-4 w-4 text-white" />
+                    </div>
+                  )}
                 </div>
+
+                <h1 className="text-xl font-bold text-gray-900 mb-1">{user.display_name}</h1>
                 
-                {!ideology.ideology_public && (
-                  <p className="text-xs text-gray-600 mt-3 italic">
-                    Note: Your ideology is currently private. Only you can see it. Click the button above to make it visible to others.
-                  </p>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <span className="bg-orange-50 text-orange-700 px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1 border border-orange-200">
+                    <Star className="h-3 w-3" />
+                    {user.tier}
+                  </span>
+                  {user.role !== 'user' && (
+                    <span className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1 border border-blue-200">
+                      <Shield className="h-3 w-3" />
+                      {user.role}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+                  <Calendar className="h-4 w-4" />
+                  <span>Joined {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}</span>
+                </div>
+
+                {currentUser && currentUser.id !== user.id && (
+                  <button
+                    onClick={handleFollow}
+                    disabled={followLoading}
+                    className={`w-full py-2.5 rounded-lg font-semibold transition-all duration-200 shadow-sm ${
+                      isFollowing
+                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                        : 'bg-orange-600 text-white hover:bg-orange-700'
+                    }`}
+                  >
+                    {followLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}
+                  </button>
+                )}
+
+                <div className="border-t border-gray-200 mt-6 pt-6">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-bold text-gray-900">{stats.totalArticles}</div>
+                      <div className="text-xs text-gray-500 mt-1">Articles</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-gray-900">{user.followers || 0}</div>
+                      <div className="text-xs text-gray-500 mt-1">Followers</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-gray-900">{stats.totalViews}</div>
+                      <div className="text-xs text-gray-500 mt-1">Views</div>
+                    </div>
+                  </div>
+                </div>
+
+                {certifiedCount > 0 && (
+                  <div className="border-t border-gray-200 mt-6 pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-green-50 rounded-lg p-2">
+                        <Award className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-gray-900">{certifiedCount} Certified Articles</div>
+                        <div className="text-xs text-gray-500">Expert recognition</div>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Right Content - Articles Feed */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-1">Articles</h2>
+              <p className="text-sm text-gray-500">{articles.length} published</p>
+            </div>
+
+            {articles.length === 0 ? (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200">
+                  <BookOpen className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No articles yet</h3>
+                <p className="text-gray-500">This user hasn't published any articles yet.</p>
+              </div>
             ) : (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-                <p className="text-gray-600 mb-3">You haven't taken the ideology quiz yet</p>
-                <button
-                  onClick={() => navigate('/ideology-quiz')}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                >
-                  Take Quiz Now
-                </button>
+              <div className="space-y-4">
+                {articles.map((article) => (
+                  <div key={article.id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <div className="p-6">
+                      <div className="flex items-start gap-3 mb-4">
+                        <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-bold text-white">
+                            {user.display_name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex-grow min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold text-gray-900">{user.display_name}</span>
+                            {isCertifiedByFollowers && (
+                              <CheckCircle className="h-4 w-4 text-orange-500 flex-shrink-0" />
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {formatDistanceToNow(new Date(article.created_at), { addSuffix: true })}
+                          </div>
+                        </div>
+                      </div>
+
+                      <Link to={`/article/${article.id}`} className="block group">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
+                          {article.title}
+                        </h3>
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                          {article.content.substring(0, 200)}...
+                        </p>
+                      </Link>
+
+                      {(article.certified || article.topics?.length > 0) && (
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {article.certified && (
+                            <span className="bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-green-200 flex items-center gap-1">
+                              <Award className="h-3 w-3" />
+                              Certified
+                            </span>
+                          )}
+                          {article.topics && article.topics.slice(0, 3).map((topic, idx) => (
+                            <span key={idx} className="bg-gray-50 text-gray-700 text-xs px-2.5 py-1 rounded-md border border-gray-200">
+                              {topic}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-1.5">
+                            <Eye className="h-4 w-4" />
+                            <span>{article.views || 0}</span>
+                          </div>
+                        </div>
+                        <Link 
+                          to={`/article/${article.id}`} 
+                          className="inline-flex items-center gap-1.5 text-orange-600 hover:text-orange-700 font-semibold text-sm transition-colors"
+                        >
+                          Read more
+                          <ChevronRight className="h-4 w-4" />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
-          </div>
-
-          {/* Password Section */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Change Password</h2>
-            
-            <form onSubmit={handlePasswordUpdate} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  name="current_password"
-                  value={passwordData.current_password}
-                  onChange={handlePasswordChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  name="new_password"
-                  value={passwordData.new_password}
-                  onChange={handlePasswordChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                  minLength="8"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  name="confirm_password"
-                  value={passwordData.confirm_password}
-                  onChange={handlePasswordChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                  minLength="8"
-                />
-              </div>
-              
-              {user.password_updated_at && (
-                <p className="text-xs text-gray-500">
-                  Can change again in {getCooldownDays(user.password_updated_at)} days
-                </p>
-              )}
-              
-              <button
-                type="submit"
-                disabled={passwordLoading}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 disabled:opacity-50"
-              >
-                {passwordLoading ? 'Updating...' : 'Update Password'}
-              </button>
-            </form>
-          </div>
-
-          {/* Account Actions */}
-          <div className="border-t pt-6">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 mr-4"
-            >
-              Back to Dashboard
-            </button>
           </div>
         </div>
       </div>
+
+      <div className="h-12"></div>
     </div>
   );
 };
