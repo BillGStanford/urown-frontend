@@ -1,6 +1,6 @@
 // src/pages/UserProfile.js
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
 import { 
@@ -21,11 +21,7 @@ import {
   Link2,
   Brain,
   Lock,
-  Unlock,
-  RefreshCw,
-  Edit3,
-  RotateCcw,
-  EyeOff
+  Unlock
 } from 'lucide-react';
 
 const API_URL = process.env.NODE_ENV === 'production' 
@@ -34,7 +30,6 @@ const API_URL = process.env.NODE_ENV === 'production'
 
 const UserProfile = () => {
   const { display_name } = useParams();
-  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [articles, setArticles] = useState([]);
   const [stats, setStats] = useState({ totalArticles: 0, totalViews: 0 });
@@ -43,8 +38,6 @@ const UserProfile = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [ideologyLoading, setIdeologyLoading] = useState(false);
-  const [showIdeologyEdit, setShowIdeologyEdit] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -116,67 +109,8 @@ const UserProfile = () => {
     }
   };
 
-  const handleToggleIdeologyVisibility = async () => {
-    if (!currentUser || currentUser.id !== user.id) {
-      return;
-    }
-
-    try {
-      setIdeologyLoading(true);
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-
-      const newVisibility = !user.ideology_public;
-      
-      await axios.put(`${API_URL}/user/ideology/visibility`, 
-        { ideology_public: newVisibility }, 
-        { headers }
-      );
-
-      // Update local state
-      setUser(prev => ({
-        ...prev,
-        ideology_public: newVisibility
-      }));
-
-      // Show success message
-      alert(`Your ideology is now ${newVisibility ? 'public' : 'private'}!`);
-      
-    } catch (err) {
-      console.error('Failed to toggle ideology visibility:', err);
-      alert(err.response?.data?.error || 'Failed to update ideology visibility');
-    } finally {
-      setIdeologyLoading(false);
-    }
-  };
-
-  const handleRetakeQuiz = () => {
-    navigate('/ideology-quiz');
-  };
-
-  const refreshProfile = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      
-      const response = await axios.get(`${API_URL}/users/${encodeURIComponent(display_name)}`, { headers });
-      setUser(response.data.user);
-      setArticles(response.data.articles);
-      setStats(response.data.stats);
-      setIsFollowing(response.data.user.isFollowing || false);
-      setError(null);
-    } catch (err) {
-      console.error('Failed to refresh profile:', err);
-      setError(err.response?.data?.error || 'Failed to refresh profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const certifiedCount = articles.filter(article => article.certified).length;
   const isCertifiedByFollowers = user && user.followers >= 100;
-  const isOwnProfile = currentUser && currentUser.id === user.id;
 
   if (loading) {
     return (
@@ -221,17 +155,6 @@ const UserProfile = () => {
   return (
     <div className="min-h-screen bg-gray-50 pt-16">
       <div className="container mx-auto px-4 py-8 max-w-5xl">
-        {/* Refresh Button */}
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={refreshProfile}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <RefreshCw className="h-4 w-4 text-gray-600" />
-            <span className="text-sm text-gray-700">Refresh</span>
-          </button>
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Sidebar - Profile Card */}
           <div className="lg:col-span-1">
@@ -320,26 +243,16 @@ const UserProfile = () => {
                 )}
 
                 {/* Ideology Section */}
-                {user.ideology && (
+ {user.ideology && (
                   <div className="border-t border-gray-200 mt-6 pt-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Brain className="h-5 w-5 text-purple-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">Political Ideology</h3>
-                      </div>
-                      {isOwnProfile && (
-                        <button
-                          onClick={() => setShowIdeologyEdit(!showIdeologyEdit)}
-                          className="text-gray-500 hover:text-gray-700"
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </button>
-                      )}
+                    <div className="flex items-center gap-2 mb-3">
+                      <Brain className="h-5 w-5 text-purple-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Political Ideology</h3>
                     </div>
                     
                     <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                       <div className="flex justify-between items-start mb-3">
-                        <div className="flex-grow">
+                        <div>
                           <h4 className="font-semibold text-purple-900">{user.ideology}</h4>
                           {user.ideology_details?.description && (
                             <p className="text-gray-700 text-sm mt-1">{user.ideology_details.description}</p>
@@ -380,71 +293,6 @@ const UserProfile = () => {
                           Note: This user's ideology is private and only visible to them.
                         </p>
                       )}
-                    </div>
-
-                    {/* Ideology Actions - Only for own profile */}
-                    {isOwnProfile && (
-                      <div className="mt-4 space-y-2">
-                        <button
-                          onClick={handleToggleIdeologyVisibility}
-                          disabled={ideologyLoading}
-                          className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                            ideologyLoading
-                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                              : user.ideology_public
-                              ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                              : 'bg-purple-600 text-white hover:bg-purple-700'
-                          }`}
-                        >
-                          {ideologyLoading ? (
-                            <>
-                              <RefreshCw className="h-4 w-4 animate-spin inline mr-2" />
-                              Updating...
-                            </>
-                          ) : (
-                            <>
-                              {user.ideology_public ? (
-                                <>
-                                  <EyeOff className="h-4 w-4 inline mr-2" />
-                                  Make Private
-                                </>
-                              ) : (
-                                <>
-                                  <Eye className="h-4 w-4 inline mr-2" />
-                                  Make Public
-                                </>
-                              )}
-                            </>
-                          )}
-                        </button>
-                        
-                        <button
-                          onClick={handleRetakeQuiz}
-                          className="w-full py-2 px-3 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors duration-200"
-                        >
-                          <RotateCcw className="h-4 w-4 inline mr-2" />
-                          Retake Quiz
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* No Ideology Section */}
-                {!user.ideology && isOwnProfile && (
-                  <div className="border-t border-gray-200 mt-6 pt-6">
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <Brain className="h-6 w-6 text-gray-400" />
-                      </div>
-                      <h3 className="text-sm font-semibold text-gray-900 mb-2">No Ideology Yet</h3>
-                      <p className="text-xs text-gray-500 mb-3">Take the quiz to discover your political ideology</p>
-                      <button
-                        onClick={handleRetakeQuiz}
-                        className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors duration-200"
-                      >
-                        Take Quiz Now
-                      </button>
                     </div>
                   </div>
                 )}
