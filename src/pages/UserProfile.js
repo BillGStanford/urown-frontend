@@ -18,7 +18,10 @@ import {
   Users,
   AlertCircle,
   MapPin,
-  Link2
+  Link2,
+  Brain,
+  Lock,
+  Unlock
 } from 'lucide-react';
 
 const API_URL = process.env.NODE_ENV === 'production' 
@@ -235,6 +238,61 @@ const UserProfile = () => {
                         <div className="text-sm font-semibold text-gray-900">{certifiedCount} Certified Articles</div>
                         <div className="text-xs text-gray-500">Expert recognition</div>
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Ideology Section */}
+                {user.ideology && (
+                  <div className="border-t border-gray-200 mt-6 pt-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Brain className="h-5 w-5 text-purple-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Political Ideology</h3>
+                    </div>
+                    
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h4 className="font-semibold text-purple-900">{user.ideology}</h4>
+                          {user.ideology_details?.description && (
+                            <p className="text-gray-700 text-sm mt-1">{user.ideology_details.description}</p>
+                          )}
+                          {user.ideology_updated_at && (
+                            <p className="text-xs text-gray-500 mt-2">
+                              Updated {formatDistanceToNow(new Date(user.ideology_updated_at), { addSuffix: true })}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-purple-200">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-gray-700">Visibility:</span>
+                          <span className={`px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 ${
+                            user.ideology_public 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {user.ideology_public ? (
+                              <>
+                                <Unlock className="h-3 w-3" />
+                                Public
+                              </>
+                            ) : (
+                              <>
+                                <Lock className="h-3 w-3" />
+                                Private
+                              </>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {!user.ideology_public && (
+                        <p className="text-xs text-gray-600 mt-3 italic">
+                          Note: This user's ideology is private and only visible to them.
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
