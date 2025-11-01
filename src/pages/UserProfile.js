@@ -154,11 +154,14 @@ const UserProfile = () => {
   
   // Determine if we should show the ideology section
   const isOwnProfile = currentUser && user && currentUser.id === user.id;
+  // Show ideology if: user has ideology AND (it's their own profile OR ideology is public)
+  // Note: ideology_public can be true even if currentUser is null (not logged in)
   const shouldShowIdeology = user?.ideology && (isOwnProfile || user?.ideology_public === true);
 
   console.log('Ideology Display Logic:', {
     hasIdeology: !!user?.ideology,
     isOwnProfile,
+    currentUserExists: !!currentUser,
     ideologyPublic: user?.ideology_public,
     shouldShowIdeology
   });
