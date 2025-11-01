@@ -243,7 +243,7 @@ const UserProfile = () => {
                 )}
 
                 {/* Ideology Section */}
-                {user.ideology && (
+ {user.ideology && (
                   <div className="border-t border-gray-200 mt-6 pt-6">
                     <div className="flex items-center gap-2 mb-3">
                       <Brain className="h-5 w-5 text-purple-600" />
