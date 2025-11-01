@@ -48,6 +48,13 @@ const UserProfile = () => {
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         
         const response = await axios.get(`${API_URL}/users/${encodeURIComponent(display_name)}`, { headers });
+        console.log('User data received:', response.data.user);
+        console.log('Ideology data:', {
+          ideology: response.data.user.ideology,
+          ideology_public: response.data.user.ideology_public,
+          ideology_details: response.data.user.ideology_details
+        });
+        
         setUser(response.data.user);
         setArticles(response.data.articles);
         setStats(response.data.stats);
@@ -264,7 +271,7 @@ const UserProfile = () => {
                 )}
 
                 {/* Ideology Section */}
-                {user.ideology && (
+                {user.ideology && (user.ideology_public || (currentUser && currentUser.id === user.id)) && (
                   <div className="border-t border-gray-200 mt-6 pt-6">
                     <div className="flex items-center gap-2 mb-3">
                       <Brain className="h-5 w-5 text-purple-600" />
@@ -309,9 +316,9 @@ const UserProfile = () => {
                         </div>
                       </div>
                       
-                      {!user.ideology_public && (
+                      {!user.ideology_public && currentUser && currentUser.id === user.id && (
                         <p className="text-xs text-gray-600 mt-3 italic">
-                          Note: This user's ideology is private and only visible to them.
+                          Your ideology is private and only visible to you.
                         </p>
                       )}
 
