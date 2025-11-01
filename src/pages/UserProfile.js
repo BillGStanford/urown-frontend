@@ -38,6 +38,7 @@ const UserProfile = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [ideologyLoading, setIdeologyLoading] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -106,6 +107,26 @@ const UserProfile = () => {
       setError(err.response?.data?.error || 'Failed to follow/unfollow user');
     } finally {
       setFollowLoading(false);
+    }
+  };
+
+  const handleToggleIdeologyVisibility = async () => {
+    try {
+      setIdeologyLoading(true);
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      await axios.patch(`${API_URL}/user/ideology/visibility`, 
+        { ideology_public: !user.ideology_public },
+        { headers }
+      );
+
+      setUser(prev => ({ ...prev, ideology_public: !prev.ideology_public }));
+    } catch (err) {
+      console.error('Toggle visibility error:', err);
+      setError(err.response?.data?.error || 'Failed to update visibility');
+    } finally {
+      setIdeologyLoading(false);
     }
   };
 
@@ -243,7 +264,7 @@ const UserProfile = () => {
                 )}
 
                 {/* Ideology Section */}
- {user.ideology && (
+                {user.ideology && (
                   <div className="border-t border-gray-200 mt-6 pt-6">
                     <div className="flex items-center gap-2 mb-3">
                       <Brain className="h-5 w-5 text-purple-600" />
@@ -292,6 +313,34 @@ const UserProfile = () => {
                         <p className="text-xs text-gray-600 mt-3 italic">
                           Note: This user's ideology is private and only visible to them.
                         </p>
+                      )}
+
+                      {/* Control Buttons - Only show on own profile */}
+                      {currentUser && currentUser.id === user.id && (
+                        <div className="mt-4 pt-4 border-t border-purple-200 space-y-2">
+                          <button
+                            onClick={handleToggleIdeologyVisibility}
+                            disabled={ideologyLoading}
+                            className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                          >
+                            {ideologyLoading ? (
+                              'Updating...'
+                            ) : (
+                              <>
+                                {user.ideology_public ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                                Make {user.ideology_public ? 'Private' : 'Public'}
+                              </>
+                            )}
+                          </button>
+                          
+                          <Link
+                            to="/ideology-quiz"
+                            className="w-full py-2 px-4 bg-white text-purple-600 border border-purple-300 rounded-lg hover:bg-purple-50 transition-colors duration-200 font-medium text-sm flex items-center justify-center gap-2"
+                          >
+                            <Brain className="h-4 w-4" />
+                            Retake Quiz
+                          </Link>
+                        </div>
                       )}
                     </div>
                   </div>
