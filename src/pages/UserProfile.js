@@ -48,12 +48,14 @@ const UserProfile = () => {
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         
         const response = await axios.get(`${API_URL}/users/${encodeURIComponent(display_name)}`, { headers });
-        console.log('User data received:', response.data.user);
-        console.log('Ideology data:', {
-          ideology: response.data.user.ideology,
-          ideology_public: response.data.user.ideology_public,
-          ideology_details: response.data.user.ideology_details
-        });
+        
+        // Debug logging
+        console.log('=== USER PROFILE DATA ===');
+        console.log('Full response:', response.data);
+        console.log('User ideology:', response.data.user.ideology);
+        console.log('Ideology public:', response.data.user.ideology_public);
+        console.log('Ideology details:', response.data.user.ideology_details);
+        console.log('========================');
         
         setUser(response.data.user);
         setArticles(response.data.articles);
@@ -79,6 +81,7 @@ const UserProfile = () => {
             headers: { Authorization: `Bearer ${token}` }
           });
           setCurrentUser(response.data.user);
+          console.log('Current user:', response.data.user);
         }
       } catch (err) {
         console.error('Failed to fetch current user:', err);
@@ -123,12 +126,21 @@ const UserProfile = () => {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
 
+      const newVisibility = !user.ideology_public;
+      console.log('Toggling visibility to:', newVisibility);
+
       await axios.patch(`${API_URL}/user/ideology/visibility`, 
-        { ideology_public: !user.ideology_public },
+        { ideology_public: newVisibility },
         { headers }
       );
 
-      setUser(prev => ({ ...prev, ideology_public: !prev.ideology_public }));
+      // Update local state
+      setUser(prev => ({ 
+        ...prev, 
+        ideology_public: newVisibility 
+      }));
+
+      console.log('Visibility updated successfully to:', newVisibility);
     } catch (err) {
       console.error('Toggle visibility error:', err);
       setError(err.response?.data?.error || 'Failed to update visibility');
@@ -139,6 +151,17 @@ const UserProfile = () => {
 
   const certifiedCount = articles.filter(article => article.certified).length;
   const isCertifiedByFollowers = user && user.followers >= 100;
+  
+  // Determine if we should show the ideology section
+  const isOwnProfile = currentUser && user && currentUser.id === user.id;
+  const shouldShowIdeology = user?.ideology && (isOwnProfile || user?.ideology_public === true);
+
+  console.log('Ideology Display Logic:', {
+    hasIdeology: !!user?.ideology,
+    isOwnProfile,
+    ideologyPublic: user?.ideology_public,
+    shouldShowIdeology
+  });
 
   if (loading) {
     return (
@@ -270,8 +293,8 @@ const UserProfile = () => {
                   </div>
                 )}
 
-                {/* Ideology Section */}
-                {user.ideology && (user.ideology_public || (currentUser && currentUser.id === user.id)) && (
+                {/* Ideology Section - Shows when public OR on own profile */}
+                {shouldShowIdeology && (
                   <div className="border-t border-gray-200 mt-6 pt-6">
                     <div className="flex items-center gap-2 mb-3">
                       <Brain className="h-5 w-5 text-purple-600" />
@@ -280,7 +303,7 @@ const UserProfile = () => {
                     
                     <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                       <div className="flex justify-between items-start mb-3">
-                        <div>
+                        <div className="flex-1">
                           <h4 className="font-semibold text-purple-900">{user.ideology}</h4>
                           {user.ideology_details?.description && (
                             <p className="text-gray-700 text-sm mt-1">{user.ideology_details.description}</p>
@@ -293,60 +316,73 @@ const UserProfile = () => {
                         </div>
                       </div>
                       
-                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-purple-200">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium text-gray-700">Visibility:</span>
-                          <span className={`px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 ${
-                            user.ideology_public 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {user.ideology_public ? (
-                              <>
-                                <Unlock className="h-3 w-3" />
-                                Public
-                              </>
-                            ) : (
-                              <>
-                                <Lock className="h-3 w-3" />
-                                Private
-                              </>
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      {!user.ideology_public && currentUser && currentUser.id === user.id && (
-                        <p className="text-xs text-gray-600 mt-3 italic">
-                          Your ideology is private and only visible to you.
-                        </p>
-                      )}
-
-                      {/* Control Buttons - Only show on own profile */}
-                      {currentUser && currentUser.id === user.id && (
-                        <div className="mt-4 pt-4 border-t border-purple-200 space-y-2">
-                          <button
-                            onClick={handleToggleIdeologyVisibility}
-                            disabled={ideologyLoading}
-                            className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50"
-                          >
-                            {ideologyLoading ? (
-                              'Updating...'
-                            ) : (
-                              <>
-                                {user.ideology_public ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
-                                Make {user.ideology_public ? 'Private' : 'Public'}
-                              </>
-                            )}
-                          </button>
+                      {/* Only show visibility status on own profile */}
+                      {isOwnProfile && (
+                        <>
+                          <div className="flex items-center justify-between mt-4 pt-4 border-t border-purple-200">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-medium text-gray-700">Visibility:</span>
+                              <span className={`px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 ${
+                                user.ideology_public 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {user.ideology_public ? (
+                                  <>
+                                    <Unlock className="h-3 w-3" />
+                                    Public
+                                  </>
+                                ) : (
+                                  <>
+                                    <Lock className="h-3 w-3" />
+                                    Private
+                                  </>
+                                )}
+                              </span>
+                            </div>
+                          </div>
                           
-                          <Link
-                            to="/ideology-quiz"
-                            className="w-full py-2 px-4 bg-white text-purple-600 border border-purple-300 rounded-lg hover:bg-purple-50 transition-colors duration-200 font-medium text-sm flex items-center justify-center gap-2"
-                          >
-                            <Brain className="h-4 w-4" />
-                            Retake Quiz
-                          </Link>
+                          {!user.ideology_public && (
+                            <p className="text-xs text-gray-600 mt-3 italic">
+                              Your ideology is private and only visible to you.
+                            </p>
+                          )}
+
+                          {/* Control Buttons - Only on own profile */}
+                          <div className="mt-4 pt-4 border-t border-purple-200 space-y-2">
+                            <button
+                              onClick={handleToggleIdeologyVisibility}
+                              disabled={ideologyLoading}
+                              className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {ideologyLoading ? (
+                                'Updating...'
+                              ) : (
+                                <>
+                                  {user.ideology_public ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                                  Make {user.ideology_public ? 'Private' : 'Public'}
+                                </>
+                              )}
+                            </button>
+                            
+                            <Link
+                              to="/ideology-quiz"
+                              className="w-full py-2 px-4 bg-white text-purple-600 border border-purple-300 rounded-lg hover:bg-purple-50 transition-colors duration-200 font-medium text-sm flex items-center justify-center gap-2"
+                            >
+                              <Brain className="h-4 w-4" />
+                              Retake Quiz
+                            </Link>
+                          </div>
+                        </>
+                      )}
+                      
+                      {/* For other users viewing public ideology */}
+                      {!isOwnProfile && (
+                        <div className="mt-4 pt-4 border-t border-purple-200">
+                          <p className="text-xs text-gray-600 italic flex items-center gap-1">
+                            <Unlock className="h-3 w-3" />
+                            This user has chosen to share their political ideology publicly
+                          </p>
                         </div>
                       )}
                     </div>
