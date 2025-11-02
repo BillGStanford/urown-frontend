@@ -32,8 +32,10 @@ function HomePage() {
         const certifiedResponse = await fetchWithRetry(() => 
           axios.get('/articles', { params: { certified: 'true' } })
         );
-        console.log('Certified articles fetched:', certifiedResponse.data.articles?.length || 0);
-        setCertifiedArticles(certifiedResponse.data.articles || []);
+        const certifiedData = certifiedResponse.data.articles || [];
+        console.log('Certified articles fetched:', certifiedData.length);
+        console.log('Certified article IDs:', certifiedData.map(a => a.id));
+        setCertifiedArticles(certifiedData);
         
         // Fetch all articles
         const articlesResponse = await fetchWithRetry(() => 
