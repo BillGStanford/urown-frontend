@@ -1,411 +1,324 @@
-// src/pages/HomePage.js
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import ArticleCard from '../components/ArticleCard';
-import DebateHallSection from '../components/DebateHallSection';
-import TrendingOpinions from '../components/TrendingOpinions';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import { useUser } from '../context/UserContext';
-import { ChevronLeft, ChevronRight, BookOpen, Calendar, Star, TrendingUp, Flame, ArrowRight, Zap, Users, MessageSquare, Award } from 'lucide-react';
+import { ChevronRight, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar } from 'lucide-react';
 
 function HomePage() {
-  const [featuredArticles, setFeaturedArticles] = useState([]);
+  const [activeDebates, setActiveDebates] = useState([]);
+  const [certifiedArticles, setCertifiedArticles] = useState([]);
+  const [topUsers, setTopUsers] = useState([]);
+  const [articlesByTopic, setArticlesByTopic] = useState({});
   const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const { user } = useUser();
 
   useEffect(() => {
-    const fetchArticles = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         
-        const featuredCacheKey = 'articles-certified';
-        let featuredData = getCachedData(featuredCacheKey);
+        // Fetch debate topics
+        const debatesResponse = await fetchWithRetry(() => axios.get('/debate-topics'));
+        setActiveDebates(debatesResponse.data.topics || []);
         
-        if (!featuredData) {
-          const featuredResponse = await fetchWithRetry(() => 
-            axios.get('/articles', {
-              params: { certified: 'true' }
-            })
-          );
-          featuredData = featuredResponse.data.articles;
-          setCachedData(featuredCacheKey, featuredData);
-        }
-        setFeaturedArticles(featuredData);
+        // Fetch certified articles
+        const certifiedResponse = await fetchWithRetry(() => 
+          axios.get('/articles', { params: { certified: 'true', limit: 6 } })
+        );
+        setCertifiedArticles(certifiedResponse.data.articles || []);
+        
+        // Fetch all articles with views > 500
+        const articlesResponse = await fetchWithRetry(() => 
+          axios.get('/articles', { params: { limit: 100 } })
+        );
+        const allArticles = articlesResponse.data.articles || [];
+        
+        // Group articles by their first topic (views > 500)
+        const grouped = {};
+        allArticles
+          .filter(article => article.views >= 500)
+          .forEach(article => {
+            const topic = article.topics && article.topics.length > 0 ? article.topics[0] : 'Uncategorized';
+            if (!grouped[topic]) {
+              grouped[topic] = [];
+            }
+            grouped[topic].push(article);
+          });
+        
+        // Sort articles within each topic by views
+        Object.keys(grouped).forEach(topic => {
+          grouped[topic].sort((a, b) => b.views - a.views);
+        });
+        
+        setArticlesByTopic(grouped);
+        
+        // Fetch top users (mock data - you'd need to implement this endpoint)
+        // For now, we'll leave it empty
+        setTopUsers([]);
         
       } catch (error) {
-        console.error('Error fetching articles:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
     
-    fetchArticles();
+    fetchData();
   }, []);
 
-  const handleArticleClick = (article) => {
-    console.log('Navigate to article:', article.id);
+  const formatNumber = (num) => {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num;
   };
 
-  const getTodayDate = () => {
-    const date = new Date();
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+  const truncateText = (text, maxLength) => {
+    if (text.length <= maxLength) return text;
+    return text.substr(0, maxLength) + '...';
   };
 
-  const articlesToShow = 3;
-  const filteredArticles = featuredArticles.filter(article => article.certified);
-  const totalPages = Math.ceil(filteredArticles.length / articlesToShow);
-  
-  const currentArticles = filteredArticles.slice(
-    currentIndex * articlesToShow,
-    (currentIndex + 1) * articlesToShow
-  );
-
-  const goToNext = () => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex < totalPages - 1 ? prevIndex + 1 : 0
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-black to-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
     );
-  };
-
-  const goToPrev = () => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex > 0 ? prevIndex - 1 : totalPages - 1
-    );
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section - Completely Redesigned */}
-{/* Hero Section - Enterprise Professional */}
-      <div className="relative bg-white overflow-hidden border-b border-gray-200">
-        {/* Subtle sophisticated background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50"></div>
-        
-        {/* Minimal accent elements */}
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-orange-50/30 to-transparent"></div>
-        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-yellow-50/20 to-transparent"></div>
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-20 md:py-28 lg:py-32">
-            {/* Grid Layout */}
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-              {/* Left Column - Content */}
-              <div>
-                {/* Status Badge - Refined */}
-                <div className="inline-flex items-center gap-2 bg-white border border-gray-300 px-4 py-2 rounded-lg shadow-sm mb-6">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-gray-700 font-medium text-sm">{filteredArticles.length} Active Debates</span>
-                </div>
-                
-                {/* Main Headline - Clean & Professional */}
-                <h1 className="mb-6">
-                  {user ? (
-                    <>
-                      <div className="text-gray-900 text-4xl md:text-5xl lg:text-6xl font-bold mb-3 leading-tight">
-                        Welcome back,
-                      </div>
-                      <div className="text-orange-600 text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                        {user.display_name || user.full_name}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="text-gray-900 text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-2">
-                        The Premier Platform
-                      </div>
-                      <div className="text-gray-900 text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
-                        for Intellectual
-                      </div>
-                      <div className="text-orange-600 text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
-                        Discourse
-                      </div>
-                    </>
-                  )}
-                </h1>
-                
-                {/* Subheadline - Professional Tone */}
-                <p className="text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed max-w-2xl">
-                  {user 
-                    ? 'Continue engaging with thought leaders and shaping the conversation on topics that matter.' 
-                    : 'Join industry experts, academics, and thought leaders in rigorous, evidence-based debates on the issues shaping our world.'}
-                </p>
-                
-                {/* CTA Buttons - Professional */}
-                <div className="flex flex-col sm:flex-row gap-4 mb-10">
-                  <Link 
-                    to="/browse" 
-                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors duration-200 shadow-lg"
-                  >
-                    Explore Debates
-                    <ChevronRight className="ml-2 w-5 h-5" />
-                  </Link>
-                  
-                  {!user && (
-                    <Link 
-                      to="/signup" 
-                      className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-gray-900 bg-white border-2 border-gray-900 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                    >
-                      Create Account
-                    </Link>
-                  )}
-                </div>
-                
-                {/* Trust Indicators */}
-                <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <Award className="w-5 h-5 text-orange-600" />
-                    <span className="font-medium">Editorial Review Process</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-orange-600" />
-                    <span className="font-medium">Expert Community</span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Right Column - Stats Grid */}
-              <div>
-                <div className="grid grid-cols-2 gap-6">
-                  {/* Stat Card 1 */}
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                      <Award className="w-6 h-6 text-orange-600" />
-                    </div>
-                    <div className="text-3xl font-bold text-gray-900 mb-1">{filteredArticles.length}</div>
-                    <div className="text-sm text-gray-600 font-medium">Certified Articles</div>
-                    <div className="mt-3 text-xs text-gray-500">Reviewed by editorial board</div>
-                  </div>
-
-                  {/* Stat Card 2 */}
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                      <MessageSquare className="w-6 h-6 text-orange-600" />
-                    </div>
-                    <div className="text-3xl font-bold text-gray-900 mb-1">Active</div>
-                    <div className="text-sm text-gray-600 font-medium">Ongoing Debates</div>
-                    <div className="mt-3 text-xs text-gray-500">Updated in real-time</div>
-                  </div>
-
-                  {/* Stat Card 3 */}
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                      <Users className="w-6 h-6 text-orange-600" />
-                    </div>
-                    <div className="text-3xl font-bold text-gray-900 mb-1">15,000+</div>
-                    <div className="text-sm text-gray-600 font-medium">Monthly Readers</div>
-                    <div className="mt-3 text-xs text-gray-500">Growing community</div>
-                  </div>
-
-                  {/* Stat Card 4 */}
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                      <TrendingUp className="w-6 h-6 text-orange-600" />
-                    </div>
-                    <div className="text-3xl font-bold text-gray-900 mb-1">24/7</div>
-                    <div className="text-sm text-gray-600 font-medium">Platform Access</div>
-                    <div className="mt-3 text-xs text-gray-500">Always available</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-          {/* Main Content - Takes 2 columns */}
-          <div className="lg:col-span-2 space-y-12">
-            {/* Debate Hall Section */}
-            <section>
-              <DebateHallSection />
-            </section>
-            
-{/* Editorial Picks Section */}
-            {filteredArticles.length > 0 && (
-              <section>
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-                      Editorial Picks
-                      <Award className="w-7 h-7 text-orange-600" />
-                    </h2>
-                    <p className="text-gray-600 text-sm">Curated content reviewed by our editorial board</p>
-                  </div>
-                  <Link 
-                    to="/browse" 
-                    className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white font-semibold text-sm rounded-lg hover:bg-gray-800 transition-colors duration-200"
-                  >
-                    View All
-                    <ChevronRight className="w-4 h-4" />
-                  </Link>
-                </div>
-                
-                {/* Carousel Container */}
-                <div className="relative">
-                  {/* Articles Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {currentArticles.map((article) => (
-                      <div 
-                        key={article.id}
-                        className="transform transition-all duration-300 hover:scale-105"
-                      >
-                        <ArticleCard
-                          article={article}
-                          onClick={handleArticleClick}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Navigation */}
-                  {totalPages > 1 && (
-                    <>
-                      {/* Desktop Navigation Arrows */}
-                      <button 
-                        onClick={goToPrev}
-                        className="hidden lg:flex absolute -left-6 top-1/2 -translate-y-1/2 w-12 h-12 items-center justify-center bg-white border-2 border-gray-900 text-gray-900 rounded-full shadow-lg hover:bg-gray-900 hover:text-white transition-all duration-200"
-                        aria-label="Previous"
-                      >
-                        <ChevronLeft className="w-6 h-6" />
-                      </button>
-                      <button 
-                        onClick={goToNext}
-                        className="hidden lg:flex absolute -right-6 top-1/2 -translate-y-1/2 w-12 h-12 items-center justify-center bg-white border-2 border-gray-900 text-gray-900 rounded-full shadow-lg hover:bg-gray-900 hover:text-white transition-all duration-200"
-                        aria-label="Next"
-                      >
-                        <ChevronRight className="w-6 h-6" />
-                      </button>
-                      
-                      {/* Dot Indicators */}
-                      <div className="flex justify-center items-center gap-2 mt-8">
-                        {Array.from({ length: totalPages }).map((_, index) => (
-                          <button
-                            key={index}
-                            onClick={() => setCurrentIndex(index)}
-                            className={`transition-all duration-300 ${
-                              index === currentIndex 
-                                ? 'w-8 h-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full' 
-                                : 'w-2 h-2 bg-gray-300 rounded-full hover:bg-gray-400'
-                            }`}
-                            aria-label={`Page ${index + 1}`}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-                
-                {/* Mobile View All Button */}
-                <Link 
-                  to="/browse" 
-                  className="md:hidden flex items-center justify-center gap-2 w-full mt-6 px-6 py-4 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-all duration-200"
-                >
-                  View All Articles
-                  <ChevronRight className="w-5 h-5" />
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-black to-gray-900">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden border-b border-gray-800">
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-900/20 via-transparent to-purple-900/20"></div>
+        <div className="relative max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+          <div className="text-center">
+            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight">
+              {user ? (
+                <>Welcome back, <span className="bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">{user.display_name}</span></>
+              ) : (
+                <>The Voice of <span className="bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">Debate</span></>
+              )}
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-400 mb-10 max-w-3xl mx-auto">
+              Join the conversation. Share your perspective. Shape the discourse.
+            </p>
+            {!user && (
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to="/signup" className="px-8 py-4 bg-white text-black font-bold rounded-full hover:bg-gray-100 transition-colors">
+                  Sign up free
                 </Link>
-              </section>
+                <Link to="/browse" className="px-8 py-4 bg-transparent border-2 border-white text-white font-bold rounded-full hover:bg-white/10 transition-colors">
+                  Browse debates
+                </Link>
+              </div>
             )}
           </div>
-          
-          {/* Sidebar - Takes 1 column */}
-          <aside className="lg:col-span-1">
-            <div className="sticky top-6 space-y-6">
-              {/* Trending Section */}
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
-                <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <TrendingUp className="w-7 h-7 text-white" />
-                    <h3 className="text-2xl font-black text-white">Trending Now</h3>
-                  </div>
-                  <p className="text-orange-100 text-sm">Most debated topics today</p>
-                </div>
-                <div className="bg-white">
-                  <TrendingOpinions />
-                </div>
-              </div>
-              
-              {/* How It Works - Only for non-logged-in users */}
-              {!user && (
-                <div className="bg-gradient-to-br from-gray-900 to-black text-white rounded-2xl p-6 shadow-xl">
-                  <h3 className="text-xl font-black mb-4 flex items-center gap-2">
-                    <Zap className="w-6 h-6 text-yellow-500" />
-                    How It Works
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 bg-yellow-500 text-black rounded-full flex items-center justify-center font-black">1</div>
-                      <div>
-                        <p className="font-bold text-sm mb-1">Write Your Argument</p>
-                        <p className="text-gray-400 text-xs">Share your perspective on any topic</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 bg-orange-500 text-black rounded-full flex items-center justify-center font-black">2</div>
-                      <div>
-                        <p className="font-bold text-sm mb-1">Get Challenged</p>
-                        <p className="text-gray-400 text-xs">Others write counter-arguments</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 bg-red-500 text-black rounded-full flex items-center justify-center font-black">3</div>
-                      <div>
-                        <p className="font-bold text-sm mb-1">Debate & Grow</p>
-                        <p className="text-gray-400 text-xs">Engage in meaningful discourse</p>
-                      </div>
-                    </div>
-                  </div>
-                  <Link 
-                    to="/signup"
-                    className="mt-6 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-3 rounded-xl hover:from-yellow-400 hover:to-orange-400 transition-all duration-200"
-                  >
-                    Start Debating
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              )}
-            </div>
-          </aside>
         </div>
       </div>
 
-      {/* Bottom CTA Section - Only for non-logged-in users */}
-      {!user && (
-        <section className="bg-black text-white py-20 md:py-28 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800"></div>
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-10 left-10 w-64 h-64 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-10 right-10 w-64 h-64 bg-orange-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Active Debates Section */}
+        {activeDebates.length > 0 && (
+          <section className="mb-16">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl md:text-4xl font-black text-white flex items-center gap-3">
+                <Flame className="w-8 h-8 text-orange-500" />
+                Active Debates
+              </h2>
+              <Link to="/browse" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold">
+                Show all <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {activeDebates.map((debate) => (
+                <Link 
+                  key={debate.id}
+                  to={`/debate-topics/${debate.id}`}
+                  className="group bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 hover:from-gray-700 hover:to-gray-800 transition-all duration-300 border border-gray-700 hover:border-orange-500"
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <MessageSquare className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-bold text-white mb-2 group-hover:text-orange-500 transition-colors line-clamp-2">
+                        {debate.title}
+                      </h3>
+                      <p className="text-sm text-gray-400 line-clamp-2">{debate.description}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500 flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      {debate.opinions_count} opinions
+                    </span>
+                    <span className="text-orange-500 font-bold">Join debate →</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Editorial Picks Section */}
+        {certifiedArticles.length > 0 && (
+          <section className="mb-16">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl md:text-4xl font-black text-white flex items-center gap-3">
+                <Award className="w-8 h-8 text-yellow-500" />
+                Editorial Picks
+              </h2>
+            </div>
+            <div className="overflow-x-auto pb-4 -mx-4 px-4">
+              <div className="flex gap-6" style={{ minWidth: 'min-content' }}>
+                {certifiedArticles.map((article) => (
+                  <Link 
+                    key={article.id}
+                    to={`/articles/${article.id}`}
+                    className="group bg-gradient-to-br from-yellow-900/20 to-orange-900/20 rounded-2xl p-6 hover:from-yellow-900/30 hover:to-orange-900/30 transition-all duration-300 border border-yellow-700/50 hover:border-yellow-500 flex-shrink-0"
+                    style={{ width: '320px' }}
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <Award className="w-5 h-5 text-yellow-500" />
+                      <span className="text-xs font-bold text-yellow-500 uppercase tracking-wider">Certified</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-3 group-hover:text-orange-500 transition-colors line-clamp-2">
+                      {article.title}
+                    </h3>
+                    <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-4 h-4" />
+                        {formatNumber(article.views)}
+                      </span>
+                      <span>by {article.display_name}</span>
+                    </div>
+                    <p className="text-sm text-gray-400 line-clamp-3">
+                      {truncateText(article.content.replace(/<[^>]*>/g, ''), 120)}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Popular Users Section */}
+        {topUsers.length > 0 && (
+          <section className="mb-16">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl md:text-4xl font-black text-white flex items-center gap-3">
+                <TrendingUp className="w-8 h-8 text-purple-500" />
+                Popular Voices
+              </h2>
+            </div>
+            <div className="overflow-x-auto pb-4 -mx-4 px-4">
+              <div className="flex gap-4" style={{ minWidth: 'min-content' }}>
+                {topUsers.map((user) => (
+                  <Link 
+                    key={user.id}
+                    to={`/user/${encodeURIComponent(user.display_name)}`}
+                    className="group bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-2xl p-6 hover:from-purple-900/30 hover:to-pink-900/30 transition-all duration-300 border border-purple-700/50 hover:border-purple-500 flex-shrink-0 text-center"
+                    style={{ width: '200px' }}
+                  >
+                    <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-2xl font-black">
+                      {user.display_name.charAt(0).toUpperCase()}
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2 group-hover:text-purple-500 transition-colors truncate">
+                      {user.display_name}
+                    </h3>
+                    <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
+                      <span>{formatNumber(user.followers)} followers</span>
+                      <span>{formatNumber(user.totalViews)} views</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Articles by Topic Sections */}
+        {Object.keys(articlesByTopic).length > 0 && (
+          <div className="space-y-16">
+            {Object.entries(articlesByTopic)
+              .sort(([, articlesA], [, articlesB]) => {
+                const totalViewsA = articlesA.reduce((sum, a) => sum + a.views, 0);
+                const totalViewsB = articlesB.reduce((sum, b) => sum + b.views, 0);
+                return totalViewsB - totalViewsA;
+              })
+              .map(([topic, articles]) => (
+                <section key={topic}>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-3xl md:text-4xl font-black text-white">
+                      {topic}
+                    </h2>
+                    <Link to={`/browse?topic=${topic}`} className="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold">
+                      Show all <ChevronRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                  <div className="overflow-x-auto pb-4 -mx-4 px-4">
+                    <div className="flex gap-6" style={{ minWidth: 'min-content' }}>
+                      {articles.slice(0, 8).map((article) => (
+                        <Link 
+                          key={article.id}
+                          to={`/articles/${article.id}`}
+                          className="group bg-gray-800 rounded-2xl p-6 hover:bg-gray-700 transition-all duration-300 flex-shrink-0"
+                          style={{ width: '320px' }}
+                        >
+                          <div className="flex items-center gap-2 mb-3 flex-wrap">
+                            {article.certified && (
+                              <span className="px-2 py-1 bg-yellow-500/20 text-yellow-500 text-xs font-bold rounded-md">
+                                Certified
+                              </span>
+                            )}
+                            {article.topics && article.topics.slice(0, 2).map(t => (
+                              <span key={t} className="px-2 py-1 bg-gray-700 text-gray-300 text-xs font-bold rounded-md">
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                          <h3 className="text-lg font-bold text-white mb-3 group-hover:text-orange-500 transition-colors line-clamp-2">
+                            {article.title}
+                          </h3>
+                          <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
+                            <span className="flex items-center gap-1">
+                              <Eye className="w-4 h-4" />
+                              {formatNumber(article.views)}
+                            </span>
+                            <span>by {article.display_name}</span>
+                          </div>
+                          <p className="text-sm text-gray-400 line-clamp-3">
+                            {truncateText(article.content.replace(/<[^>]*>/g, ''), 120)}
+                          </p>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              ))}
           </div>
-          
-          <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-6">
-              Your Voice Matters.
-              <span className="block bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent mt-2">
-                Make It Heard.
-              </span>
+        )}
+
+        {/* Bottom CTA for non-logged users */}
+        {!user && (
+          <section className="mt-20 text-center py-20 bg-gradient-to-r from-orange-900/30 to-pink-900/30 rounded-3xl border border-orange-700/50">
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-6">
+              Ready to join the conversation?
             </h2>
-            <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-              Join a community of thinkers who aren't afraid to challenge the status quo. Write, debate, and grow together.
+            <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
+              Create your free account and start sharing your perspective today.
             </p>
             <Link 
               to="/signup"
-              className="inline-flex items-center gap-3 px-10 py-5 text-lg font-bold text-black bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl hover:from-yellow-400 hover:to-orange-400 transition-all duration-300 hover:scale-105 shadow-2xl"
+              className="inline-flex items-center gap-2 px-10 py-5 bg-white text-black font-black rounded-full hover:bg-gray-100 transition-colors text-lg"
             >
-              Create Free Account
-              <ArrowRight className="w-6 h-6" />
+              Sign up free
+              <ChevronRight className="w-6 h-6" />
             </Link>
-            <p className="text-gray-500 text-sm mt-6">No credit card required • Join in 30 seconds</p>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
+      </div>
     </div>
   );
 }
