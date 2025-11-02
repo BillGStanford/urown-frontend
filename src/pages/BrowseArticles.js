@@ -1,11 +1,10 @@
-// pages/BrowseArticles.js - FIXED VERSION
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { axios } from '../utils/apiUtils';
 import ArticleCard from '../components/ArticleCard';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import TrendingOpinions from '../components/TrendingOpinions';
-import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown } from 'lucide-react';
+import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown, Sparkles, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe } from 'lucide-react';
 
 function BrowseArticles() {
   const [articles, setArticles] = useState([]);
@@ -21,7 +20,7 @@ function BrowseArticles() {
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [isTopicFilterOpen, setIsTopicFilterOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [totalArticleCount, setTotalArticleCount] = useState(0); // FIX: Track total count
+  const [totalArticleCount, setTotalArticleCount] = useState(0);
   const articlesPerPage = 12;
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,25 +39,37 @@ function BrowseArticles() {
     fetchTopics();
   }, []);
 
-  // Check for topic in URL parameters and fetch when it changes
+  // Check for topic in URL parameters
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
-    const topicId = urlParams.get('topic');
-    const newTopicId = topicId ? parseInt(topicId) : null;
+    const topicParam = urlParams.get('topic');
     
-    if (newTopicId !== selectedTopic) {
-      setSelectedTopic(newTopicId);
+    if (topicParam) {
+      // Check if it's a topic name (string) or ID (number)
+      const topicByName = topics.find(t => t.name === topicParam);
+      const topicById = topics.find(t => t.id === parseInt(topicParam));
+      
+      const newTopicId = topicByName?.id || topicById?.id || null;
+      
+      if (newTopicId !== selectedTopic) {
+        setSelectedTopic(newTopicId);
+        setArticles([]);
+        setCurrentPage(1);
+        setTotalArticleCount(0);
+      }
+    } else if (selectedTopic !== null) {
+      setSelectedTopic(null);
       setArticles([]);
       setCurrentPage(1);
-      setTotalArticleCount(0); // FIX: Reset count
+      setTotalArticleCount(0);
     }
-  }, [location.search]);
+  }, [location.search, topics]);
 
   // Fetch articles when component mounts or when topic changes
   useEffect(() => {
     setArticles([]);
     setCurrentPage(1);
-    setTotalArticleCount(0); // FIX: Reset count
+    setTotalArticleCount(0);
     fetchArticles(true);
   }, [selectedTopic]);
 
@@ -94,7 +105,6 @@ function BrowseArticles() {
       setRefreshing(true);
       const offset = reset ? 0 : (currentPage - 1) * articlesPerPage;
       
-      // FIX: Don't cache when resetting to ensure fresh data
       const cacheKey = `articles-${articlesPerPage}-${offset}-false-${selectedTopic || 'all'}`;
       let cachedData = reset ? null : getCachedData(cacheKey);
       
@@ -109,17 +119,11 @@ function BrowseArticles() {
           params.topicId = selectedTopic;
         }
         
-        console.log('Fetching articles with params:', params); // DEBUG
-        
         const response = await fetchWithRetry(() => 
           axios.get('/articles', { params })
         );
         cachedData = response.data.articles;
         
-        console.log('Received articles:', cachedData.length); // DEBUG
-        console.log('Articles data:', cachedData); // DEBUG
-        
-        // FIX: Only cache if not resetting
         if (!reset) {
           setCachedData(cacheKey, cachedData);
         }
@@ -127,25 +131,21 @@ function BrowseArticles() {
       
       let newArticles = cachedData;
       
-      // FIX: Sort by certified first, then views
+      // Sort by certified first, then views
       newArticles = [...newArticles].sort((a, b) => {
         if (a.certified && !b.certified) return -1;
         if (!a.certified && b.certified) return 1;
         return (b.views || 0) - (a.views || 0);
       });
       
-      console.log('Sorted articles:', newArticles.length); // DEBUG
-      
       if (reset) {
         setArticles(newArticles);
-        // FIX: Set initial total count
         setTotalArticleCount(newArticles.length);
       } else {
         setArticles(prev => {
           const existingIds = new Set(prev.map(article => article.id));
           const uniqueNewArticles = newArticles.filter(article => !existingIds.has(article.id));
           const combined = [...prev, ...uniqueNewArticles];
-          // FIX: Update total count as we load more
           setTotalArticleCount(combined.length);
           return combined;
         });
@@ -154,10 +154,7 @@ function BrowseArticles() {
       const articleIds = newArticles.map(article => article.id);
       fetchCounterCounts(articleIds);
 
-      // FIX: Determine if there are more articles to load
       setHasMore(newArticles.length === articlesPerPage);
-      
-      console.log('Has more articles:', newArticles.length === articlesPerPage); // DEBUG
     } catch (error) {
       console.error('Error fetching articles:', error);
       setError('Failed to load articles');
@@ -214,7 +211,25 @@ function BrowseArticles() {
     return topic ? topic.name : 'Unknown Topic';
   };
 
-  // FIX: Improved filtering logic
+  const getTopicIcon = (topicName) => {
+    const iconMap = {
+      'Politics': Globe,
+      'Business': Briefcase,
+      'Finance': DollarSign,
+      'Sports': Trophy,
+      'Food': Pizza,
+      'Travel': Plane,
+      'Technology': Laptop,
+      'Health': Heart,
+      'Entertainment': Film,
+      'Science': Microscope,
+      'Environment': Globe
+    };
+    
+    const IconComponent = iconMap[topicName] || Sparkles;
+    return <IconComponent className="w-4 h-4" strokeWidth={2.5} />;
+  };
+
   const filteredArticles = articles.filter(article => {
     const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          article.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -245,24 +260,23 @@ function BrowseArticles() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content - 2 columns */}
           <div className="lg:col-span-2">
             {/* Hero Header */}
-            <div className="mb-8 md:mb-12">
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border border-yellow-500/30 px-4 py-2 rounded-full mb-4">
-                <Zap className="w-4 h-4 text-yellow-600" />
-                <span className="text-yellow-700 font-bold text-xs uppercase tracking-wider">
-                  {/* FIX: Show filtered count when searching, otherwise total loaded */}
-                  {searchTerm ? filteredArticles.length : totalArticleCount} Active Debates
+            <div className="mb-8 sm:mb-12">
+              <div className="inline-flex items-center gap-2 bg-white border border-gray-300 px-4 py-2 rounded-lg shadow-sm mb-6">
+                <Sparkles className="w-4 h-4 text-orange-600" strokeWidth={2.5} />
+                <span className="text-gray-700 font-semibold text-sm">
+                  {searchTerm ? filteredArticles.length : totalArticleCount} {searchTerm ? 'Results' : 'Articles'}
                 </span>
               </div>
               
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-4 text-gray-900 leading-tight">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-4 sm:mb-6 text-gray-900 leading-tight">
                 Explore Opinions
               </h1>
-              <p className="text-base sm:text-lg text-gray-600 mb-6 max-w-2xl">
+              <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl">
                 Dive into thought-provoking articles from writers around the world
               </p>
               
@@ -274,89 +288,28 @@ function BrowseArticles() {
                   placeholder="Search by title, author, or content..."
                   value={searchTerm}
                   onChange={handleSearch}
-                  className="w-full pl-12 pr-4 py-3.5 text-base border-2 border-gray-300 focus:border-black focus:outline-none transition-all rounded-xl bg-white shadow-sm"
+                  className="w-full pl-12 pr-4 py-3.5 text-base border-2 border-gray-300 focus:border-gray-900 focus:outline-none transition-all rounded-xl bg-white shadow-sm"
                 />
               </div>
             </div>
 
-            {/* Topic Filter */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 sm:p-6 mb-6 md:mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Filter size={18} className="text-gray-600" />
-                  <span className="text-sm font-bold text-gray-700">Topic Filter</span>
-                </div>
-                
-                <button
-                  onClick={toggleTopicFilter}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                >
-                  <span className="text-sm font-medium text-gray-700">{getSelectedTopicName()}</span>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${isTopicFilterOpen ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
-              
-              {isTopicFilterOpen && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    <button
-                      onClick={() => handleTopicSelect(null)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        !selectedTopic 
-                          ? 'bg-orange-100 text-orange-700 border-2 border-orange-300' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-transparent'
-                      }`}
-                    >
-                      All Topics
-                    </button>
-                    {topics.map(topic => (
-                      <button
-                        key={topic.id}
-                        onClick={() => handleTopicSelect(topic.id)}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          selectedTopic === topic.id 
-                            ? 'bg-orange-100 text-orange-700 border-2 border-orange-300' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-transparent'
-                        }`}
-                      >
-                        {topic.name}
-                      </button>
-                    ))}
-                  </div>
-                  
-                  {selectedTopic && (
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="text-sm text-gray-600">
-                        Showing articles tagged with "{getSelectedTopicName()}"
-                      </span>
-                      <button
-                        onClick={clearTopicFilter}
-                        className="text-sm font-medium text-orange-600 hover:text-orange-700 flex items-center gap-1"
-                      >
-                        <X size={16} />
-                        Clear Filter
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
             {/* Control Panel */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 sm:p-6 mb-6 md:mb-8">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
               {/* Top Row: Stats and Actions */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                {/* Article Count - FIX: Use correct count */}
-                <div className="flex items-baseline gap-2">
-                  <div className="text-3xl md:text-4xl font-black bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-                    {searchTerm ? filteredArticles.length : totalArticleCount}
-                  </div>
-                  <div className="text-sm font-bold text-gray-600 uppercase tracking-wide">
-                    {searchTerm ? 'Results' : 'Articles Loaded'}
-                  </div>
+                {/* Article Count */}
+                <div className="flex items-center gap-4 flex-wrap">
                   {selectedTopic && (
-                    <div className="text-sm font-medium text-orange-600 ml-2">
-                      in {getSelectedTopicName()}
+                    <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 px-3 py-2 rounded-lg">
+                      {getTopicIcon(getSelectedTopicName())}
+                      <span className="text-sm font-bold text-orange-700">{getSelectedTopicName()}</span>
+                      <button
+                        onClick={clearTopicFilter}
+                        className="text-orange-600 hover:text-orange-700 ml-1"
+                        aria-label="Clear filter"
+                      >
+                        <X size={16} strokeWidth={2.5} />
+                      </button>
                     </div>
                   )}
                 </div>
@@ -368,8 +321,8 @@ function BrowseArticles() {
                     className="inline-flex items-center gap-2 bg-white border-2 border-gray-900 text-gray-900 px-4 py-2 font-bold hover:bg-gray-900 hover:text-white transition-all duration-200 rounded-xl text-sm"
                     disabled={loading || refreshing}
                   >
-                    <RefreshCw size={16} className={loading || refreshing ? 'animate-spin' : ''} />
-                    Refresh
+                    <RefreshCw size={16} className={loading || refreshing ? 'animate-spin' : ''} strokeWidth={2.5} />
+                    <span className="hidden sm:inline">Refresh</span>
                   </button>
                   
                   <button 
@@ -377,8 +330,8 @@ function BrowseArticles() {
                     className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black px-4 py-2 font-bold transition-all duration-200 rounded-xl shadow-md hover:shadow-lg text-sm"
                     disabled={filteredArticles.length === 0 && articles.length === 0}
                   >
-                    <Shuffle size={16} />
-                    Random
+                    <Shuffle size={16} strokeWidth={2.5} />
+                    <span className="hidden sm:inline">Random</span>
                   </button>
 
                   {/* View Mode Toggle */}
@@ -388,27 +341,69 @@ function BrowseArticles() {
                       className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
                       aria-label="Grid view"
                     >
-                      <Grid size={16} className={viewMode === 'grid' ? 'text-gray-900' : 'text-gray-500'} />
+                      <Grid size={16} className={viewMode === 'grid' ? 'text-gray-900' : 'text-gray-500'} strokeWidth={2.5} />
                     </button>
                     <button
                       onClick={() => setViewMode('list')}
                       className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
                       aria-label="List view"
                     >
-                      <List size={16} className={viewMode === 'list' ? 'text-gray-900' : 'text-gray-500'} />
+                      <List size={16} className={viewMode === 'list' ? 'text-gray-900' : 'text-gray-500'} strokeWidth={2.5} />
                     </button>
                   </div>
                 </div>
               </div>
 
               {/* Filter Section */}
-              <div className="pt-6 border-t border-gray-200">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <Filter size={18} className="text-gray-600" />
-                    <span className="text-sm font-bold text-gray-700">Filter Type</span>
-                  </div>
+              <div className="pt-6 border-t border-gray-200 space-y-4">
+                {/* Topic Filter */}
+                <div>
+                  <button
+                    onClick={toggleTopicFilter}
+                    className="flex items-center justify-between w-full sm:w-auto sm:min-w-[200px] px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Filter size={16} className="text-gray-600" strokeWidth={2.5} />
+                      <span className="text-sm font-bold text-gray-700">Topic: {getSelectedTopicName()}</span>
+                    </div>
+                    <ChevronDown className={`h-4 w-4 text-gray-600 transition-transform ${isTopicFilterOpen ? 'rotate-180' : ''}`} strokeWidth={2.5} />
+                  </button>
                   
+                  {isTopicFilterOpen && (
+                    <div className="mt-3 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <button
+                          onClick={() => handleTopicSelect(null)}
+                          className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
+                            !selectedTopic 
+                              ? 'bg-orange-600 text-white' 
+                              : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                          }`}
+                        >
+                          All Topics
+                        </button>
+                        {topics.map(topic => (
+                          <button
+                            key={topic.id}
+                            onClick={() => handleTopicSelect(topic.id)}
+                            className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${
+                              selectedTopic === topic.id 
+                                ? 'bg-orange-600 text-white' 
+                                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                            }`}
+                          >
+                            {getTopicIcon(topic.name)}
+                            {topic.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Counter Opinions Toggle */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-gray-700">Show Counter Opinions Only</span>
                   <label className="flex items-center cursor-pointer group">
                     <div className="relative">
                       <input
@@ -420,17 +415,7 @@ function BrowseArticles() {
                       <div className={`block w-12 h-6 rounded-full transition-all ${showCounters ? 'bg-gradient-to-r from-orange-500 to-red-500' : 'bg-gray-300'}`}></div>
                       <div className={`absolute left-0.5 top-0.5 bg-white w-5 h-5 rounded-full transition-transform shadow-md ${showCounters ? 'transform translate-x-6' : ''}`}></div>
                     </div>
-                    <span className="ml-3 text-sm font-bold text-gray-700">
-                      Counter Opinions Only
-                    </span>
                   </label>
-                </div>
-                
-                <div className="mt-3 px-2">
-                  <span className="inline-flex items-center gap-2 text-xs font-semibold text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg">
-                    <div className={`w-2 h-2 rounded-full ${showCounters ? 'bg-orange-500' : 'bg-gray-400'}`}></div>
-                    Showing: {showCounters ? 'Counter Opinions' : 'Original Opinions'}
-                  </span>
                 </div>
               </div>
             </div>
@@ -441,7 +426,7 @@ function BrowseArticles() {
                 <div className="text-lg font-bold text-red-900 mb-3">{error}</div>
                 <button 
                   onClick={handleRefresh}
-                  className="bg-gradient-to-r from-gray-900 to-black text-white px-6 py-2.5 font-bold hover:from-black hover:to-gray-900 transition-all rounded-lg"
+                  className="bg-gray-900 text-white px-6 py-2.5 font-bold hover:bg-gray-800 transition-all rounded-xl"
                 >
                   Try Again
                 </button>
@@ -452,7 +437,7 @@ function BrowseArticles() {
             {loading && articles.length === 0 && (
               <div className="text-center py-20">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 mb-4">
-                  <RefreshCw className="h-8 w-8 text-white animate-spin" />
+                  <RefreshCw className="h-8 w-8 text-white animate-spin" strokeWidth={2.5} />
                 </div>
                 <div className="text-xl font-bold text-gray-900">Loading articles...</div>
               </div>
@@ -460,41 +445,58 @@ function BrowseArticles() {
 
             {/* No Articles State */}
             {!loading && articles.length === 0 && !error && (
-              <div className="text-center py-20 bg-white rounded-2xl shadow-lg border border-gray-200 p-12">
-                <div className="text-6xl mb-6">📝</div>
-                <div className="text-3xl font-black mb-4 text-gray-900">No Articles Yet</div>
-                <div className="text-lg text-gray-600 mb-8">
+              <div className="text-center py-16 sm:py-20 bg-white rounded-2xl shadow-lg border border-gray-200 p-8 sm:p-12">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-6 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-2xl flex items-center justify-center">
+                  <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-orange-600" strokeWidth={2.5} />
+                </div>
+                <div className="text-2xl sm:text-3xl font-black mb-4 text-gray-900">No Articles Yet</div>
+                <div className="text-base sm:text-lg text-gray-600 mb-8">
                   Be the first to share your opinion!
                 </div>
-                <Link to="/write" className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black px-8 py-4 text-lg font-bold transition-all rounded-xl shadow-lg hover:shadow-xl">
+                <Link to="/write" className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black px-8 py-4 text-lg font-bold transition-all rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105">
                   Start Writing
-                  <Zap className="h-5 w-5" />
+                  <Zap className="h-5 w-5" strokeWidth={2.5} />
                 </Link>
               </div>
             )}
 
-            {/* No Results for Selected Topic */}
-            {!loading && articles.length > 0 && filteredArticles.length === 0 && selectedTopic && (
-              <div className="text-center py-20 bg-white rounded-2xl shadow-lg border border-gray-200 p-12">
-                <div className="text-6xl mb-6">📝</div>
-                <div className="text-3xl font-black mb-4 text-gray-900">Doesn't Exist. Create One Instead!</div>
-                <div className="text-base text-gray-600 mb-8">
-                  No articles found for "{getSelectedTopicName()}". Be the first to write about it!
+            {/* No Results for Search/Filter */}
+            {!loading && articles.length > 0 && filteredArticles.length === 0 && (
+              <div className="text-center py-16 sm:py-20 bg-white rounded-2xl shadow-lg border border-gray-200 p-8 sm:p-12">
+                <Search className="mx-auto mb-6 text-gray-400" size={64} strokeWidth={1.5} />
+                <div className="text-2xl sm:text-3xl font-black mb-4 text-gray-900">
+                  {searchTerm ? 'No Results Found' : "Doesn't Exist Yet"}
+                </div>
+                <div className="text-base sm:text-lg text-gray-600 mb-8">
+                  {searchTerm 
+                    ? 'Try different keywords or clear your search' 
+                    : `No articles found for "${getSelectedTopicName()}". Be the first to write about it!`}
                 </div>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Link 
-                    to="/write" 
-                    className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black px-8 py-3 font-bold transition-all rounded-xl shadow-md"
-                  >
-                    <Zap className="h-5 w-5" />
-                    Write Article
-                  </Link>
-                  <button 
-                    onClick={clearTopicFilter}
-                    className="bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 text-white px-8 py-3 font-bold transition-all rounded-xl shadow-md"
-                  >
-                    Clear Topic Filter
-                  </button>
+                  {searchTerm ? (
+                    <button 
+                      onClick={() => setSearchTerm('')}
+                      className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 font-bold transition-all rounded-xl shadow-md"
+                    >
+                      Clear Search
+                    </button>
+                  ) : (
+                    <>
+                      <Link 
+                        to="/write" 
+                        className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black px-8 py-3 font-bold transition-all rounded-xl shadow-md"
+                      >
+                        <Zap className="h-5 w-5" strokeWidth={2.5} />
+                        Write Article
+                      </Link>
+                      <button 
+                        onClick={clearTopicFilter}
+                        className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 font-bold transition-all rounded-xl shadow-md"
+                      >
+                        Clear Filter
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -523,11 +525,11 @@ function BrowseArticles() {
                     <button
                       onClick={handleLoadMore}
                       disabled={loading}
-                      className="inline-flex items-center gap-2 bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 text-white px-10 py-4 text-lg font-bold transition-all disabled:opacity-50 rounded-xl shadow-lg hover:shadow-xl"
+                      className="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-10 py-4 text-lg font-bold transition-all disabled:opacity-50 rounded-xl shadow-lg hover:shadow-xl"
                     >
                       {loading ? (
                         <>
-                          <RefreshCw className="h-5 w-5 animate-spin" />
+                          <RefreshCw className="h-5 w-5 animate-spin" strokeWidth={2.5} />
                           Loading...
                         </>
                       ) : (
@@ -551,26 +553,9 @@ function BrowseArticles() {
               </>
             )}
 
-            {/* Search No Results */}
-            {searchTerm && filteredArticles.length === 0 && articles.length > 0 && (
-              <div className="text-center py-20 bg-white rounded-2xl shadow-lg border border-gray-200 p-12">
-                <Search className="mx-auto mb-6 text-gray-400" size={64} />
-                <div className="text-2xl font-black mb-4 text-gray-900">No Results Found</div>
-                <div className="text-base text-gray-600 mb-8">
-                  Try different keywords or clear your search
-                </div>
-                <button 
-                  onClick={() => setSearchTerm('')}
-                  className="bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 text-white px-8 py-3 font-bold transition-all rounded-xl shadow-md"
-                >
-                  Clear Search
-                </button>
-              </div>
-            )}
-
             {/* CTA Section */}
             {!loading && filteredArticles.length > 0 && (
-              <div className="bg-gradient-to-r from-gray-900 via-black to-gray-800 text-white rounded-2xl p-8 sm:p-12 text-center mt-8 shadow-2xl relative overflow-hidden">
+              <div className="bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white rounded-2xl p-8 sm:p-12 text-center mt-8 shadow-2xl relative overflow-hidden">
                 <div className="absolute inset-0 opacity-10">
                   <div className="absolute top-0 left-1/4 w-64 h-64 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl"></div>
                   <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-orange-500 rounded-full mix-blend-multiply filter blur-3xl"></div>
@@ -588,7 +573,7 @@ function BrowseArticles() {
                     className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black px-8 sm:px-10 py-3 sm:py-4 text-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-2xl rounded-xl"
                   >
                     Start Writing
-                    <Zap className="h-5 w-5" />
+                    <Zap className="h-5 w-5" strokeWidth={2.5} />
                   </Link>
                 </div>
               </div>
@@ -598,16 +583,17 @@ function BrowseArticles() {
           {/* Sidebar - 1 column */}
           <aside className="lg:col-span-1">
             <div className="sticky top-6">
-              <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-t-2xl px-6 py-4 shadow-lg">
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="w-7 h-7" />
-                  <h2 className="text-2xl font-black">Trending Now</h2>
+              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+                <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <TrendingUp className="w-7 h-7 text-white" strokeWidth={2.5} />
+                    <h3 className="text-2xl font-black text-white">Trending Now</h3>
+                  </div>
+                  <p className="text-sm text-orange-100">Most debated topics today</p>
                 </div>
-                <p className="text-sm text-orange-100 mt-1">Hot debates happening today</p>
-              </div>
-              
-              <div className="bg-white rounded-b-2xl shadow-xl overflow-hidden border-t-4 border-orange-500">
-                <TrendingOpinions />
+                <div className="bg-white">
+                  <TrendingOpinions />
+                </div>
               </div>
             </div>
           </aside>
