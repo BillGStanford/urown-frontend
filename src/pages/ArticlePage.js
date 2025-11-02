@@ -88,29 +88,17 @@ const ArticlePage = () => {
     return viewedArticles.includes(articleId);
   };
 
-  const markArticleAsViewed = async (articleId) => {
+  const markArticleAsViewed = (articleId) => {
     const fingerprint = getBrowserFingerprint();
     const storageKey = `viewed_articles_${fingerprint}`;
     const viewedArticles = JSON.parse(localStorage.getItem(storageKey) || '[]');
     
     if (!viewedArticles.includes(articleId)) {
-      // Add to local storage as a backup
       viewedArticles.push(articleId);
       localStorage.setItem(storageKey, JSON.stringify(viewedArticles));
       
-      // Record view on server
-      try {
-        const token = localStorage.getItem('token');
-        const headers = {};
-        
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-        
-        await axios.post(`/api/articles/${articleId}/view`, { fingerprint }, { headers });
-      } catch (err) {
-        console.error('Error recording view:', err);
-      }
+      axios.post(`/articles/${articleId}/view`, { fingerprint })
+        .catch(err => console.error('Error incrementing view count:', err));
     }
   };
 
@@ -160,7 +148,7 @@ const ArticlePage = () => {
         .filter(word => word.length > 4) // Only use words longer than 4 characters
         .slice(0, 3); // Take first 3 keywords
       
-      const response = await axios.get('/api/articles', {
+      const response = await axios.get('/articles', {
         params: { limit: 4 }
       });
       
@@ -182,7 +170,7 @@ const ArticlePage = () => {
   // Random article navigation
   const handleRandomArticle = async () => {
     try {
-      const response = await axios.get('/api/articles', { params: { limit: 100 } });
+      const response = await axios.get('/articles', { params: { limit: 100 } });
       const articles = response.data.articles;
       if (articles.length > 0) {
         const randomArticle = articles[Math.floor(Math.random() * articles.length)];
@@ -205,7 +193,7 @@ const ArticlePage = () => {
       setError(null);
       
       try {
-        const response = await axios.get(`/api/articles/${id}`, {
+        const response = await axios.get(`/articles/${id}`, {
           signal: abortControllerRef.current.signal
         });
         
@@ -228,12 +216,13 @@ const ArticlePage = () => {
         // Fetch related articles
         fetchRelatedArticles(currentArticle.title, id);
         
-        // Mark article as viewed (this will only increment once per user/fingerprint)
-        await markArticleAsViewed(id);
+        if (!hasViewedArticle(id)) {
+          markArticleAsViewed(id);
+        }
         
         if (currentArticle.parent_article_id) {
           try {
-            const originalResponse = await axios.get(`/api/articles/${currentArticle.parent_article_id}`, {
+            const originalResponse = await axios.get(`/articles/${currentArticle.parent_article_id}`, {
               signal: abortControllerRef.current.signal
             });
             setOriginalArticle(originalResponse.data.article);
@@ -244,7 +233,7 @@ const ArticlePage = () => {
           }
         }
         
-        const counterResponse = await axios.get(`/api/articles?parent_article_id=${id}`);
+        const counterResponse = await axios.get(`/articles?parent_article_id=${id}`);
         setCounterOpinions(counterResponse.data.articles);
       } catch (err) {
         if (!axios.isCancel(err)) {
@@ -351,7 +340,7 @@ const ArticlePage = () => {
     setError(null);
 
     try {
-      await axios.post(`/api/articles/${id}/report`, {
+      await axios.post(`/articles/${id}/report`, {
         reason: reportReason
       });
       setReporting(false);
