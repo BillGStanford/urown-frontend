@@ -72,7 +72,7 @@ function AdminWriteArticle() {
     try {
       await fetchWithDeduplication(
         'admin-create-article',
-        createApiRequest('/articles', {
+        createApiRequest('/admin/articles/create', {
           method: 'POST',
           data: {
             username: formData.username.trim(),
