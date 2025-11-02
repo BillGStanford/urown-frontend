@@ -22,9 +22,9 @@ function HomePage() {
         const debatesResponse = await fetchWithRetry(() => axios.get('/debate-topics'));
         setActiveDebates(debatesResponse.data.topics || []);
         
-        // Fetch certified articles
+        // Fetch certified articles - remove limit to get all
         const certifiedResponse = await fetchWithRetry(() => 
-          axios.get('/articles', { params: { certified: 'true', limit: 6 } })
+          axios.get('/articles', { params: { certified: 'true' } })
         );
         setCertifiedArticles(certifiedResponse.data.articles || []);
         
@@ -96,20 +96,21 @@ function HomePage() {
   };
 
   const getTopicIcon = (topic) => {
-    const icons = {
-      'Politics': '🏛️',
-      'Business': '💼',
-      'Finance': '💰',
-      'Sports': '⚽',
-      'Food': '🍕',
-      'Travel': '✈️',
-      'Technology': '💻',
-      'Health': '🏥',
-      'Entertainment': '🎬',
-      'Science': '🔬',
-      'Environment': '🌍'
+    const iconMap = {
+      'Politics': Users,
+      'Business': TrendingUp,
+      'Finance': TrendingUp,
+      'Sports': Award,
+      'Food': Star,
+      'Travel': Star,
+      'Technology': Zap,
+      'Health': Star,
+      'Entertainment': Star,
+      'Science': Zap,
+      'Environment': Star
     };
-    return icons[topic] || '📝';
+    const IconComponent = iconMap[topic] || MessageSquare;
+    return <IconComponent className="w-8 h-8 text-orange-600" strokeWidth={2.5} />;
   };
 
   if (loading) {
@@ -248,40 +249,42 @@ function HomePage() {
                 Active Debates
               </h2>
               <Link to="/browse" className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white font-bold text-sm rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
-                View All
+                Browse
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {activeDebates.map((debate, index) => (
-                <Link 
-                  key={debate.id}
-                  to={`/debate-topics/${debate.id}`}
-                  className="group bg-white rounded-2xl p-6 hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-orange-500 transform hover:scale-105 animate-fade-in-up"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
-                      <MessageSquare className="w-6 h-6 text-white" strokeWidth={2.5} />
+            <div className="overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+              <div className="flex gap-6" style={{ minWidth: 'min-content' }}>
+                {activeDebates.map((debate, index) => (
+                  <Link 
+                    key={debate.id}
+                    to={`/debate-topics/${debate.id}`}
+                    className="group bg-white rounded-2xl p-6 hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-orange-500 flex-shrink-0 transform hover:scale-105 animate-fade-in-up"
+                    style={{ width: '320px', animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                        <MessageSquare className="w-6 h-6 text-white" strokeWidth={2.5} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-black text-gray-900 mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
+                          {debate.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 line-clamp-2">{debate.description}</p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-black text-gray-900 mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
-                        {debate.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 line-clamp-2">{debate.description}</p>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500 flex items-center gap-2 font-semibold">
+                        <Users className="w-4 h-4" strokeWidth={2.5} />
+                        {debate.opinions_count} opinions
+                      </span>
+                      <span className="text-orange-600 font-black flex items-center gap-1 group-hover:gap-2 transition-all">
+                        Join <ArrowRight className="w-4 h-4" />
+                      </span>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500 flex items-center gap-2 font-semibold">
-                      <Users className="w-4 h-4" strokeWidth={2.5} />
-                      {debate.opinions_count} opinions
-                    </span>
-                    <span className="text-orange-600 font-black flex items-center gap-1 group-hover:gap-2 transition-all">
-                      Join <ArrowRight className="w-4 h-4" />
-                    </span>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                ))}
+              </div>
             </div>
           </section>
         )}
@@ -385,11 +388,11 @@ function HomePage() {
                 <section key={topic}>
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-3">
-                      <span className="text-4xl">{getTopicIcon(topic)}</span>
+                      {getTopicIcon(topic)}
                       {topic}
                     </h2>
-                    <Link to={`/browse?topic=${topic}`} className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white font-bold text-sm rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
-                      Show all <ChevronRight className="w-4 h-4" />
+                    <Link to={`/browse?topic=${encodeURIComponent(topic)}`} className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white font-bold text-sm rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
+                      Browse <ChevronRight className="w-4 h-4" />
                     </Link>
                   </div>
                   <div className="overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
