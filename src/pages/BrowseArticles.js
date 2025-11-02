@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { axios } from '../utils/apiUtils';
 import ArticleCard from '../components/ArticleCard';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import TrendingOpinions from '../components/TrendingOpinions';
-import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown, Sparkles, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe } from 'lucide-react';
+import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown, Sparkles, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
 
 function BrowseArticles() {
   const [articles, setArticles] = useState([]);
+  const [articlesByTopic, setArticlesByTopic] = useState({});
   const [counterCounts, setCounterCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -21,9 +22,11 @@ function BrowseArticles() {
   const [isTopicFilterOpen, setIsTopicFilterOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [totalArticleCount, setTotalArticleCount] = useState(0);
+  const [topicScrollPositions, setTopicScrollPositions] = useState({});
   const articlesPerPage = 12;
   const navigate = useNavigate();
   const location = useLocation();
+  const topicRefs = useRef({});
 
   // Fetch topics on component mount
   useEffect(() => {
@@ -79,6 +82,15 @@ function BrowseArticles() {
       fetchArticles();
     }
   }, [currentPage]);
+
+  // Initialize scroll positions for topics
+  useEffect(() => {
+    const initialPositions = {};
+    topics.forEach(topic => {
+      initialPositions[topic.id] = 0;
+    });
+    setTopicScrollPositions(initialPositions);
+  }, [topics]);
 
   const fetchCounterCounts = async (articleIds) => {
     try {
@@ -141,12 +153,41 @@ function BrowseArticles() {
       if (reset) {
         setArticles(newArticles);
         setTotalArticleCount(newArticles.length);
+        
+        // Group articles by topic
+        const groupedArticles = {};
+        newArticles.forEach(article => {
+          if (article.topics && article.topics.length > 0) {
+            article.topics.forEach(topicId => {
+              if (!groupedArticles[topicId]) {
+                groupedArticles[topicId] = [];
+              }
+              groupedArticles[topicId].push(article);
+            });
+          }
+        });
+        setArticlesByTopic(groupedArticles);
       } else {
         setArticles(prev => {
           const existingIds = new Set(prev.map(article => article.id));
           const uniqueNewArticles = newArticles.filter(article => !existingIds.has(article.id));
           const combined = [...prev, ...uniqueNewArticles];
           setTotalArticleCount(combined.length);
+          
+          // Update grouped articles
+          const groupedArticles = { ...articlesByTopic };
+          uniqueNewArticles.forEach(article => {
+            if (article.topics && article.topics.length > 0) {
+              article.topics.forEach(topicId => {
+                if (!groupedArticles[topicId]) {
+                  groupedArticles[topicId] = [];
+                }
+                groupedArticles[topicId].push(article);
+              });
+            }
+          });
+          setArticlesByTopic(groupedArticles);
+          
           return combined;
         });
       }
@@ -256,6 +297,148 @@ function BrowseArticles() {
     setArticles([]);
     setTotalArticleCount(0);
     fetchArticles(true);
+  };
+
+  // Function to scroll topic section
+  const scrollTopicSection = (topicId, direction) => {
+    const container = topicRefs.current[topicId];
+    if (!container) return;
+    
+    const scrollAmount = 320; // Width of one article card plus margin
+    const newPosition = direction === 'left' 
+      ? Math.max(0, topicScrollPositions[topicId] - scrollAmount)
+      : topicScrollPositions[topicId] + scrollAmount;
+    
+    container.scrollTo({
+      left: newPosition,
+      behavior: 'smooth'
+    });
+    
+    setTopicScrollPositions(prev => ({
+      ...prev,
+      [topicId]: newPosition
+    }));
+  };
+
+  // Get topics sorted by popularity (number of articles)
+  const getTopicsByPopularity = () => {
+    const topicsWithCount = topics.map(topic => ({
+      ...topic,
+      articleCount: articlesByTopic[topic.id] ? articlesByTopic[topic.id].length : 0
+    }));
+    
+    // Sort by article count (descending)
+    topicsWithCount.sort((a, b) => b.articleCount - a.articleCount);
+    
+    return topicsWithCount;
+  };
+
+  // Get articles for a topic, with special sorting for less popular topics
+  const getArticlesForTopic = (topicId, isLessPopular = false) => {
+    const topicArticles = articlesByTopic[topicId] || [];
+    
+    if (isLessPopular) {
+      // For less popular topics, sometimes prioritize articles with fewer views
+      // to boost engagement (30% chance)
+      if (Math.random() < 0.3) {
+        return [...topicArticles].sort((a, b) => (a.views || 0) - (b.views || 0));
+      }
+    }
+    
+    // Default sorting: certified first, then by views
+    return [...topicArticles].sort((a, b) => {
+      if (a.certified && !b.certified) return -1;
+      if (!a.certified && b.certified) return 1;
+      return (b.views || 0) - (a.views || 0);
+    });
+  };
+
+  // Get politics topic (always first)
+  const getPoliticsTopic = () => {
+    return topics.find(topic => topic.name === 'Politics');
+  };
+
+  // Get top 3 topics by popularity (excluding Politics)
+  const getTopTopics = () => {
+    const politicsTopic = getPoliticsTopic();
+    const topicsByPopularity = getTopicsByPopularity();
+    
+    // Filter out Politics if it exists
+    const filteredTopics = politicsTopic 
+      ? topicsByPopularity.filter(topic => topic.id !== politicsTopic.id)
+      : topicsByPopularity;
+    
+    // Return top 3
+    return filteredTopics.slice(0, 3);
+  };
+
+  // Get remaining topics
+  const getRemainingTopics = () => {
+    const politicsTopic = getPoliticsTopic();
+    const topTopics = getTopTopics();
+    
+    // Filter out Politics and top topics
+    return topics.filter(topic => {
+      if (politicsTopic && topic.id === politicsTopic.id) return false;
+      return !topTopics.some(topTopic => topTopic.id === topic.id);
+    });
+  };
+
+  // Render topic section with sliding navigation
+  const renderTopicSection = (topic, isLessPopular = false) => {
+    const topicArticles = getArticlesForTopic(topic.id, isLessPopular);
+    
+    if (topicArticles.length === 0) return null;
+    
+    return (
+      <div className="mb-10">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            {getTopicIcon(topic.name)}
+            <h2 className="text-2xl font-bold text-gray-900">{topic.name}</h2>
+            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+              {topicArticles.length} articles
+            </span>
+          </div>
+          
+          {topicArticles.length > 3 && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => scrollTopicSection(topic.id, 'left')}
+                className="p-2 bg-white border border-gray-300 rounded-full shadow-sm hover:shadow-md transition-shadow"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button
+                onClick={() => scrollTopicSection(topic.id, 'right')}
+                className="p-2 bg-white border border-gray-300 rounded-full shadow-sm hover:shadow-md transition-shadow"
+                aria-label="Scroll right"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          )}
+        </div>
+        
+        <div 
+          ref={el => topicRefs.current[topic.id] = el}
+          className="flex gap-4 overflow-x-auto scrollbar-hide pb-2"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {topicArticles.map((article) => (
+            <div key={article.id} className="flex-none w-80">
+              <ArticleCard
+                article={article}
+                counterCount={showCounters ? counterCounts[article.id] || 0 : null}
+                onClick={handleArticleClick}
+                viewMode="card"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -501,8 +684,37 @@ function BrowseArticles() {
               </div>
             )}
 
-            {/* Articles Grid/List */}
-            {!loading && filteredArticles.length > 0 && (
+            {/* Topic Sections */}
+            {!loading && articles.length > 0 && !searchTerm && (
+              <>
+                {/* Politics Section (Always First) */}
+                {(() => {
+                  const politicsTopic = getPoliticsTopic();
+                  return politicsTopic ? renderTopicSection(politicsTopic) : null;
+                })()}
+                
+                {/* Top 3 Topics by Popularity */}
+                {getTopTopics().map(topic => renderTopicSection(topic))}
+                
+                {/* Remaining Topics Section */}
+                {(() => {
+                  const remainingTopics = getRemainingTopics();
+                  if (remainingTopics.length === 0) return null;
+                  
+                  return (
+                    <div className="mb-10">
+                      <h2 className="text-2xl font-bold text-gray-900 mb-4">More Topics</h2>
+                      <div className="space-y-6">
+                        {remainingTopics.map(topic => renderTopicSection(topic, true))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </>
+            )}
+
+            {/* Articles Grid/List (when searching or filtering) */}
+            {!loading && filteredArticles.length > 0 && (searchTerm || selectedTopic) && (
               <>
                 <div className={viewMode === 'grid' 
                   ? 'grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8' 
@@ -554,7 +766,7 @@ function BrowseArticles() {
             )}
 
             {/* CTA Section */}
-            {!loading && filteredArticles.length > 0 && (
+            {!loading && articles.length > 0 && (
               <div className="bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white rounded-2xl p-8 sm:p-12 text-center mt-8 shadow-2xl relative overflow-hidden">
                 <div className="absolute inset-0 opacity-10">
                   <div className="absolute top-0 left-1/4 w-64 h-64 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl"></div>
