@@ -3,30 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import { useUser } from '../context/UserContext';
-import { 
-  ChevronRight, 
-  Flame, 
-  Award, 
-  Users, 
-  TrendingUp, 
-  Eye, 
-  MessageSquare, 
-  Calendar, 
-  Star, 
-  Zap, 
-  ArrowRight,
-  Briefcase,
-  DollarSign,
-  Plane,
-  Utensils,
-  Monitor,
-  Heart,
-  Film,
-  Microscope,
-  Globe,
-  Building,
-  Trophy
-} from 'lucide-react';
+import { ChevronRight, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe } from 'lucide-react';
 
 function HomePage() {
   const [activeDebates, setActiveDebates] = useState([]);
@@ -45,10 +22,11 @@ function HomePage() {
         const debatesResponse = await fetchWithRetry(() => axios.get('/debate-topics'));
         setActiveDebates(debatesResponse.data.topics || []);
         
-        // Fetch certified articles - removed limit to get all 11 articles
+        // Fetch certified articles - NO LIMIT to show all 11
         const certifiedResponse = await fetchWithRetry(() => 
           axios.get('/articles', { params: { certified: 'true' } })
         );
+        console.log('Certified articles fetched:', certifiedResponse.data.articles?.length || 0);
         setCertifiedArticles(certifiedResponse.data.articles || []);
         
         // Fetch all articles
@@ -119,20 +97,22 @@ function HomePage() {
   };
 
   const getTopicIcon = (topic) => {
-    const icons = {
-      'Politics': <Building className="w-5 h-5" />,
-      'Business': <Briefcase className="w-5 h-5" />,
-      'Finance': <DollarSign className="w-5 h-5" />,
-      'Sports': <Trophy className="w-5 h-5" />,
-      'Food': <Utensils className="w-5 h-5" />,
-      'Travel': <Plane className="w-5 h-5" />,
-      'Technology': <Monitor className="w-5 h-5" />,
-      'Health': <Heart className="w-5 h-5" />,
-      'Entertainment': <Film className="w-5 h-5" />,
-      'Science': <Microscope className="w-5 h-5" />,
-      'Environment': <Globe className="w-5 h-5" />
+    const iconMap = {
+      'Politics': Globe,
+      'Business': Briefcase,
+      'Finance': DollarSign,
+      'Sports': Trophy,
+      'Food': Pizza,
+      'Travel': Plane,
+      'Technology': Laptop,
+      'Health': Heart,
+      'Entertainment': Film,
+      'Science': Microscope,
+      'Environment': Globe
     };
-    return icons[topic] || <Star className="w-5 h-5" />;
+    
+    const IconComponent = iconMap[topic] || MessageSquare;
+    return <IconComponent className="w-6 h-6" strokeWidth={2.5} />;
   };
 
   if (loading) {
@@ -275,43 +255,41 @@ function HomePage() {
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-              <div className="flex gap-6" style={{ minWidth: 'max-content' }}>
-                {activeDebates.map((debate, index) => (
-                  <Link 
-                    key={debate.id}
-                    to={`/debate-topics/${debate.id}`}
-                    className="group bg-white rounded-2xl p-6 hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-orange-500 transform hover:scale-105 animate-fade-in-up"
-                    style={{ width: '320px', animationDelay: `${index * 100}ms` }}
-                  >
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
-                        <MessageSquare className="w-6 h-6 text-white" strokeWidth={2.5} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-black text-gray-900 mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
-                          {debate.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 line-clamp-2">{debate.description}</p>
-                      </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {activeDebates.map((debate, index) => (
+                <Link 
+                  key={debate.id}
+                  to={`/debate-topics/${debate.id}`}
+                  className="group bg-white rounded-2xl p-6 hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-orange-500 transform hover:scale-105 animate-fade-in-up"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                      <MessageSquare className="w-6 h-6 text-white" strokeWidth={2.5} />
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500 flex items-center gap-2 font-semibold">
-                        <Users className="w-4 h-4" strokeWidth={2.5} />
-                        {debate.opinions_count} opinions
-                      </span>
-                      <span className="text-orange-600 font-black flex items-center gap-1 group-hover:gap-2 transition-all">
-                        Join <ArrowRight className="w-4 h-4" />
-                      </span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-black text-gray-900 mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
+                        {debate.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 line-clamp-2">{debate.description}</p>
                     </div>
-                  </Link>
-                ))}
-              </div>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500 flex items-center gap-2 font-semibold">
+                      <Users className="w-4 h-4" strokeWidth={2.5} />
+                      {debate.opinions_count} opinions
+                    </span>
+                    <span className="text-orange-600 font-black flex items-center gap-1 group-hover:gap-2 transition-all">
+                      Join <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </div>
+                </Link>
+              ))}
             </div>
           </section>
         )}
 
-        {/* Editorial Picks Section */}
+        {/* Editorial Picks Section with Horizontal Scroll */}
         {certifiedArticles.length > 0 && (
           <section className="mb-16">
             <div className="flex items-center justify-between mb-6">
@@ -322,8 +300,8 @@ function HomePage() {
                 Editorial Picks
               </h2>
             </div>
-            <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-              <div className="flex gap-6" style={{ minWidth: 'max-content' }}>
+            <div className="overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+              <div className="flex gap-6" style={{ minWidth: 'min-content' }}>
                 {certifiedArticles.map((article, index) => (
                   <Link 
                     key={article.id}
@@ -357,7 +335,7 @@ function HomePage() {
           </section>
         )}
 
-        {/* Popular Users Section */}
+        {/* Popular Users Section with Horizontal Scroll */}
         {topUsers.length > 0 && (
           <section className="mb-16">
             <div className="flex items-center justify-between mb-6">
@@ -368,8 +346,8 @@ function HomePage() {
                 Popular Voices
               </h2>
             </div>
-            <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-              <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
+            <div className="overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+              <div className="flex gap-4" style={{ minWidth: 'min-content' }}>
                 {topUsers.map((topUser, index) => (
                   <Link 
                     key={index}
@@ -397,7 +375,7 @@ function HomePage() {
           </section>
         )}
 
-        {/* Articles by Topic Sections */}
+        {/* Articles by Topic Sections with Horizontal Scroll */}
         {Object.keys(articlesByTopic).length > 0 && (
           <div className="space-y-16">
             {Object.entries(articlesByTopic)
@@ -410,18 +388,17 @@ function HomePage() {
                 <section key={topic}>
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-gray-500 to-gray-700 rounded-2xl flex items-center justify-center shadow-lg text-white">
+                      <span className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center">
                         {getTopicIcon(topic)}
-                      </div>
+                      </span>
                       {topic}
                     </h2>
-                    <Link to="/browse" className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white font-bold text-sm rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
-                      Browse
-                      <ChevronRight className="w-4 h-4" />
+                    <Link to={`/browse?topic=${topic}`} className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white font-bold text-sm rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
+                      Browse <ChevronRight className="w-4 h-4" />
                     </Link>
                   </div>
-                  <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                    <div className="flex gap-6" style={{ minWidth: 'max-content' }}>
+                  <div className="overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+                    <div className="flex gap-6" style={{ minWidth: 'min-content' }}>
                       {articles.slice(0, 8).map((article, index) => (
                         <Link 
                           key={article.id}
@@ -490,19 +467,12 @@ function HomePage() {
       </div>
 
       <style jsx>{`
-        .scrollbar-thin::-webkit-scrollbar {
-          height: 8px;
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
         }
-        .scrollbar-thin::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 10px;
-        }
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-          background: #d1d5db;
-          border-radius: 10px;
-        }
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-          background: #9ca3af;
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
 
         @keyframes fade-in {
