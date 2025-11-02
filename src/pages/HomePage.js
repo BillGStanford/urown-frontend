@@ -137,7 +137,7 @@ function HomePage() {
 
   // Handle article click - navigate to article page
   const handleArticleClick = (articleId) => {
-    navigate(`/articles/${articleId}`);
+    navigate(`/article/${articleId}`);
   };
 
   if (loading) {
