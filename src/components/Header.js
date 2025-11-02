@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
+import axios from 'axios';
 import { 
   Search, 
   LayoutDashboard, 
@@ -16,7 +17,8 @@ import {
   Mail,
   Globe,
   Info,
-  Flame
+  Flame,
+  Bell
 } from 'lucide-react';
 
 function Header({ user, onLogout }) {
@@ -24,6 +26,7 @@ function Header({ user, onLogout }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
 
   const isAdmin = user && (user.role === 'admin' || user.role === 'super-admin');
@@ -48,6 +51,15 @@ function Header({ user, onLogout }) {
     setIsUserDropdownOpen(!isUserDropdownOpen);
   };
 
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await axios.get('/api/notifications/unread-count');
+      setUnreadCount(response.data.count);
+    } catch (err) {
+      console.error('Error fetching unread count:', err);
+    }
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
@@ -65,6 +77,14 @@ function Header({ user, onLogout }) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 30000); // Check every 30 seconds
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   return (
     <header className={`sticky top-0 z-50 transition-all duration-200 ${
@@ -132,6 +152,19 @@ function Header({ user, onLogout }) {
                 >
                   <LayoutDashboard className="h-6 w-6 text-indigo-600" strokeWidth={2.5} />
                   <span className="text-xs font-bold text-gray-700 group-hover:text-indigo-600 transition-colors">Dashboard</span>
+                </Link>
+
+                <Link 
+                  to="/notifications" 
+                  className="group flex flex-col items-center gap-1 px-5 py-2 hover:bg-amber-50 rounded-xl transition-all duration-200 relative"
+                >
+                  <Bell className="h-6 w-6 text-amber-600" strokeWidth={2.5} />
+                  <span className="text-xs font-bold text-gray-700 group-hover:text-amber-600 transition-colors">Notifications</span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
                 </Link>
 
                 <Link 
@@ -343,6 +376,23 @@ function Header({ user, onLogout }) {
                     </div>
                     <span>Dashboard</span>
                   </Link>
+                  
+                  <Link 
+                    to="/notifications" 
+                    className="flex items-center gap-4 text-base font-bold text-gray-800 hover:bg-amber-50 py-4 px-5 rounded-xl transition-all duration-150 relative"
+                    onClick={closeMobileMenu}
+                  >
+                    <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center relative">
+                      <Bell className="h-6 w-6 text-amber-600" strokeWidth={2.5} />
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                      )}
+                    </div>
+                    <span>Notifications</span>
+                  </Link>
+                  
                   <Link 
                     to="/write" 
                     className="flex items-center gap-4 text-base font-black text-white bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 py-4 px-5 rounded-2xl shadow-xl mx-3 justify-center transition-all duration-150"

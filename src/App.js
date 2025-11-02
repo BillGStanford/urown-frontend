@@ -28,6 +28,7 @@ import ReportedArticlesDashboard from './pages/ReportedArticlesDashboard';
 import CommunityGuidelines from './pages/important/CommunityGuidelines';
 import PartnersPage from './pages/PartnersPage';
 import UserProfile from './pages/UserProfile';
+import NotificationsPage from './pages/NotificationsPage';
 import About from './pages/AboutUsPage';
 import CareerPage from './pages/important/CareersPage';
 import GlobalError from './components/GlobalError';
@@ -125,6 +126,10 @@ function AppRoutes() {
           <Route 
   path="/ideology-quiz" 
   element={user ? <IdeologyQuiz /> : <Navigate to="/login" />} 
+/>
+<Route 
+  path="/notifications" 
+  element={user ? <NotificationsPage /> : <Navigate to="/login" />} 
 />
           <Route path="/community-guidelines" element={<CommunityGuidelines />} />
           <Route path="/about" element={<About />} />
