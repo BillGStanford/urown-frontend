@@ -285,7 +285,7 @@ function HomePage() {
               {activeDebates.map((debate, index) => (
                 <Link 
                   key={debate.id}
-                  to={`/debate-topics/${debate.id}`}
+                  to={`/debate/${debate.id}`}
                   className="group bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-orange-500 transform hover:scale-105 animate-fade-in-up"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
