@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useUser } from '../context/UserContext';
-import { Mail, Phone, User, Calendar, Lock, CheckCircle, AlertCircle, ChevronRight } from 'lucide-react';
+import { Mail, Phone, User, Calendar, Lock, CheckCircle, AlertCircle, ChevronRight, MessageCircle, Info } from 'lucide-react';
 
 function SignupPage() {
   const { login } = useUser();
@@ -13,6 +13,7 @@ function SignupPage() {
     phone: '',
     full_name: '',
     display_name: '',
+    discord_username: '',
     date_of_birth: '',
     password: '',
     confirm_password: '',
@@ -20,6 +21,7 @@ function SignupPage() {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showDiscordTooltip, setShowDiscordTooltip] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -45,6 +47,9 @@ function SignupPage() {
 
     if (!formData.display_name.trim() || formData.display_name.length < 2)
       newErrors.display_name = 'Display name required (min 2 chars)';
+
+    if (formData.discord_username && formData.discord_username.trim().length < 2)
+      newErrors.discord_username = 'Discord username too short';
 
     if (!formData.date_of_birth) {
       newErrors.date_of_birth = 'Date of birth required';
@@ -82,6 +87,7 @@ function SignupPage() {
         phone: formData.phone || null,
         full_name: formData.full_name || null,
         display_name: formData.display_name,
+        discord_username: formData.discord_username || null,
         date_of_birth: formData.date_of_birth,
         password: formData.password,
         terms_agreed: formData.terms_agreed
@@ -192,6 +198,49 @@ function SignupPage() {
                   />
                   {errors.display_name && <p className="mt-2 text-red-600 font-semibold">{errors.display_name}</p>}
                 </div>
+                
+                {/* Discord Username Field */}
+                <div className="relative">
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="text-lg font-bold text-gray-900">
+                      Discord Username (Optional)
+                    </label>
+                    <div 
+                      className="relative"
+                      onMouseEnter={() => setShowDiscordTooltip(true)}
+                      onMouseLeave={() => setShowDiscordTooltip(false)}
+                    >
+                      <Info className="w-5 h-5 text-gray-500 cursor-help" />
+                      {showDiscordTooltip && (
+                        <div className="absolute left-0 top-8 z-50 w-80 bg-gray-900 text-white text-sm px-4 py-3 rounded-lg shadow-xl">
+                          <div className="flex items-start gap-2">
+                            <MessageCircle className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="font-bold mb-1">Why add Discord?</p>
+                              <p className="text-gray-300">
+                                This will appear in your user profile. This will also help you if you are in a partnered Discord server so you may earn roles in that Discord community from the roles you get on this platform.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="absolute -top-2 left-4 w-4 h-4 bg-gray-900 transform rotate-45"></div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <MessageCircle className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      name="discord_username"
+                      value={formData.discord_username}
+                      onChange={handleChange}
+                      className={`w-full pl-12 pr-5 py-4 rounded-xl border-2 ${errors.discord_username ? 'border-red-500' : 'border-gray-300'} focus:border-purple-500 focus:outline-none transition-all text-lg`}
+                      placeholder="username#1234"
+                    />
+                  </div>
+                  {errors.discord_username && <p className="mt-2 text-red-600 font-semibold">{errors.discord_username}</p>}
+                </div>
+
                 <div>
                   <label className="block text-lg font-bold text-gray-900 mb-2">Date of Birth *</label>
                   <input

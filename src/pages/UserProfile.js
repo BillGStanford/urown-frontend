@@ -21,7 +21,8 @@ import {
   Link2,
   Brain,
   Lock,
-  Unlock
+  Unlock,
+  MessageSquare
 } from 'lucide-react';
 
 const API_URL = process.env.NODE_ENV === 'production' 
@@ -39,6 +40,9 @@ const UserProfile = () => {
   const [followLoading, setFollowLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [ideologyLoading, setIdeologyLoading] = useState(false);
+  const [showDiscordModal, setShowDiscordModal] = useState(false);
+  const [discordUsername, setDiscordUsername] = useState('');
+  const [discordLoading, setDiscordLoading] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -55,6 +59,7 @@ const UserProfile = () => {
         console.log('User ideology:', response.data.user.ideology);
         console.log('Ideology public:', response.data.user.ideology_public);
         console.log('Ideology details:', response.data.user.ideology_details);
+        console.log('Discord username:', response.data.user.discord_username);
         console.log('========================');
         
         setUser(response.data.user);
@@ -146,6 +151,41 @@ const UserProfile = () => {
       setError(err.response?.data?.error || 'Failed to update visibility');
     } finally {
       setIdeologyLoading(false);
+    }
+  };
+
+  const handleUpdateDiscordUsername = async () => {
+    try {
+      setDiscordLoading(true);
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      await axios.put(`${API_URL}/user/profile`, 
+        { discord_username: discordUsername.trim() },
+        { headers }
+      );
+
+      // Update local state
+      setUser(prev => ({ 
+        ...prev, 
+        discord_username: discordUsername.trim() 
+      }));
+
+      // Update current user state if this is the current user's profile
+      if (currentUser && currentUser.id === user.id) {
+        setCurrentUser(prev => ({ 
+          ...prev, 
+          discord_username: discordUsername.trim() 
+        }));
+      }
+
+      setShowDiscordModal(false);
+      setDiscordUsername('');
+    } catch (err) {
+      console.error('Update Discord username error:', err);
+      setError(err.response?.data?.error || 'Failed to update Discord username');
+    } finally {
+      setDiscordLoading(false);
     }
   };
 
@@ -295,6 +335,54 @@ const UserProfile = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Discord Username Section */}
+                <div className="border-t border-gray-200 mt-6 pt-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <MessageSquare className="h-5 w-5 text-indigo-600" />
+                    <h3 className="text-lg font-semibold text-gray-900">Discord</h3>
+                  </div>
+                  
+                  {user.discord_username ? (
+                    <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold text-indigo-900">{user.discord_username}</div>
+                          {user.discord_username_updated_at && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Updated {formatDistanceToNow(new Date(user.discord_username_updated_at), { addSuffix: true })}
+                            </p>
+                          )}
+                        </div>
+                        {isOwnProfile && (
+                          <button
+                            onClick={() => setShowDiscordModal(true)}
+                            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      {isOwnProfile ? (
+                        <div>
+                          <p className="text-gray-600 text-sm mb-3">Add your Discord username to connect with other users</p>
+                          <button
+                            onClick={() => setShowDiscordModal(true)}
+                            className="w-full py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium text-sm flex items-center justify-center gap-2"
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                            Add Discord Username
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-sm italic">No Discord username added</p>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 {/* Ideology Section - Shows when public OR on own profile */}
                 {shouldShowIdeology && (
@@ -482,6 +570,56 @@ const UserProfile = () => {
           </div>
         </div>
       </div>
+
+      {/* Discord Username Modal */}
+      {showDiscordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <MessageSquare className="h-6 w-6 text-indigo-600" />
+              <h3 className="text-xl font-bold text-gray-900">
+                {user.discord_username ? 'Update Discord Username' : 'Add Discord Username'}
+              </h3>
+            </div>
+            
+            <div className="mb-4">
+              <label htmlFor="discord-username" className="block text-sm font-medium text-gray-700 mb-2">
+                Discord Username
+              </label>
+              <input
+                type="text"
+                id="discord-username"
+                value={discordUsername}
+                onChange={(e) => setDiscordUsername(e.target.value)}
+                placeholder="Enter your Discord username"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                This will be visible on your public profile
+              </p>
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDiscordModal(false);
+                  setDiscordUsername('');
+                }}
+                className="flex-1 py-2 px-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateDiscordUsername}
+                disabled={discordLoading || !discordUsername.trim()}
+                className="flex-1 py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {discordLoading ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="h-12"></div>
     </div>
