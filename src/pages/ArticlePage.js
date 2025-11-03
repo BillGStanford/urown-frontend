@@ -23,7 +23,19 @@ import {
   Calendar,
   Check,
   ExternalLink,
-  MoreHorizontal
+  MoreHorizontal,
+  Highlighter,
+  Maximize2,
+  StickyNote,
+  Type,
+  Minus,
+  Plus,
+  AlignLeft,
+  AlignCenter,
+  ChevronLeft,
+  ChevronRight,
+  Settings,
+  Palette
 } from 'lucide-react';
 
 const ArticlePage = () => {
@@ -52,21 +64,33 @@ const ArticlePage = () => {
   const articleContentRef = useRef(null);
   const abortControllerRef = useRef(null);
 
-  // Generate slug from title
+  // Premium Reading Features
+  const [focusMode, setFocusMode] = useState(false);
+  const [fontSize, setFontSize] = useState(20);
+  const [fontFamily, setFontFamily] = useState('serif');
+  const [lineHeight, setLineHeight] = useState(1.8);
+  const [contentWidth, setContentWidth] = useState('max');
+  const [showNotes, setShowNotes] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [highlightColor, setHighlightColor] = useState('#fef08a');
+  const [highlights, setHighlights] = useState([]);
+  const [showHighlighter, setShowHighlighter] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [readingMode, setReadingMode] = useState('comfortable');
+
   const generateSlug = (title) => {
     return title
       .toString()
       .toLowerCase()
-      .replace(/\s+/g, '-')           // Replace spaces with -
-      .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-      .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-      .replace(/^-+/, '')             // Trim - from start of text
-      .replace(/-+$/, '');            // Trim - from end of text
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]+/g, '')
+      .replace(/\-\-+/g, '-')
+      .replace(/^-+/, '')
+      .replace(/-+$/, '');
   };
 
-  // Generate or retrieve browser fingerprint
   const getBrowserFingerprint = () => {
-    let fingerprint = localStorage.getItem('browser_fingerprint');
+    let fingerprint = sessionStorage.getItem('browser_fingerprint');
     
     if (!fingerprint) {
       const userAgent = navigator.userAgent;
@@ -76,7 +100,7 @@ const ArticlePage = () => {
       const platform = navigator.platform;
       
       fingerprint = btoa(`${userAgent}|${screenRes}|${timezone}|${language}|${platform}`);
-      localStorage.setItem('browser_fingerprint', fingerprint);
+      sessionStorage.setItem('browser_fingerprint', fingerprint);
     }
     
     return fingerprint;
@@ -85,25 +109,24 @@ const ArticlePage = () => {
   const hasViewedArticle = (articleId) => {
     const fingerprint = getBrowserFingerprint();
     const storageKey = `viewed_articles_${fingerprint}`;
-    const viewedArticles = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    const viewedArticles = JSON.parse(sessionStorage.getItem(storageKey) || '[]');
     return viewedArticles.includes(articleId);
   };
 
   const markArticleAsViewed = (articleId) => {
     const fingerprint = getBrowserFingerprint();
     const storageKey = `viewed_articles_${fingerprint}`;
-    const viewedArticles = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    const viewedArticles = JSON.parse(sessionStorage.getItem(storageKey) || '[]');
     
     if (!viewedArticles.includes(articleId)) {
       viewedArticles.push(articleId);
-      localStorage.setItem(storageKey, JSON.stringify(viewedArticles));
+      sessionStorage.setItem(storageKey, JSON.stringify(viewedArticles));
       
       axios.post(`/articles/${articleId}/view`, { fingerprint })
         .catch(err => console.error('Error incrementing view count:', err));
     }
   };
 
-  // Calculate reading time
   const calculateReadingTime = (text) => {
     const wordsPerMinute = 200;
     const words = text.trim().split(/\s+/).length;
@@ -111,7 +134,6 @@ const ArticlePage = () => {
     return time;
   };
 
-  // Handle scroll for reading progress
   useEffect(() => {
     const handleScroll = () => {
       if (!articleContentRef.current) return;
@@ -123,37 +145,22 @@ const ArticlePage = () => {
       const progress = (scrollTop / trackLength) * 100;
       
       setReadingProgress(Math.min(progress, 100));
-
-      // Determine active section
-      const sections = ['article', 'discussion', 'related'];
-      sections.forEach(section => {
-        const element = document.getElementById(section);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          if (rect.top <= 100 && rect.bottom >= 100) {
-            setActiveSection(section);
-          }
-        }
-      });
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Fetch related articles based on keywords
   const fetchRelatedArticles = async (articleTitle, currentArticleId) => {
     try {
-      // Extract keywords from title (simple approach)
       const keywords = articleTitle.toLowerCase().split(' ')
-        .filter(word => word.length > 4) // Only use words longer than 4 characters
-        .slice(0, 3); // Take first 3 keywords
+        .filter(word => word.length > 4)
+        .slice(0, 3);
       
       const response = await axios.get('/articles', {
         params: { limit: 4 }
       });
       
-      // Filter articles that share keywords and exclude current article
       const related = response.data.articles
         .filter(a => a.id !== parseInt(currentArticleId))
         .filter(a => {
@@ -168,7 +175,6 @@ const ArticlePage = () => {
     }
   };
 
-  // Random article navigation
   const handleRandomArticle = async () => {
     try {
       const response = await axios.get('/articles', { params: { limit: 100 } });
@@ -182,7 +188,6 @@ const ArticlePage = () => {
     }
   };
 
-  // Check bookmark status
   useEffect(() => {
     const checkBookmarkStatus = async () => {
       if (!user || !article) return;
@@ -198,7 +203,6 @@ const ArticlePage = () => {
     checkBookmarkStatus();
   }, [user, article, id]);
 
-  // Toggle bookmark
   const handleBookmarkToggle = async () => {
     if (!user) {
       navigate('/login');
@@ -241,20 +245,16 @@ const ArticlePage = () => {
         const currentArticle = response.data.article;
         setArticle(currentArticle);
         
-        // Generate the correct slug from the title
         const correctSlug = generateSlug(currentArticle.title);
         
-        // If slug is missing or incorrect, redirect
         if (!slug || slug !== correctSlug) {
           navigate(`/article/${id}/${correctSlug}`, { replace: true });
           return;
         }
         
-        // Calculate reading time
         const time = calculateReadingTime(currentArticle.content);
         currentArticle.reading_time = time;
         
-        // Fetch related articles
         fetchRelatedArticles(currentArticle.title, id);
         
         if (!hasViewedArticle(id)) {
@@ -406,34 +406,68 @@ const ArticlePage = () => {
     navigate(`/write-counter?originalArticleId=${id}`);
   };
 
-  // Format content with proper typography
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    const selectedText = selection.toString().trim();
+    
+    if (selectedText && showHighlighter) {
+      const range = selection.getRangeAt(0);
+      const span = document.createElement('span');
+      span.style.backgroundColor = highlightColor;
+      span.style.padding = '2px 0';
+      span.style.borderRadius = '2px';
+      span.className = 'highlight-span';
+      
+      try {
+        range.surroundContents(span);
+        setHighlights([...highlights, { text: selectedText, color: highlightColor }]);
+      } catch (e) {
+        console.log('Could not highlight selection');
+      }
+    }
+  };
+
+  const clearHighlights = () => {
+    const highlightedElements = document.querySelectorAll('.highlight-span');
+    highlightedElements.forEach(el => {
+      const parent = el.parentNode;
+      while (el.firstChild) {
+        parent.insertBefore(el.firstChild, el);
+      }
+      parent.removeChild(el);
+    });
+    setHighlights([]);
+  };
+
+  const getContentWidthClass = () => {
+    switch (contentWidth) {
+      case 'narrow': return 'max-w-2xl';
+      case 'comfortable': return 'max-w-3xl';
+      case 'max': return 'max-w-4xl';
+      default: return 'max-w-4xl';
+    }
+  };
+
   const formatContent = (content) => {
     return content.split('\n\n').map((paragraph, index) => {
       if (index === 0) {
-        // Drop cap for first paragraph
         return (
-          <p key={index} className="mb-8 text-xl leading-relaxed first-letter:text-7xl first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:mt-1">
+          <p 
+            key={index} 
+            className={`mb-8 leading-relaxed first-letter:text-7xl first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:mt-1 ${darkMode ? 'first-letter:text-yellow-400' : 'first-letter:text-gray-900'}`}
+            style={{ fontSize: `${fontSize}px`, lineHeight }}
+          >
             {paragraph}
           </p>
         );
       }
       
-      // Pull quote every 4th paragraph
-      if (index > 0 && index % 4 === 0 && paragraph.length > 100) {
-        return (
-          <div key={index}>
-            <blockquote className={`my-12 py-6 px-8 border-l-4 ${darkMode ? 'border-yellow-500 bg-gray-800/50' : 'border-yellow-500 bg-yellow-50/50'} rounded-r-lg`}>
-              <p className="text-2xl font-serif italic leading-relaxed">
-                "{paragraph.substring(0, 150)}..."
-              </p>
-            </blockquote>
-            <p className="mb-8 text-xl leading-relaxed">{paragraph}</p>
-          </div>
-        );
-      }
-      
       return (
-        <p key={index} className="mb-8 text-xl leading-relaxed">
+        <p 
+          key={index} 
+          className="mb-8 leading-relaxed"
+          style={{ fontSize: `${fontSize}px`, lineHeight }}
+        >
           {paragraph}
         </p>
       );
@@ -442,7 +476,7 @@ const ArticlePage = () => {
 
   if (loading) {
     return (
-      <div className={`min-h-screen ${darkMode ? 'bg-gray-950' : 'bg-gray-50'} flex items-center justify-center`}>
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-950' : 'bg-white'} flex items-center justify-center`}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-yellow-500 mx-auto"></div>
           <div className={`text-2xl mt-4 font-serif font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Loading article...</div>
@@ -453,7 +487,7 @@ const ArticlePage = () => {
 
   if (error || !article) {
     return (
-      <div className={`min-h-screen ${darkMode ? 'bg-gray-950' : 'bg-gray-50'} flex items-center justify-center`}>
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-950' : 'bg-white'} flex items-center justify-center`}>
         <div className="text-center max-w-2xl px-4">
           <h1 className={`text-4xl font-serif mb-4 font-black ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Article Not Found</h1>
           <p className={`text-xl mb-8 font-serif ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>The article you're looking for doesn't exist or has been removed.</p>
@@ -468,397 +502,573 @@ const ArticlePage = () => {
     );
   }
 
+  const fontFamilyClass = fontFamily === 'serif' ? 'font-serif' : fontFamily === 'sans' ? 'font-sans' : 'font-mono';
+
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-950' : 'bg-gray-50'} transition-colors duration-300`}>
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-950' : 'bg-white'} transition-all duration-300`}>
       {/* Reading Progress Bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-gray-200 dark:bg-gray-800">
+      <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-gray-200/50">
         <div 
           className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 transition-all duration-150 shadow-lg"
           style={{ width: `${readingProgress}%` }}
         />
       </div>
 
-      {/* Floating Action Bar */}
-      <div className="fixed top-20 right-8 z-40 flex flex-col gap-3">
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className={`p-3 rounded-full shadow-xl ${darkMode ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-700'} hover:scale-110 transition-all duration-300 border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}
-          title={darkMode ? 'Light Mode' : 'Dark Mode'}
-        >
-          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
-        <div className="relative">
+      {/* Floating Toolbar */}
+      {!focusMode && (
+        <div className="fixed top-20 right-8 z-40 flex flex-col gap-2">
           <button
-            onClick={() => setShowShareMenu(!showShareMenu)}
-            className={`p-3 rounded-full shadow-xl ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-600'} hover:scale-110 transition-all duration-300 border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}
-            title="Share Article"
+            onClick={() => setShowSettings(!showSettings)}
+            className={`p-3 rounded-full shadow-xl ${darkMode ? 'bg-gray-900 text-gray-300 border border-gray-800' : 'bg-white text-gray-700 border border-gray-200'} hover:scale-110 transition-all duration-300`}
+            title="Reading Settings"
           >
-            <Share2 size={20} />
+            <Settings size={20} />
           </button>
-          {showShareMenu && (
-            <div className={`absolute right-full mr-3 top-0 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl shadow-2xl p-4 border min-w-[200px]`}>
-              <div className="space-y-2">
-                <button onClick={() => handleShare('twitter')} className={`w-full text-left px-3 py-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} transition-colors flex items-center gap-2`}>
-                  <ExternalLink size={16} />
-                  <span>Share on Twitter</span>
+          
+          {showSettings && (
+            <div className={`absolute right-full mr-3 top-0 ${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} rounded-2xl shadow-2xl p-6 border w-80`}>
+              <h3 className={`font-bold mb-4 text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Reading Settings</h3>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className={`text-sm font-medium mb-2 block ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Font Size</label>
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => setFontSize(Math.max(14, fontSize - 2))} className={`p-2 rounded-lg ${darkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                      <Minus size={16} />
+                    </button>
+                    <span className={`text-sm font-mono ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{fontSize}px</span>
+                    <button onClick={() => setFontSize(Math.min(32, fontSize + 2))} className={`p-2 rounded-lg ${darkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className={`text-sm font-medium mb-2 block ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Font Family</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button onClick={() => setFontFamily('serif')} className={`p-2 rounded-lg text-sm font-serif ${fontFamily === 'serif' ? 'bg-yellow-500 text-white' : `${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}`}>
+                      Serif
+                    </button>
+                    <button onClick={() => setFontFamily('sans')} className={`p-2 rounded-lg text-sm font-sans ${fontFamily === 'sans' ? 'bg-yellow-500 text-white' : `${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}`}>
+                      Sans
+                    </button>
+                    <button onClick={() => setFontFamily('mono')} className={`p-2 rounded-lg text-sm font-mono ${fontFamily === 'mono' ? 'bg-yellow-500 text-white' : `${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}`}>
+                      Mono
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className={`text-sm font-medium mb-2 block ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Width</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button onClick={() => setContentWidth('narrow')} className={`p-2 rounded-lg text-xs ${contentWidth === 'narrow' ? 'bg-yellow-500 text-white' : `${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}`}>
+                      Narrow
+                    </button>
+                    <button onClick={() => setContentWidth('comfortable')} className={`p-2 rounded-lg text-xs ${contentWidth === 'comfortable' ? 'bg-yellow-500 text-white' : `${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}`}>
+                      Comfy
+                    </button>
+                    <button onClick={() => setContentWidth('max')} className={`p-2 rounded-lg text-xs ${contentWidth === 'max' ? 'bg-yellow-500 text-white' : `${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}`}>
+                      Wide
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className={`text-sm font-medium mb-2 block ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Line Height</label>
+                  <input 
+                    type="range" 
+                    min="1.4" 
+                    max="2.2" 
+                    step="0.1" 
+                    value={lineHeight} 
+                    onChange={(e) => setLineHeight(parseFloat(e.target.value))}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>Tight</span>
+                    <span>Loose</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={() => setShowHighlighter(!showHighlighter)}
+            className={`p-3 rounded-full shadow-xl ${showHighlighter ? 'bg-yellow-500 text-white' : `${darkMode ? 'bg-gray-900 text-gray-300 border border-gray-800' : 'bg-white text-gray-700 border border-gray-200'}`} hover:scale-110 transition-all duration-300`}
+            title="Highlighter"
+          >
+            <Highlighter size={20} />
+          </button>
+
+          <button
+            onClick={() => setShowNotes(!showNotes)}
+            className={`p-3 rounded-full shadow-xl ${showNotes ? 'bg-yellow-500 text-white' : `${darkMode ? 'bg-gray-900 text-gray-300 border border-gray-800' : 'bg-white text-gray-700 border border-gray-200'}`} hover:scale-110 transition-all duration-300`}
+            title="Notes"
+          >
+            <StickyNote size={20} />
+          </button>
+
+          <button
+            onClick={() => setFocusMode(!focusMode)}
+            className={`p-3 rounded-full shadow-xl ${darkMode ? 'bg-gray-900 text-gray-300 border border-gray-800' : 'bg-white text-gray-700 border border-gray-200'} hover:scale-110 transition-all duration-300`}
+            title="Focus Mode"
+          >
+            <Maximize2 size={20} />
+          </button>
+
+          <div className="h-px bg-gray-300 my-1"></div>
+
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className={`p-3 rounded-full shadow-xl ${darkMode ? 'bg-gray-900 text-yellow-400 border border-gray-800' : 'bg-white text-gray-700 border border-gray-200'} hover:scale-110 transition-all duration-300`}
+            title={darkMode ? 'Light Mode' : 'Dark Mode'}
+          >
+            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+
+          <div className="relative">
+            <button
+              onClick={() => setShowShareMenu(!showShareMenu)}
+              className={`p-3 rounded-full shadow-xl ${darkMode ? 'bg-gray-900 text-gray-300 border border-gray-800' : 'bg-white text-gray-600 border border-gray-200'} hover:scale-110 transition-all duration-300`}
+              title="Share Article"
+            >
+              <Share2 size={20} />
+            </button>
+            {showShareMenu && (
+              <div className={`absolute right-full mr-3 top-0 ${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} rounded-xl shadow-2xl p-4 border min-w-[200px]`}>
+                <div className="space-y-2">
+                  <button onClick={() => handleShare('twitter')} className={`w-full text-left px-3 py-2 rounded-lg ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'} transition-colors flex items-center gap-2`}>
+                    <ExternalLink size={16} />
+                    <span>Twitter</span>
+                  </button>
+                  <button onClick={() => handleShare('linkedin')} className={`w-full text-left px-3 py-2 rounded-lg ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'} transition-colors flex items-center gap-2`}>
+                    <ExternalLink size={16} />
+                    <span>LinkedIn</span>
+                  </button>
+                  <button onClick={() => handleShare('facebook')} className={`w-full text-left px-3 py-2 rounded-lg ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'} transition-colors flex items-center gap-2`}>
+                    <ExternalLink size={16} />
+                    <span>Facebook</span>
+                  </button>
+                  <button onClick={() => handleShare('email')} className={`w-full text-left px-3 py-2 rounded-lg ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'} transition-colors flex items-center gap-2`}>
+                    <ExternalLink size={16} />
+                    <span>Email</span>
+                  </button>
+                  <hr className={`my-2 ${darkMode ? 'border-gray-800' : 'border-gray-200'}`} />
+                  <button onClick={handleCopyLink} className={`w-full text-left px-3 py-2 rounded-lg ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'} transition-colors flex items-center gap-2`}>
+                    {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+                    <span>{copied ? 'Copied!' : 'Copy Link'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Focus Mode Exit Button */}
+      {focusMode && (
+        <button
+          onClick={() => setFocusMode(false)}
+          className="fixed top-8 right-8 z-50 p-3 rounded-full bg-gray-900/80 backdrop-blur-sm text-white hover:bg-gray-800 transition-all duration-300"
+          title="Exit Focus Mode"
+        >
+          <X size={24} />
+        </button>
+      )}
+
+      {/* Notes Panel */}
+      {showNotes && (
+        <div className={`fixed left-8 top-32 z-40 w-80 ${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl shadow-2xl p-6`}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Quick Notes</h3>
+            <button onClick={() => setShowNotes(false)} className={`${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}>
+              <X size={20} />
+            </button>
+          </div>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Take notes while reading..."
+            className={`w-full h-64 p-4 rounded-xl ${darkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400'} border focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none`}
+          />
+          <p className={`text-xs mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+            Notes are temporary and will be cleared when you leave
+          </p>
+          {highlights.length > 0 && (
+            <div className="mt-4">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className={`text-sm font-bold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Highlights ({highlights.length})
+                </h4>
+                <button onClick={clearHighlights} className="text-xs text-red-500 hover:text-red-600">
+                  Clear All
                 </button>
-                <button onClick={() => handleShare('linkedin')} className={`w-full text-left px-3 py-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} transition-colors flex items-center gap-2`}>
-                  <ExternalLink size={16} />
-                  <span>Share on LinkedIn</span>
-                </button>
-                <button onClick={() => handleShare('facebook')} className={`w-full text-left px-3 py-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} transition-colors flex items-center gap-2`}>
-                  <ExternalLink size={16} />
-                  <span>Share on Facebook</span>
-                </button>
-                <button onClick={() => handleShare('email')} className={`w-full text-left px-3 py-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} transition-colors flex items-center gap-2`}>
-                  <ExternalLink size={16} />
-                  <span>Share via Email</span>
-                </button>
-                <hr className={`my-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`} />
-                <button onClick={handleCopyLink} className={`w-full text-left px-3 py-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} transition-colors flex items-center gap-2`}>
-                  {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-                  <span>{copied ? 'Link Copied!' : 'Copy Link'}</span>
-                </button>
+              </div>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {highlights.map((highlight, idx) => (
+                  <div key={idx} className={`p-2 rounded-lg text-xs ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`} style={{ borderLeft: `3px solid ${highlight.color}` }}>
+                    {highlight.text.substring(0, 80)}...
+                  </div>
+                ))}
               </div>
             </div>
           )}
         </div>
-        <button
-          onClick={handleRandomArticle}
-          className={`p-3 rounded-full shadow-xl ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-600'} hover:scale-110 transition-all duration-300 border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}
-          title="Random Article"
-        >
-          <Shuffle size={20} />
-        </button>
-      </div>
+      )}
+
+      {/* Highlighter Color Picker */}
+      {showHighlighter && (
+        <div className={`fixed left-8 bottom-8 z-40 ${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl shadow-2xl p-4`}>
+          <p className={`text-sm font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Select text to highlight</p>
+          <div className="flex gap-2">
+            <button onClick={() => setHighlightColor('#fef08a')} className="w-8 h-8 rounded-full bg-yellow-200 border-2 border-gray-300 hover:scale-110 transition-transform" title="Yellow" />
+            <button onClick={() => setHighlightColor('#bfdbfe')} className="w-8 h-8 rounded-full bg-blue-200 border-2 border-gray-300 hover:scale-110 transition-transform" title="Blue" />
+            <button onClick={() => setHighlightColor('#bbf7d0')} className="w-8 h-8 rounded-full bg-green-200 border-2 border-gray-300 hover:scale-110 transition-transform" title="Green" />
+            <button onClick={() => setHighlightColor('#fecaca')} className="w-8 h-8 rounded-full bg-red-200 border-2 border-gray-300 hover:scale-110 transition-transform" title="Red" />
+            <button onClick={() => setHighlightColor('#e9d5ff')} className="w-8 h-8 rounded-full bg-purple-200 border-2 border-gray-300 hover:scale-110 transition-transform" title="Purple" />
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
-      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+      <article className={`${getContentWidthClass()} mx-auto px-4 sm:px-6 lg:px-8 ${focusMode ? 'pt-32' : 'pt-24'} pb-16`}>
         {/* Article Header */}
-        <header id="article" className="mb-12">
-          {/* Topic Tags */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {article.topics?.map((topic, index) => (
-              <span key={index} className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${darkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
-                {topic}
-              </span>
-            ))}
-          </div>
-
-          {/* Title */}
-          <h1 className={`text-5xl md:text-6xl font-serif font-bold mb-8 leading-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            {article.title}
-          </h1>
-
-          {/* Author & Meta Info */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
-            <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br ${getTierColor(article.tier)} shadow-lg`}>
-                <span className="text-2xl">{getTierEmoji(article.tier)}</span>
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {article.display_name}
-                  </h3>
-                  {article.certified && (
-                    <Award size={16} className="text-purple-500" title="Editorial Certified" />
-                  )}
-                </div>
-                <div className={`flex items-center gap-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r ${getTierColor(article.tier)} text-white`}>
-                    {article.tier?.toUpperCase()}
+        {!focusMode && (
+          <header id="article" className="mb-16">
+            {/* Topic Tags */}
+            {article.topics && article.topics.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {article.topics.map((topic, index) => (
+                  <span key={index} className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${darkMode ? 'bg-gray-900 text-gray-400 border border-gray-800' : 'bg-gray-100 text-gray-600 border border-gray-200'}`}>
+                    {topic}
                   </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats Bar */}
-          <div className={`flex flex-wrap items-center gap-6 py-4 border-y ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
-            <div className="flex items-center gap-2">
-              <Calendar size={16} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
-              <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                {formatDate(article.created_at)}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock size={16} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
-              <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                {article.reading_time} min read
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Eye size={16} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
-              <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                {article.views?.toLocaleString() || 0} views
-              </span>
-            </div>
-            {article.featured && (
-              <div className="flex items-center gap-2">
-                <TrendingUp size={16} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
-                <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Featured
-                </span>
-              </div>
-            )}
-          </div>
-        </header>
-
-        {/* Article Content */}
-        <div ref={articleContentRef} className={`prose prose-xl max-w-none mb-16 ${darkMode ? 'prose-invert' : ''}`}>
-          <div className={`font-serif ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-            {formatContent(article.content)}
-          </div>
-        </div>
-
-        {/* Engagement Section */}
-        <div className={`p-8 rounded-2xl ${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} border shadow-xl mb-12`}>
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div>
-              <h3 className={`text-2xl font-serif font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Have a different perspective?
-              </h3>
-              <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Join the discussion by writing a counter opinion.
-              </p>
-            </div>
-            <button
-              onClick={handleCounterOpinion}
-              className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-2 whitespace-nowrap"
-            >
-              <MessageSquare size={20} />
-              Write Counter Opinion
-            </button>
-          </div>
-        </div>
-
-        {/* Original Article (if this is a counter opinion) */}
-        {originalArticle && (
-          <section className="mb-12">
-            <h2 className={`text-3xl font-serif font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              Original Article
-            </h2>
-            <div
-              onClick={() => navigate(`/article/${originalArticle.id}/${generateSlug(originalArticle.title)}`)}
-              className={`p-6 rounded-xl ${darkMode ? 'bg-gray-900 border-gray-800 hover:border-gray-700' : 'bg-white border-gray-200 hover:border-gray-300'} border cursor-pointer transition-all duration-300 hover:shadow-xl group`}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br ${getTierColor(originalArticle.tier)} shadow-lg`}>
-                  <span className="text-xl">{getTierEmoji(originalArticle.tier)}</span>
-                </div>
-                <div>
-                  <h4 className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {originalArticle.display_name}
-                  </h4>
-                  <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {originalArticle.tier?.toUpperCase()}
-                  </span>
-                </div>
-              </div>
-              <h3 className={`text-xl font-serif font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'} group-hover:text-yellow-600 transition-colors`}>
-                {originalArticle.title}
-              </h3>
-              <p className={`text-sm mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                {originalArticle.content.substring(0, 150) + (originalArticle.content.length > 150 ? '...' : '')}
-              </p>
-              <div className="flex items-center gap-4 text-xs">
-                <span className={`flex items-center gap-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                  <Eye size={14} />
-                  {originalArticle.views?.toLocaleString() || 0}
-                </span>
-                <span className={`flex items-center gap-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                  <Clock size={14} />
-                  {calculateReadingTime(originalArticle.content)} min
-                </span>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Counter Opinions Section */}
-        {counterOpinions.length > 0 && (
-          <section id="discussion" className="mb-12">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className={`text-3xl font-serif font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Counter Opinions ({counterOpinions.length})
-              </h2>
-              <button
-                onClick={() => setShowCounters(!showCounters)}
-                className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'} transition-colors`}
-              >
-                {showCounters ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-              </button>
-            </div>
-
-            {showCounters && (
-              <div className="grid gap-6">
-                {counterOpinions.map(opinion => (
-                  <div
-                    key={opinion.id}
-                    onClick={() => navigate(`/article/${opinion.id}/${generateSlug(opinion.title)}`)}
-                    className={`p-6 rounded-xl ${darkMode ? 'bg-gray-900 border-gray-800 hover:border-gray-700' : 'bg-white border-gray-200 hover:border-gray-300'} border cursor-pointer transition-all duration-300 hover:shadow-xl group`}
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br ${getTierColor(opinion.tier)} shadow-lg`}>
-                          <span className="text-xl">{getTierEmoji(opinion.tier)}</span>
-                        </div>
-                        <div>
-                          <h4 className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                            {opinion.display_name}
-                          </h4>
-                        </div>
-                      </div>
-                      <ExternalLink size={16} className={`${darkMode ? 'text-gray-600' : 'text-gray-400'} group-hover:text-yellow-500 transition-colors`} />
-                    </div>
-                    <h3 className={`text-xl font-serif font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'} group-hover:text-yellow-600 transition-colors`}>
-                      {opinion.title}
-                    </h3>
-                    <p className={`text-sm mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      {opinion.content.substring(0, 150) + (opinion.content.length > 150 ? '...' : '')}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs">
-                      <span className={`flex items-center gap-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                        <Eye size={14} />
-                        {opinion.views?.toLocaleString() || 0}
-                      </span>
-                      <span className={`flex items-center gap-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                        <Clock size={14} />
-                        {calculateReadingTime(opinion.content)} min
-                      </span>
-                    </div>
-                  </div>
                 ))}
               </div>
             )}
-          </section>
-        )}
 
-        {/* Related Articles */}
-        {relatedArticles.length > 0 && (
-          <section id="related" className="mb-12">
-            <h2 className={`text-3xl font-serif font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              Related Articles
-            </h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              {relatedArticles.map(related => (
-                <div
-                  key={related.id}
-                  onClick={() => navigate(`/article/${related.id}/${generateSlug(related.title)}`)}
-                  className={`p-6 rounded-xl ${darkMode ? 'bg-gray-900 border-gray-800 hover:border-gray-700' : 'bg-white border-gray-200 hover:border-gray-300'} border cursor-pointer transition-all duration-300 hover:shadow-xl group`}
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-br ${getTierColor(related.tier)}`}>
-                      <span className="text-sm">{getTierEmoji(related.tier)}</span>
-                    </div>
-                    <span className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {related.display_name}
-                    </span>
+            {/* Title */}
+            <h1 className={`text-5xl md:text-7xl font-serif font-bold mb-10 leading-[1.1] tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              {article.title}
+            </h1>
+
+            {/* Subtitle/Excerpt if available */}
+            {article.excerpt && (
+              <p className={`text-2xl mb-10 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                {article.excerpt}
+              </p>
+            )}
+
+            {/* Author & Meta Info */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8 pb-8 border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}">
+              <div className="flex items-center gap-4">
+                <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-gradient-to-br ${getTierColor(article.tier)} shadow-lg ring-4 ${darkMode ? 'ring-gray-900' : 'ring-white'}`}>
+                  <span className="text-2xl">{getTierEmoji(article.tier)}</span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className={`font-bold text-xl ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {article.display_name}
+                    </h3>
+                    {article.certified && (
+                      <Award size={18} className="text-purple-500" title="Editorial Certified" />
+                    )}
                   </div>
-                  <h3 className={`text-lg font-serif font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'} group-hover:text-yellow-600 transition-colors`}>
-                    {related.title}
-                  </h3>
-                  <div className="flex items-center gap-4 text-xs">
-                    <span className={`flex items-center gap-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                      <Clock size={14} />
-                      {calculateReadingTime(related.content)} min
-                    </span>
-                    <span className={`flex items-center gap-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                      <Eye size={14} />
-                      {related.views?.toLocaleString() || 0}
+                  <div className={`flex items-center gap-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${getTierColor(article.tier)} text-white`}>
+                      {article.tier?.toUpperCase()}
                     </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
-        )}
+              </div>
 
-        {/* Footer Actions */}
-        <footer className={`pt-8 border-t ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-4">
+              {/* Stats */}
+              <div className={`flex flex-wrap items-center gap-6 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <div className="flex items-center gap-2">
+                  <Calendar size={18} />
+                  <span>{formatDate(article.created_at)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock size={18} />
+                  <span>{article.reading_time} min read</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Eye size={18} />
+                  <span>{article.views?.toLocaleString() || 0}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
               <button
                 onClick={handleBookmarkToggle}
                 disabled={bookmarkLoading}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all duration-300 ${
                   bookmarked 
-                    ? 'bg-yellow-500 text-white hover:bg-yellow-600' 
-                    : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`
-                } transition-colors ${bookmarkLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    ? 'bg-yellow-500 text-white hover:bg-yellow-600 shadow-lg' 
+                    : `${darkMode ? 'bg-gray-900 text-gray-300 hover:bg-gray-800 border border-gray-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'}`
+                } ${bookmarkLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {bookmarkLoading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-t-2 border-b-2 border-yellow-500 border-l-transparent border-r-transparent"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent border-yellow-500"></div>
                 ) : (
                   <>
                     {bookmarked ? <Bookmark size={18} /> : <BookmarkPlus size={18} />}
+                    <span>{bookmarked ? 'Saved' : 'Save'}</span>
                   </>
                 )}
-                <span className="text-sm font-medium">
-                  {bookmarked ? 'Bookmarked' : 'Bookmark'}
-                </span>
               </button>
+              
               <button
-                onClick={handleReportArticle}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${darkMode ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'} transition-colors`}
+                onClick={handleRandomArticle}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium ${darkMode ? 'bg-gray-900 text-gray-300 hover:bg-gray-800 border border-gray-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'} transition-all duration-300`}
               >
-                <Flag size={16} />
-                <span className="text-sm font-medium">Report Article</span>
+                <Shuffle size={18} />
+                <span>Random</span>
               </button>
             </div>
-            <div className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-600'}`}>
-              © 2025 UROWN. All opinions expressed are those of the author.
+          </header>
+        )}
+
+        {/* Article Content */}
+        <div 
+          ref={articleContentRef} 
+          className={`${fontFamilyClass} ${darkMode ? 'text-gray-200' : 'text-gray-800'} ${focusMode ? 'pt-16' : ''}`}
+          onMouseUp={handleTextSelection}
+        >
+          {formatContent(article.content)}
+        </div>
+
+        {/* Engagement Section */}
+        {!focusMode && (
+          <>
+            <div className={`mt-20 mb-16 p-10 rounded-3xl ${darkMode ? 'bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-800' : 'bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200'} shadow-xl`}>
+              <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="text-center md:text-left">
+                  <h3 className={`text-3xl font-serif font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Have a different perspective?
+                  </h3>
+                  <p className={`text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Join the discussion by writing a counter opinion.
+                  </p>
+                </div>
+                <button
+                  onClick={handleCounterOpinion}
+                  className="px-10 py-5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-lg rounded-2xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-3 whitespace-nowrap"
+                >
+                  <MessageSquare size={24} />
+                  Write Counter Opinion
+                </button>
+              </div>
             </div>
-          </div>
-        </footer>
+
+            {/* Original Article */}
+            {originalArticle && (
+              <section className="mb-16">
+                <h2 className={`text-4xl font-serif font-bold mb-8 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Original Article
+                </h2>
+                <div
+                  onClick={() => navigate(`/article/${originalArticle.id}/${generateSlug(originalArticle.title)}`)}
+                  className={`p-8 rounded-2xl ${darkMode ? 'bg-gray-900 border-gray-800 hover:border-gray-700' : 'bg-gray-50 border-gray-200 hover:border-yellow-500'} border cursor-pointer transition-all duration-300 hover:shadow-2xl group`}
+                >
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br ${getTierColor(originalArticle.tier)} shadow-lg`}>
+                      <span className="text-2xl">{getTierEmoji(originalArticle.tier)}</span>
+                    </div>
+                    <div>
+                      <h4 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {originalArticle.display_name}
+                      </h4>
+                      <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {originalArticle.tier?.toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                  <h3 className={`text-2xl font-serif font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'} group-hover:text-yellow-600 transition-colors`}>
+                    {originalArticle.title}
+                  </h3>
+                  <p className={`mb-4 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {originalArticle.content.substring(0, 200)}...
+                  </p>
+                  <div className="flex items-center gap-6">
+                    <span className={`flex items-center gap-2 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                      <Eye size={16} />
+                      {originalArticle.views?.toLocaleString() || 0}
+                    </span>
+                    <span className={`flex items-center gap-2 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                      <Clock size={16} />
+                      {calculateReadingTime(originalArticle.content)} min
+                    </span>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* Counter Opinions */}
+            {counterOpinions.length > 0 && (
+              <section id="discussion" className="mb-16">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className={`text-4xl font-serif font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Counter Opinions <span className={`text-2xl ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>({counterOpinions.length})</span>
+                  </h2>
+                  <button
+                    onClick={() => setShowCounters(!showCounters)}
+                    className={`p-3 rounded-xl ${darkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-100'} transition-colors`}
+                  >
+                    {showCounters ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                  </button>
+                </div>
+
+                {showCounters && (
+                  <div className="grid gap-6">
+                    {counterOpinions.map(opinion => (
+                      <div
+                        key={opinion.id}
+                        onClick={() => navigate(`/article/${opinion.id}/${generateSlug(opinion.title)}`)}
+                        className={`p-8 rounded-2xl ${darkMode ? 'bg-gray-900 border-gray-800 hover:border-gray-700' : 'bg-gray-50 border-gray-200 hover:border-yellow-500'} border cursor-pointer transition-all duration-300 hover:shadow-2xl group`}
+                      >
+                        <div className="flex items-start justify-between mb-6">
+                          <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br ${getTierColor(opinion.tier)} shadow-lg`}>
+                              <span className="text-2xl">{getTierEmoji(opinion.tier)}</span>
+                            </div>
+                            <div>
+                              <h4 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                {opinion.display_name}
+                              </h4>
+                            </div>
+                          </div>
+                          <ExternalLink size={20} className={`${darkMode ? 'text-gray-600' : 'text-gray-400'} group-hover:text-yellow-500 transition-colors`} />
+                        </div>
+                        <h3 className={`text-2xl font-serif font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'} group-hover:text-yellow-600 transition-colors`}>
+                          {opinion.title}
+                        </h3>
+                        <p className={`mb-4 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          {opinion.content.substring(0, 200)}...
+                        </p>
+                        <div className="flex items-center gap-6">
+                          <span className={`flex items-center gap-2 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                            <Eye size={16} />
+                            {opinion.views?.toLocaleString() || 0}
+                          </span>
+                          <span className={`flex items-center gap-2 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                            <Clock size={16} />
+                            {calculateReadingTime(opinion.content)} min
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* Related Articles */}
+            {relatedArticles.length > 0 && (
+              <section id="related" className="mb-16">
+                <h2 className={`text-4xl font-serif font-bold mb-8 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Related Reading
+                </h2>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {relatedArticles.map(related => (
+                    <div
+                      key={related.id}
+                      onClick={() => navigate(`/article/${related.id}/${generateSlug(related.title)}`)}
+                      className={`p-6 rounded-2xl ${darkMode ? 'bg-gray-900 border-gray-800 hover:border-gray-700' : 'bg-gray-50 border-gray-200 hover:border-yellow-500'} border cursor-pointer transition-all duration-300 hover:shadow-xl group`}
+                    >
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br ${getTierColor(related.tier)}`}>
+                          <span className="text-xl">{getTierEmoji(related.tier)}</span>
+                        </div>
+                        <span className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {related.display_name}
+                        </span>
+                      </div>
+                      <h3 className={`text-xl font-serif font-bold mb-3 leading-tight ${darkMode ? 'text-white' : 'text-gray-900'} group-hover:text-yellow-600 transition-colors`}>
+                        {related.title}
+                      </h3>
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className={`flex items-center gap-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                          <Clock size={14} />
+                          {calculateReadingTime(related.content)} min
+                        </span>
+                        <span className={`flex items-center gap-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                          <Eye size={14} />
+                          {related.views?.toLocaleString() || 0}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Footer */}
+            <footer className={`pt-12 border-t ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+                <button
+                  onClick={handleReportArticle}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full ${darkMode ? 'text-gray-400 hover:bg-gray-900' : 'text-gray-600 hover:bg-gray-100'} transition-colors`}
+                >
+                  <Flag size={18} />
+                  <span className="font-medium">Report Article</span>
+                </button>
+                <div className={`text-sm ${darkMode ? 'text-gray-600' : 'text-gray-500'}`}>
+                  © 2025 UROWN. All opinions expressed are those of the author.
+                </div>
+              </div>
+            </footer>
+          </>
+        )}
       </article>
 
       {/* Report Modal */}
       {showReportModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-          <div className={`${darkMode ? 'bg-gray-900' : 'bg-white'} rounded-2xl shadow-2xl max-w-md w-full p-8 relative`}>
+          <div className={`${darkMode ? 'bg-gray-900' : 'bg-white'} rounded-3xl shadow-2xl max-w-md w-full p-8 relative`}>
             <button
               onClick={() => setShowReportModal(false)}
-              className={`absolute top-4 right-4 ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'} transition-colors`}
+              className={`absolute top-6 right-6 ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'} transition-colors`}
             >
               <X size={24} />
             </button>
-            <h3 className={`text-2xl font-serif font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            <h3 className={`text-3xl font-serif font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               Report Article
             </h3>
             {reportSuccess ? (
-              <div className={`${darkMode ? 'bg-green-900/50 border-green-700' : 'bg-green-50 border-green-500'} border-l-4 p-4 mb-4 rounded-lg font-serif`}>
-                <p className={`${darkMode ? 'text-green-400' : 'text-green-700'} font-bold`}>Thank you for reporting this article. Our team will review it shortly.</p>
+              <div className={`${darkMode ? 'bg-green-900/50 border-green-700' : 'bg-green-50 border-green-500'} border-l-4 p-6 mb-4 rounded-xl`}>
+                <p className={`${darkMode ? 'text-green-400' : 'text-green-700'} font-medium text-lg`}>Thank you for your report. Our team will review it shortly.</p>
               </div>
             ) : (
               <>
-                <p className={`mb-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <p className={`mb-6 text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   Help us maintain quality by reporting problematic content.
                 </p>
                 <textarea
                   className={`w-full px-4 py-3 rounded-xl ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'} border focus:outline-none focus:ring-2 focus:ring-yellow-500 mb-4`}
-                  rows={4}
+                  rows={5}
                   placeholder="Please describe why you're reporting this article..."
                   value={reportReason}
                   onChange={(e) => setReportReason(e.target.value)}
                 />
                 {error && (
-                  <div className={`${darkMode ? 'bg-red-900/50 border-red-700' : 'bg-red-50 border-red-500'} border-l-4 p-4 mb-4 rounded-lg font-serif`}>
-                    <p className={`${darkMode ? 'text-red-400' : 'text-red-700'} font-bold`}>{error}</p>
+                  <div className={`${darkMode ? 'bg-red-900/50 border-red-700' : 'bg-red-50 border-red-500'} border-l-4 p-4 mb-4 rounded-xl`}>
+                    <p className={`${darkMode ? 'text-red-400' : 'text-red-700'} font-medium`}>{error}</p>
                   </div>
                 )}
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowReportModal(false)}
-                    className={`flex-1 px-4 py-3 rounded-xl ${darkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-200 hover:bg-gray-300'} font-medium transition-colors`}
+                    className={`flex-1 px-6 py-3 rounded-xl font-medium ${darkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-200 hover:bg-gray-300'} transition-colors`}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSubmitReport}
                     disabled={reporting}
-                    className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+                    className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
                   >
                     {reporting ? 'Submitting...' : 'Submit Report'}
                   </button>
