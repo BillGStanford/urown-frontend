@@ -142,36 +142,24 @@ function DebateCategoryPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-12 px-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 py-12 px-6">
       <div className="max-w-7xl mx-auto">
-        <Link to="/" className="inline-flex items-center text-purple-200 mb-8 hover:text-white transition-colors font-semibold group">
+        <Link to="/" className="inline-flex items-center text-gray-700 mb-8 hover:text-black transition-colors font-semibold group">
           <ArrowLeft className="mr-2 group-hover:-translate-x-1 transition-transform" size={20} />
           Back to Home
         </Link>
-        
-        {/* Debate Hall Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-full mb-4 shadow-lg">
-            <Flame size={24} className="animate-pulse" />
-            <span className="font-black text-lg uppercase tracking-wider">The Debate Hall</span>
-            <Flame size={24} className="animate-pulse" />
-          </div>
-          <p className="text-purple-200 text-lg max-w-2xl mx-auto">
-            Where ideas clash and perspectives evolve. Join the conversation—no account required!
-          </p>
-        </div>
 
         {/* Anonymous Posting Notice */}
         {!user && (
-          <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-2 border-blue-400/30 rounded-xl p-6 mb-8 backdrop-blur-sm">
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-8">
             <div className="flex items-start gap-4">
-              <AlertCircle className="text-blue-400 flex-shrink-0 mt-1" size={24} />
+              <AlertCircle className="text-blue-600 flex-shrink-0 mt-1" size={24} />
               <div>
-                <h3 className="text-white font-bold text-lg mb-2">Posting Anonymously?</h3>
-                <p className="text-blue-200 mb-3">
+                <h3 className="text-gray-900 font-bold text-lg mb-2">Posting Anonymously?</h3>
+                <p className="text-gray-700 mb-3">
                   You can share your opinion without an account, but consider creating one for a better experience:
                 </p>
-                <ul className="text-blue-200 space-y-1 mb-4 ml-4">
+                <ul className="text-gray-700 space-y-1 mb-4 ml-4">
                   <li>• Build your reputation with a permanent profile</li>
                   <li>• Participate in multiple debates</li>
                   <li>• Track your contributions and views</li>
@@ -179,7 +167,7 @@ function DebateCategoryPage() {
                 </ul>
                 <Link 
                   to="/signup" 
-                  className="inline-flex items-center gap-2 bg-white text-purple-900 px-4 py-2 rounded-lg font-bold hover:bg-blue-50 transition-colors"
+                  className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg font-bold hover:bg-gray-800 transition-colors"
                 >
                   <Shield size={18} />
                   Create Free Account
@@ -189,8 +177,8 @@ function DebateCategoryPage() {
           </div>
         )}
         
-        {/* Debate Topic Card */}
-        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border-2 border-white/20 rounded-2xl shadow-2xl overflow-hidden mb-12">
+        {/* Debate Topic Header Card */}
+        <div className="bg-white border-2 border-black rounded-xl shadow-xl overflow-hidden mb-12">
           {/* Header Banner */}
           <div className="bg-gradient-to-r from-red-600 via-orange-600 to-yellow-600 px-8 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3 text-white">

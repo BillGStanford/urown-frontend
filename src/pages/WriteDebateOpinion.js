@@ -179,12 +179,12 @@ function WriteDebateOpinion() {
 
   if (fetching) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-12 px-6">
+      <div className="min-h-screen bg-white py-12 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-10 bg-white/10 rounded w-1/3 mb-6"></div>
-            <div className="h-40 bg-white/10 rounded mb-8"></div>
-            <div className="h-60 bg-white/10 rounded"></div>
+            <div className="h-10 bg-gray-200 rounded w-1/3 mb-6"></div>
+            <div className="h-40 bg-gray-200 rounded mb-8"></div>
+            <div className="h-60 bg-gray-200 rounded"></div>
           </div>
         </div>
       </div>
@@ -193,11 +193,11 @@ function WriteDebateOpinion() {
 
   if (!debateTopic) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-12 px-6">
+      <div className="min-h-screen bg-white py-12 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-3xl font-bold mb-6 text-white">Debate Topic Not Found</h1>
-          <p className="text-xl text-purple-200 mb-8">This debate topic may have expired or been removed.</p>
-          <Link to="/" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-2 px-6 rounded-md transition-colors duration-200">
+          <h1 className="text-3xl font-bold mb-6">Debate Topic Not Found</h1>
+          <p className="text-xl text-gray-600 mb-8">This debate topic may have expired or been removed.</p>
+          <Link to="/" className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition-colors duration-200">
             Back to Home
           </Link>
         </div>
