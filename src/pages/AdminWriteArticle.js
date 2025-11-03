@@ -1,8 +1,7 @@
-// src/pages/AdminWriteArticle.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PenTool, AlertCircle, CheckCircle, X, ArrowLeft } from 'lucide-react';
-import { fetchWithDeduplication, createApiRequest } from '../utils/apiUtils';
+import { fetchWithDeduplication, createApiRequest, validateUserSession } from '../utils/apiUtils';
 
 function AdminWriteArticle() {
   const navigate = useNavigate();
@@ -68,6 +67,14 @@ function AdminWriteArticle() {
     if (!formData.title.trim()) return setError('Article title is required');
     if (!formData.content.trim()) return setError('Article content is required');
     if (formData.title.length > 255) return setError('Title must be 255 characters or less');
+
+    // Validate user session before making the request
+    const isSessionValid = await validateUserSession();
+    if (!isSessionValid) {
+      setError('Your session has expired. Please log in again.');
+      setLoading(false);
+      return;
+    }
 
     try {
       await fetchWithDeduplication(

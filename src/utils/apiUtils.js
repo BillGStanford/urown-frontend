@@ -181,3 +181,17 @@ export const debugApiConfig = () => {
   console.log('Default headers:', axios.defaults.headers);
   console.log('Token in localStorage:', localStorage.getItem('token') ? 'Present' : 'Missing');
 };
+
+// Function to validate user session before making admin requests
+export const validateUserSession = async () => {
+  try {
+    const response = await fetchWithDeduplication(
+      'admin-user-check',
+      createApiRequest('/admin/user-check', { method: 'POST' })
+    );
+    return response.data.valid;
+  } catch (error) {
+    console.error('Session validation error:', error);
+    return false;
+  }
+};
