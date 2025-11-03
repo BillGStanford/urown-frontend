@@ -30,6 +30,7 @@ import PartnersPage from './pages/PartnersPage';
 import UserProfile from './pages/UserProfile';
 import NotificationsPage from './pages/NotificationsPage';
 import About from './pages/AboutUsPage';
+import LibraryPage from './pages/LibraryPage';
 import CareerPage from './pages/important/CareersPage';
 import GlobalError from './components/GlobalError';
 
@@ -130,6 +131,10 @@ function AppRoutes() {
 <Route 
   path="/notifications" 
   element={user ? <NotificationsPage /> : <Navigate to="/login" />} 
+/>
+<Route 
+  path="/library" 
+  element={user ? <LibraryPage /> : <Navigate to="/login" />} 
 />
           <Route path="/community-guidelines" element={<CommunityGuidelines />} />
           <Route path="/about" element={<About />} />
