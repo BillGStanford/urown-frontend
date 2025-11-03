@@ -97,9 +97,9 @@ function Header({ user, onLogout }) {
   return (
     <>
       {/* Sidebar - Desktop Only */}
-      <aside className={`hidden lg:block fixed left-0 top-0 h-screen bg-white border-r-2 border-gray-200 transition-all duration-300 z-50 ${
-        isSidebarCollapsed ? 'w-20' : 'w-64'
-      }`}>
+      <aside className={`hidden lg:block fixed left-0 top-0 h-screen bg-white border-r-2 border-gray-200 transition-all duration-300 z-30 ${
+  isSidebarCollapsed ? 'w-20' : 'w-64'
+}`}>
         <div className="flex flex-col h-full">
           {/* Logo - Fixed width container */}
           <div className="h-[88px] border-b-2 border-gray-200 flex items-center justify-center px-4">
@@ -262,10 +262,10 @@ function Header({ user, onLogout }) {
 
       {/* Top Header */}
       <header className={`sticky top-0 z-40 transition-all duration-200 ${
-        scrolled 
-          ? 'bg-white shadow-lg border-b-2 border-orange-200' 
-          : 'bg-white border-b border-gray-100'
-      } ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+  scrolled 
+    ? 'bg-white shadow-lg border-b-2 border-orange-200' 
+    : 'bg-white border-b border-gray-100'
+} ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
         <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Desktop Layout */}
           <div className="hidden lg:flex items-center justify-between h-20">

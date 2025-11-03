@@ -672,15 +672,15 @@ const ArticlePage = () => {
       )}
 
       {/* Focus Mode Exit Button */}
-      {focusMode && (
-        <button
-          onClick={() => setFocusMode(false)}
-          className="fixed top-8 right-8 z-50 p-3 rounded-full bg-gray-900/80 backdrop-blur-sm text-white hover:bg-gray-800 transition-all duration-300"
-          title="Exit Focus Mode"
-        >
-          <X size={24} />
-        </button>
-      )}
+{focusMode && (
+  <button
+    onClick={() => setFocusMode(false)}
+    className="fixed top-8 right-8 lg:left-[calc(5rem+2rem)] z-50 p-3 rounded-full bg-gray-900/80 backdrop-blur-sm text-white hover:bg-gray-800 transition-all duration-300"
+    title="Exit Focus Mode"
+  >
+    <X size={24} />
+  </button>
+)}
 
       {/* Notes Panel */}
       {showNotes && (
@@ -737,7 +737,7 @@ const ArticlePage = () => {
       )}
 
       {/* Main Content */}
-      <article className={`${getContentWidthClass()} mx-auto px-4 sm:px-6 lg:px-8 ${focusMode ? 'pt-32' : 'pt-24'} pb-16`}>
+      <article className={`${getContentWidthClass()} mx-auto px-4 sm:px-6 lg:px-8 ${focusMode ? 'pt-32' : 'pt-24'} pb-16 lg:ml-20 lg:pl-8 transition-all duration-300`}>
         {/* Article Header */}
         {!focusMode && (
           <header id="article" className="mb-16">
