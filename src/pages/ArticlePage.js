@@ -42,6 +42,7 @@ const ArticlePage = () => {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copied, setCopied] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [showCounters, setShowCounters] = useState(true);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
@@ -178,6 +179,46 @@ const ArticlePage = () => {
       }
     } catch (err) {
       console.error('Error fetching random article:', err);
+    }
+  };
+
+  // Check bookmark status
+  useEffect(() => {
+    const checkBookmarkStatus = async () => {
+      if (!user || !article) return;
+      
+      try {
+        const response = await axios.get(`/articles/${id}/bookmark`);
+        setBookmarked(response.data.bookmarked);
+      } catch (err) {
+        console.error('Error checking bookmark status:', err);
+      }
+    };
+    
+    checkBookmarkStatus();
+  }, [user, article, id]);
+
+  // Toggle bookmark
+  const handleBookmarkToggle = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    setBookmarkLoading(true);
+    try {
+      if (bookmarked) {
+        await axios.delete(`/articles/${id}/bookmark`);
+        setBookmarked(false);
+      } else {
+        await axios.post(`/articles/${id}/bookmark`);
+        setBookmarked(true);
+      }
+    } catch (err) {
+      console.error('Error toggling bookmark:', err);
+      setError('Failed to update bookmark');
+    } finally {
+      setBookmarkLoading(false);
     }
   };
 
@@ -737,13 +778,35 @@ const ArticlePage = () => {
         {/* Footer Actions */}
         <footer className={`pt-8 border-t ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <button
-              onClick={handleReportArticle}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg ${darkMode ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'} transition-colors`}
-            >
-              <Flag size={16} />
-              <span className="text-sm font-medium">Report Article</span>
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleBookmarkToggle}
+                disabled={bookmarkLoading}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+                  bookmarked 
+                    ? 'bg-yellow-500 text-white hover:bg-yellow-600' 
+                    : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`
+                } transition-colors ${bookmarkLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {bookmarkLoading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-t-2 border-b-2 border-yellow-500 border-l-transparent border-r-transparent"></div>
+                ) : (
+                  <>
+                    {bookmarked ? <Bookmark size={18} /> : <BookmarkPlus size={18} />}
+                  </>
+                )}
+                <span className="text-sm font-medium">
+                  {bookmarked ? 'Bookmarked' : 'Bookmark'}
+                </span>
+              </button>
+              <button
+                onClick={handleReportArticle}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${darkMode ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'} transition-colors`}
+              >
+                <Flag size={16} />
+                <span className="text-sm font-medium">Report Article</span>
+              </button>
+            </div>
             <div className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-600'}`}>
               © 2025 UROWN. All opinions expressed are those of the author.
             </div>
