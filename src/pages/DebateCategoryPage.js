@@ -200,7 +200,8 @@ function DebateCategoryPage() {
               {debateTopic.title}
             </h1>
             
-            <p className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed">
+            {/* Fixed description with line breaks */}
+            <p className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed whitespace-pre-line">
               {debateTopic.description}
             </p>
             
