@@ -77,6 +77,11 @@ const ArticlePage = () => {
   const [showHighlighter, setShowHighlighter] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [readingMode, setReadingMode] = useState('comfortable');
+  const [notePosition, setNotePosition] = useState('left');
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [notePos, setNotePos] = useState({ x: 32, y: 128 });
+  const notePanelRef = useRef(null);
 
   const generateSlug = (title) => {
     return title
