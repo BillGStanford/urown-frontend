@@ -51,14 +51,15 @@ function Header({ user, onLogout }) {
     setIsUserDropdownOpen(!isUserDropdownOpen);
   };
 
-  const fetchUnreadCount = async () => {
-    try {
-      const response = await axios.get('/api/notifications/unread-count');
-      setUnreadCount(response.data.count);
-    } catch (err) {
-      console.error('Error fetching unread count:', err);
-    }
-  };
+const fetchUnreadCount = async () => {
+  try {
+    // FIXED: Remove /api prefix
+    const response = await axios.get('/notifications/unread-count');
+    setUnreadCount(response.data.count);
+  } catch (err) {
+    console.error('Error fetching unread count:', err);
+  }
+};
 
   useEffect(() => {
     const handleScroll = () => {

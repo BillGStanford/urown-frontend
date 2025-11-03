@@ -15,7 +15,8 @@ const NotificationsPage = () => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/notifications');
+      // FIXED: Remove /api prefix since it's in baseURL
+      const response = await axios.get('/notifications');
       setNotifications(response.data.notifications);
       setError('');
     } catch (err) {
@@ -27,7 +28,8 @@ const NotificationsPage = () => {
 
   const markAsRead = async (notificationId) => {
     try {
-      await axios.put(`/api/notifications/${notificationId}/read`);
+      // FIXED: Remove /api prefix
+      await axios.put(`/notifications/${notificationId}/read`);
       setNotifications(prev => 
         prev.map(notif => 
           notif.id === notificationId 
@@ -43,7 +45,8 @@ const NotificationsPage = () => {
   const deleteNotification = async (notificationId) => {
     try {
       setDeletingNotifications(prev => new Set(prev).add(notificationId));
-      await axios.delete(`/api/notifications/${notificationId}`);
+      // FIXED: Remove /api prefix
+      await axios.delete(`/notifications/${notificationId}`);
       setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
     } catch (err) {
       console.error('Error deleting notification:', err);
@@ -59,7 +62,8 @@ const NotificationsPage = () => {
 
   const markAllAsRead = async () => {
     try {
-      await axios.put('/api/notifications/mark-all-read');
+      // FIXED: Remove /api prefix
+      await axios.put('/notifications/mark-all-read');
       fetchNotifications();
     } catch (err) {
       console.error('Error marking all as read:', err);
@@ -71,7 +75,8 @@ const NotificationsPage = () => {
     if (!window.confirm('Delete all read notifications?')) return;
     
     try {
-      await axios.delete('/api/notifications/delete-all-read');
+      // FIXED: Remove /api prefix
+      await axios.delete('/notifications/delete-all-read');
       fetchNotifications();
     } catch (err) {
       console.error('Error deleting read notifications:', err);
