@@ -35,8 +35,8 @@ import CareerPage from './pages/important/CareersPage';
 import GlobalError from './components/GlobalError';
 
 const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://urown-backend.onrender.com/api'  // Your Render backend URL
-  : 'http://localhost:5000/api';
+  ? process.env.REACT_APP_API_URL_PROD
+  : process.env.REACT_APP_API_URL_DEV;
 
 // Configure axios defaults
 axios.defaults.baseURL = API_URL;
