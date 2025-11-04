@@ -6,52 +6,52 @@ import { useIdeology } from '../hooks/useIdeology';
 const QUESTIONS_10 = [
   {
     id: 1,
-    question: "The government should provide universal healthcare to all citizens.",
+    question: "All nations should work together to provide universal healthcare to their citizens.",
     category: "economic"
   },
   {
     id: 2,
-    question: "Large corporations have too much power and should be regulated more strictly.",
+    question: "Multinational corporations have too much power and should be regulated more strictly by international agreements.",
     category: "economic"
   },
   {
     id: 3,
-    question: "Climate change is a critical issue that requires immediate government action.",
+    question: "Climate change is a critical global issue that requires immediate coordinated international action.",
     category: "environmental"
   },
   {
     id: 4,
-    question: "Immigration should be more restricted to protect domestic jobs and culture.",
+    question: "International migration should be more restricted to protect domestic jobs and cultures.",
     category: "social"
   },
   {
     id: 5,
-    question: "Traditional family values should be preserved and promoted by society.",
+    question: "Traditional cultural values should be preserved and promoted by societies worldwide.",
     category: "social"
   },
   {
     id: 6,
-    question: "The wealthy should pay significantly higher taxes to reduce inequality.",
+    question: "The wealthy worldwide should pay significantly higher taxes to reduce global inequality.",
     category: "economic"
   },
   {
     id: 7,
-    question: "Military spending should be increased to maintain national security.",
+    question: "Global military spending should be reduced in favor of diplomatic solutions to conflicts.",
     category: "foreign"
   },
   {
     id: 8,
-    question: "Gun ownership rights should be protected with minimal restrictions.",
+    question: "Individual rights to self-defense should be protected with minimal restrictions.",
     category: "social"
   },
   {
     id: 9,
-    question: "The free market is the best way to organize the economy with minimal government intervention.",
+    question: "Free market principles are the best way to organize the global economy with minimal government intervention.",
     category: "economic"
   },
   {
     id: 10,
-    question: "Social justice initiatives are necessary to address historical inequalities.",
+    question: "Global social justice initiatives are necessary to address historical inequalities between nations.",
     category: "social"
   }
 ];
@@ -60,12 +60,12 @@ const QUESTIONS_40 = [
   ...QUESTIONS_10,
   {
     id: 11,
-    question: "Workers should have more control and ownership in the companies they work for.",
+    question: "Workers worldwide should have more control and ownership in the companies they work for.",
     category: "economic"
   },
   {
     id: 12,
-    question: "The government should guarantee a job to everyone who wants one.",
+    question: "Governments should guarantee employment to all citizens who want to work.",
     category: "economic"
   },
   {
@@ -75,97 +75,97 @@ const QUESTIONS_40 = [
   },
   {
     id: 14,
-    question: "Public education should be completely free, including college.",
+    question: "Higher education should be accessible to all people regardless of their ability to pay.",
     category: "economic"
   },
   {
     id: 15,
-    question: "Abortion should be legal and accessible in all circumstances.",
+    question: "Reproductive rights should be protected and accessible in all circumstances.",
     category: "social"
   },
   {
     id: 16,
-    question: "The death penalty is an appropriate punishment for serious crimes.",
+    question: "Capital punishment is an appropriate punishment for serious crimes.",
     category: "social"
   },
   {
     id: 17,
-    question: "Drug use should be decriminalized and treated as a health issue.",
+    question: "Drug use should be decriminalized and treated as a health issue rather than a criminal one.",
     category: "social"
   },
   {
     id: 18,
-    question: "Religious values should play a larger role in government policy.",
+    question: "Cultural and religious values should play a larger role in shaping government policies.",
     category: "social"
   },
   {
     id: 19,
-    question: "Hate speech should be legally restricted even if it limits free speech.",
+    question: "Speech that promotes hatred against specific groups should be legally restricted.",
     category: "social"
   },
   {
     id: 20,
-    question: "Affirmative action programs are necessary to address discrimination.",
+    question: "Affirmative action programs are necessary to address systemic discrimination worldwide.",
     category: "social"
   },
   {
     id: 21,
-    question: "International cooperation and multilateralism should guide foreign policy.",
+    question: "International cooperation and multilateralism should guide global policy.",
     category: "foreign"
   },
   {
     id: 22,
-    question: "Our country should prioritize its own interests above international concerns.",
+    question: "Nations should prioritize their own interests above global concerns.",
     category: "foreign"
   },
   {
     id: 23,
-    question: "Military intervention is sometimes necessary to promote democracy abroad.",
+    question: "Military intervention is sometimes necessary to promote human rights abroad.",
     category: "foreign"
   },
   {
     id: 24,
-    question: "Foreign aid spending should be increased to help developing nations.",
+    question: "International aid to developing nations should be increased to address global inequality.",
     category: "foreign"
   },
   {
     id: 25,
-    question: "Trade agreements should prioritize worker protections over free trade.",
+    question: "International trade agreements should prioritize worker protections over free trade.",
     category: "economic"
   },
   {
     id: 26,
-    question: "The welfare state should be expanded to provide more social services.",
+    question: "Social safety nets should be expanded to provide more services to vulnerable populations.",
     category: "economic"
   },
   {
     id: 27,
-    question: "Labor unions are essential for protecting workers' rights.",
+    question: "Labor unions are essential for protecting workers' rights worldwide.",
     category: "economic"
   },
   {
     id: 28,
-    question: "Inheritance taxes should be high to prevent wealth concentration.",
+    question: "Inheritance taxes should be high to prevent wealth concentration across generations.",
     category: "economic"
   },
   {
     id: 29,
-    question: "Minimum wage should be raised to ensure a living wage for all workers.",
+    question: "Minimum wage standards should be raised globally to ensure a living wage for all workers.",
     category: "economic"
   },
   {
     id: 30,
-    question: "Government surveillance is necessary for national security even if it reduces privacy.",
+    question: "Government surveillance is necessary for national security even if it reduces personal privacy.",
     category: "authority"
   },
   {
     id: 31,
-    question: "Police should have more funding and authority to maintain order.",
+    question: "Law enforcement should have more funding and authority to maintain social order.",
     category: "authority"
   },
   {
     id: 32,
-    question: "Voting should be made easier with measures like automatic registration.",
+    question: "Voting should be made easier with measures like automatic registration for all citizens.",
     category: "authority"
   },
   {
@@ -175,12 +175,12 @@ const QUESTIONS_40 = [
   },
   {
     id: 34,
-    question: "Political correctness has gone too far and limits honest discussion.",
+    question: "Concerns about cultural sensitivity have gone too far and limit honest discussion.",
     category: "social"
   },
   {
     id: 35,
-    question: "Renewable energy should replace fossil fuels as quickly as possible, regardless of cost.",
+    question: "Renewable energy should replace fossil fuels as quickly as possible, regardless of economic cost.",
     category: "environmental"
   },
   {
@@ -205,7 +205,7 @@ const QUESTIONS_40 = [
   },
   {
     id: 40,
-    question: "Nationalism is a positive force that strengthens society.",
+    question: "National identity is a positive force that strengthens society.",
     category: "social"
   }
 ];
@@ -277,8 +277,8 @@ const IdeologyQuiz = () => {
     if (quizType === '10') {
       // Simple classification for 10 questions
       const avgScore = (economic + social) / 2;
-      if (avgScore < -1.5) return { ideology: 'Left-Wing', description: 'You lean towards progressive and liberal values.' };
-      if (avgScore > 1.5) return { ideology: 'Right-Wing', description: 'You lean towards conservative and traditional values.' };
+      if (avgScore < -1.5) return { ideology: 'Progressive Globalist', description: 'You lean towards progressive and internationalist values.' };
+      if (avgScore > 1.5) return { ideology: 'Traditional Nationalist', description: 'You lean towards conservative and nationalist values.' };
       return { ideology: 'Centrist', description: 'You hold moderate views across the political spectrum.' };
     } else {
       // Detailed classification for 40 questions
@@ -312,7 +312,7 @@ const IdeologyQuiz = () => {
         description = 'You lean towards progressive economic policies.';
       } else if (economic > 1) {
         ideology = 'Right-Wing';
-        description = 'You lean towards free market economic policies.';
+        description: 'You lean towards free market economic policies.';
       } else {
         ideology = 'Moderate';
         description = 'You hold balanced views on most political issues.';
@@ -371,7 +371,7 @@ const IdeologyQuiz = () => {
       // Refetch ideology data to get the latest state from server
       await refetchIdeology();
       
-      alert(`Your ideology has been saved and is now ${isPublic ? 'public' : 'private'}!`);
+      alert(`Your worldview has been saved and is now ${isPublic ? 'public' : 'private'}!`);
       navigate('/profile');
     } catch (error) {
       console.error('Save ideology error:', error);
@@ -380,9 +380,9 @@ const IdeologyQuiz = () => {
       if (error.response?.status === 404) {
         alert('API endpoint not found. Please check if the server is running correctly.');
       } else if (error.response?.status === 401) {
-        alert('You need to be logged in to save your ideology.');
+        alert('You need to be logged in to save your worldview.');
       } else {
-        alert(error.response?.data?.error || 'Failed to save ideology. Please try again.');
+        alert(error.response?.data?.error || 'Failed to save worldview. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -414,9 +414,9 @@ const IdeologyQuiz = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-xl p-8">
-            <h1 className="text-4xl font-bold text-center mb-4">Political Ideology Quiz</h1>
+            <h1 className="text-4xl font-bold text-center mb-4">Global Worldview Quiz</h1>
             <p className="text-gray-600 text-center mb-8">
-              Discover your political ideology through our comprehensive quiz
+              Discover your global worldview through our comprehensive quiz
             </p>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -425,11 +425,11 @@ const IdeologyQuiz = () => {
                 <h3 className="text-2xl font-bold mb-4 text-blue-600">Quick Quiz</h3>
                 <p className="text-gray-600 mb-4">10 questions - 5 minutes</p>
                 <p className="text-sm text-gray-500">
-                  Get a general understanding of your political orientation with our quick quiz.
+                  Get a general understanding of your global orientation with our quick quiz.
                 </p>
                 <div className="mt-6">
                   <span className="inline-block bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold">
-                    Result: Left-Wing, Right-Wing, or Centrist
+                    Result: Progressive, Traditional, or Centrist
                   </span>
                 </div>
               </div>
@@ -439,11 +439,11 @@ const IdeologyQuiz = () => {
                 <h3 className="text-2xl font-bold mb-4 text-purple-600">Comprehensive Quiz</h3>
                 <p className="text-gray-600 mb-4">40 questions - 15 minutes</p>
                 <p className="text-sm text-gray-500">
-                  Get a detailed analysis of your political ideology across multiple dimensions.
+                  Get a detailed analysis of your global worldview across multiple dimensions.
                 </p>
                 <div className="mt-6">
                   <span className="inline-block bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-semibold">
-                    Result: Detailed Ideological Position
+                    Result: Detailed Worldview Position
                   </span>
                 </div>
               </div>
@@ -509,7 +509,7 @@ const IdeologyQuiz = () => {
                         <span className="font-mono">{result.details.scores.social}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Foreign Policy (Dovish ← → Hawkish):</span>
+                        <span>Foreign Policy (Internationalist ← → Nationalist):</span>
                         <span className="font-mono">{result.details.scores.foreign}</span>
                       </div>
                       <div className="flex justify-between">
@@ -517,7 +517,7 @@ const IdeologyQuiz = () => {
                         <span className="font-mono">{result.details.scores.authority}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Environment (Green ← → Brown):</span>
+                        <span>Environment (Green ← → Development-focused):</span>
                         <span className="font-mono">{result.details.scores.environmental}</span>
                       </div>
                     </div>
@@ -535,7 +535,7 @@ const IdeologyQuiz = () => {
                   disabled={loading}
                   className="bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 font-semibold"
                 >
-                  {loading ? 'Saving...' : 'Show Ideology Publicly'}
+                  {loading ? 'Saving...' : 'Show Worldview Publicly'}
                 </button>
                 
                 <button

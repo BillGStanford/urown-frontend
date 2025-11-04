@@ -739,102 +739,115 @@ const ArticlePage = () => {
       {/* Main Content */}
       <article className={`${getContentWidthClass()} mx-auto px-4 sm:px-6 lg:px-8 ${focusMode ? 'pt-32' : 'lg:pt-24 pt-20'} pb-16`}>
         {/* Article Header */}
-        {!focusMode && (
-          <header id="article" className="mb-16">
-            {/* Topic Tags */}
-            {article.topics && article.topics.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-6">
-                {article.topics.map((topic, index) => (
-                  <span key={index} className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${darkMode ? 'bg-gray-900 text-gray-400 border border-gray-800' : 'bg-gray-100 text-gray-600 border border-gray-200'}`}>
-                    {topic}
-                  </span>
-                ))}
-              </div>
+{!focusMode && (
+  <header id="article" className="mb-16">
+    {/* Topic Tags */}
+    {article.topics && article.topics.length > 0 && (
+      <div className="flex flex-wrap gap-2 mb-6">
+        {article.topics.map((topic, index) => (
+          <span key={index} className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${darkMode ? 'bg-gray-900 text-gray-400 border border-gray-800' : 'bg-gray-100 text-gray-600 border border-gray-200'}`}>
+            {topic}
+          </span>
+        ))}
+      </div>
+    )}
+
+    {/* Title */}
+    <h1 className={`text-5xl md:text-7xl font-serif font-bold mb-10 leading-[1.1] tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+      {article.title}
+    </h1>
+
+    {/* Subtitle/Excerpt if available */}
+    {article.excerpt && (
+      <p className={`text-2xl mb-10 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+        {article.excerpt}
+      </p>
+    )}
+
+    {/* Author & Meta Info */}
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-8 pb-8 border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}">
+      <div className="flex items-start gap-4">
+        <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-gradient-to-br ${getTierColor(article.tier)} shadow-lg ring-4 ${darkMode ? 'ring-gray-900' : 'ring-white'} flex-shrink-0`}>
+          <span className="text-2xl">{getTierEmoji(article.tier)}</span>
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className={`font-bold text-xl ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              {article.display_name}
+            </h3>
+            {article.certified && (
+              <Award size={18} className="text-purple-500" title="Editorial Certified" />
             )}
-
-            {/* Title */}
-            <h1 className={`text-5xl md:text-7xl font-serif font-bold mb-10 leading-[1.1] tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              {article.title}
-            </h1>
-
-            {/* Subtitle/Excerpt if available */}
-            {article.excerpt && (
-              <p className={`text-2xl mb-10 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                {article.excerpt}
-              </p>
-            )}
-
-            {/* Author & Meta Info */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8 pb-8 border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}">
-              <div className="flex items-center gap-4">
-                <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-gradient-to-br ${getTierColor(article.tier)} shadow-lg ring-4 ${darkMode ? 'ring-gray-900' : 'ring-white'}`}>
-                  <span className="text-2xl">{getTierEmoji(article.tier)}</span>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className={`font-bold text-xl ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {article.display_name}
-                    </h3>
-                    {article.certified && (
-                      <Award size={18} className="text-purple-500" title="Editorial Certified" />
-                    )}
-                  </div>
-                  <div className={`flex items-center gap-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${getTierColor(article.tier)} text-white`}>
-                      {article.tier?.toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Stats */}
-              <div className={`flex flex-wrap items-center gap-6 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                <div className="flex items-center gap-2">
-                  <Calendar size={18} />
-                  <span>{formatDate(article.created_at)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock size={18} />
-                  <span>{article.reading_time} min read</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Eye size={18} />
-                  <span>{article.views?.toLocaleString() || 0}</span>
-                </div>
-              </div>
+          </div>
+          <div className={`flex items-center gap-2 text-sm mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${getTierColor(article.tier)} text-white`}>
+              {article.tier?.toUpperCase()}
+            </span>
+          </div>
+          
+          {/* Ideology Badge - Show if public */}
+          {article.author_ideology && article.author_ideology_public && (
+            <div className={`mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-lg ${darkMode ? 'bg-purple-950/50 border border-purple-900' : 'bg-purple-50 border border-purple-200'}`}>
+              <Brain size={16} className="text-purple-500 flex-shrink-0" />
+              <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                This user tends to lean towards:{' '}
+                <span className={`font-bold ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>
+                  {article.author_ideology}
+                </span>
+              </span>
             </div>
+          )}
+        </div>
+      </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleBookmarkToggle}
-                disabled={bookmarkLoading}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all duration-300 ${
-                  bookmarked 
-                    ? 'bg-yellow-500 text-white hover:bg-yellow-600 shadow-lg' 
-                    : `${darkMode ? 'bg-gray-900 text-gray-300 hover:bg-gray-800 border border-gray-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'}`
-                } ${bookmarkLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                {bookmarkLoading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent border-yellow-500"></div>
-                ) : (
-                  <>
-                    {bookmarked ? <Bookmark size={18} /> : <BookmarkPlus size={18} />}
-                    <span>{bookmarked ? 'Saved' : 'Save'}</span>
-                  </>
-                )}
-              </button>
-              
-              <button
-                onClick={handleRandomArticle}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium ${darkMode ? 'bg-gray-900 text-gray-300 hover:bg-gray-800 border border-gray-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'} transition-all duration-300`}
-              >
-                <Shuffle size={18} />
-                <span>Random</span>
-              </button>
-            </div>
-          </header>
+      {/* Stats */}
+      <div className={`flex flex-wrap items-center gap-6 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+        <div className="flex items-center gap-2">
+          <Calendar size={18} />
+          <span>{formatDate(article.created_at)}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Clock size={18} />
+          <span>{article.reading_time} min read</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Eye size={18} />
+          <span>{article.views?.toLocaleString() || 0}</span>
+        </div>
+      </div>
+    </div>
+
+    {/* Action Buttons */}
+    <div className="flex items-center gap-3">
+      <button
+        onClick={handleBookmarkToggle}
+        disabled={bookmarkLoading}
+        className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all duration-300 ${
+          bookmarked 
+            ? 'bg-yellow-500 text-white hover:bg-yellow-600 shadow-lg' 
+            : `${darkMode ? 'bg-gray-900 text-gray-300 hover:bg-gray-800 border border-gray-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'}`
+        } ${bookmarkLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+      >
+        {bookmarkLoading ? (
+          <div className="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent border-yellow-500"></div>
+        ) : (
+          <>
+            {bookmarked ? <Bookmark size={18} /> : <BookmarkPlus size={18} />}
+            <span>{bookmarked ? 'Saved' : 'Save'}</span>
+          </>
         )}
+      </button>
+      
+      <button
+        onClick={handleRandomArticle}
+        className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium ${darkMode ? 'bg-gray-900 text-gray-300 hover:bg-gray-800 border border-gray-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'} transition-all duration-300`}
+      >
+        <Shuffle size={18} />
+        <span>Random</span>
+      </button>
+    </div>
+  </header>
+)}
 
         {/* Article Content */}
         <div 
