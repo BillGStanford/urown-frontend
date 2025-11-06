@@ -67,9 +67,9 @@ const ArticlePage = () => {
   // Premium Reading Features
   const [focusMode, setFocusMode] = useState(false);
   const [fontSize, setFontSize] = useState(20);
-  const [fontFamily, setFontFamily] = useState('serif');
+  const [fontFamily, setFontFamily] = useState('sans'); // Changed from 'serif' to 'sans'
   const [lineHeight, setLineHeight] = useState(1.8);
-  const [contentWidth, setContentWidth] = useState('max');
+  const [contentWidth, setContentWidth] = useState('max'); // Default wide setting
   const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState('');
   const [highlightColor, setHighlightColor] = useState('#fef08a');
@@ -81,6 +81,10 @@ const ArticlePage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [notePos, setNotePos] = useState({ x: 32, y: 128 });
+  const [annotatedHighlights, setAnnotatedHighlights] = useState([]); // New state for annotated highlights
+  const [showNoteInput, setShowNoteInput] = useState(false); // State to show/hide note input
+  const [currentHighlight, setCurrentHighlight] = useState(null); // Currently selected highlight for annotation
+  const [noteText, setNoteText] = useState(''); // Text for the current note
   const notePanelRef = useRef(null);
 
   const generateSlug = (title) => {
@@ -422,10 +426,42 @@ const ArticlePage = () => {
       span.style.padding = '2px 0';
       span.style.borderRadius = '2px';
       span.className = 'highlight-span';
+      span.dataset.highlightId = `highlight-${Date.now()}`;
       
       try {
         range.surroundContents(span);
-        setHighlights([...highlights, { text: selectedText, color: highlightColor }]);
+        
+        // Add click handler to the highlight
+        span.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const highlightId = span.dataset.highlightId;
+          const existingAnnotation = annotatedHighlights.find(h => h.id === highlightId);
+          
+          if (existingAnnotation) {
+            // Show existing annotation
+            alert(`Note: ${existingAnnotation.note}`);
+          } else {
+            // Prompt for new annotation
+            const note = prompt('Add a note for this highlight:');
+            if (note) {
+              setAnnotatedHighlights([...annotatedHighlights, {
+                id: highlightId,
+                text: selectedText,
+                color: highlightColor,
+                note: note
+              }]);
+              
+              // Add visual indicator that this highlight has a note
+              span.style.borderBottom = '2px dotted #333';
+            }
+          }
+        });
+        
+        setHighlights([...highlights, { 
+          id: span.dataset.highlightId,
+          text: selectedText, 
+          color: highlightColor 
+        }]);
       } catch (e) {
         console.log('Could not highlight selection');
       }
@@ -442,14 +478,15 @@ const ArticlePage = () => {
       parent.removeChild(el);
     });
     setHighlights([]);
+    setAnnotatedHighlights([]);
   };
 
   const getContentWidthClass = () => {
     switch (contentWidth) {
       case 'narrow': return 'max-w-2xl';
       case 'comfortable': return 'max-w-3xl';
-      case 'max': return 'max-w-4xl';
-      default: return 'max-w-4xl';
+      case 'max': return 'max-w-6xl'; // Increased width for default wide setting
+      default: return 'max-w-6xl'; // Increased width for default wide setting
     }
   };
 
@@ -719,6 +756,23 @@ const ArticlePage = () => {
               </div>
             </div>
           )}
+          {annotatedHighlights.length > 0 && (
+            <div className="mt-4">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className={`text-sm font-bold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Annotated Highlights ({annotatedHighlights.length})
+                </h4>
+              </div>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {annotatedHighlights.map((annotation, idx) => (
+                  <div key={idx} className={`p-2 rounded-lg text-xs ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`} style={{ borderLeft: `3px solid ${annotation.color}` }}>
+                    <div className="font-medium mb-1">{annotation.text.substring(0, 40)}...</div>
+                    <div className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Note: {annotation.note}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -727,11 +781,34 @@ const ArticlePage = () => {
         <div className={`fixed left-8 bottom-8 z-40 ${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl shadow-2xl p-4`}>
           <p className={`text-sm font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Select text to highlight</p>
           <div className="flex gap-2">
-            <button onClick={() => setHighlightColor('#fef08a')} className="w-8 h-8 rounded-full bg-yellow-200 border-2 border-gray-300 hover:scale-110 transition-transform" title="Yellow" />
-            <button onClick={() => setHighlightColor('#bfdbfe')} className="w-8 h-8 rounded-full bg-blue-200 border-2 border-gray-300 hover:scale-110 transition-transform" title="Blue" />
-            <button onClick={() => setHighlightColor('#bbf7d0')} className="w-8 h-8 rounded-full bg-green-200 border-2 border-gray-300 hover:scale-110 transition-transform" title="Green" />
-            <button onClick={() => setHighlightColor('#fecaca')} className="w-8 h-8 rounded-full bg-red-200 border-2 border-gray-300 hover:scale-110 transition-transform" title="Red" />
-            <button onClick={() => setHighlightColor('#e9d5ff')} className="w-8 h-8 rounded-full bg-purple-200 border-2 border-gray-300 hover:scale-110 transition-transform" title="Purple" />
+            <button 
+              onClick={() => setHighlightColor('#fef08a')} 
+              className={`w-8 h-8 rounded-full bg-yellow-200 border-2 ${highlightColor === '#fef08a' ? 'border-gray-900 scale-125' : 'border-gray-300'} hover:scale-110 transition-transform`} 
+              title="Yellow" 
+            />
+            <button 
+              onClick={() => setHighlightColor('#bfdbfe')} 
+              className={`w-8 h-8 rounded-full bg-blue-200 border-2 ${highlightColor === '#bfdbfe' ? 'border-gray-900 scale-125' : 'border-gray-300'} hover:scale-110 transition-transform`} 
+              title="Blue" 
+            />
+            <button 
+              onClick={() => setHighlightColor('#bbf7d0')} 
+              className={`w-8 h-8 rounded-full bg-green-200 border-2 ${highlightColor === '#bbf7d0' ? 'border-gray-900 scale-125' : 'border-gray-300'} hover:scale-110 transition-transform`} 
+              title="Green" 
+            />
+            <button 
+              onClick={() => setHighlightColor('#fecaca')} 
+              className={`w-8 h-8 rounded-full bg-red-200 border-2 ${highlightColor === '#fecaca' ? 'border-gray-900 scale-125' : 'border-gray-300'} hover:scale-110 transition-transform`} 
+              title="Red" 
+            />
+            <button 
+              onClick={() => setHighlightColor('#e9d5ff')} 
+              className={`w-8 h-8 rounded-full bg-purple-200 border-2 ${highlightColor === '#e9d5ff' ? 'border-gray-900 scale-125' : 'border-gray-300'} hover:scale-110 transition-transform`} 
+              title="Purple" 
+            />
+          </div>
+          <div className={`mt-3 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            Click on highlighted text to add a note
           </div>
         </div>
       )}
@@ -765,7 +842,7 @@ const ArticlePage = () => {
             )}
 
             {/* Author & Meta Info */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8 pb-8 border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}">
+   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8 pb-8 border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}">
               <div className="flex items-center gap-4">
                 <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-gradient-to-br ${getTierColor(article.tier)} shadow-lg ring-4 ${darkMode ? 'ring-gray-900' : 'ring-white'}`}>
                   <span className="text-2xl">{getTierEmoji(article.tier)}</span>
