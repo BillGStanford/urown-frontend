@@ -21,7 +21,8 @@ import {
   Bell,
   BookOpen,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Sparkles
 } from 'lucide-react';
 
 function Header({ user, onLogout }) {
@@ -97,12 +98,12 @@ function Header({ user, onLogout }) {
   return (
     <>
       {/* Sidebar - Desktop Only */}
-      <aside className={`hidden lg:block fixed left-0 top-0 h-screen bg-white border-r-2 border-gray-200 transition-all duration-300 z-30 ${
+      <aside className={`hidden lg:block fixed left-0 top-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 z-30 ${
   isSidebarCollapsed ? 'w-20' : 'w-64'
 }`}>
         <div className="flex flex-col h-full">
           {/* Logo - Fixed width container */}
-          <div className="h-[88px] border-b-2 border-gray-200 flex items-center justify-center px-4">
+          <div className="h-[88px] border-b border-gray-200 flex items-center justify-center px-4">
             <Link to="/" className="flex items-center gap-3 group">
               <div className="w-12 h-12 bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg shrink-0">
                 <Flame className="h-7 w-7 text-white" />
@@ -130,6 +131,20 @@ function Header({ user, onLogout }) {
               >
                 <Search className="h-6 w-6 shrink-0" strokeWidth={2.5} />
                 {!isSidebarCollapsed && <span className="font-bold">Browse</span>}
+              </Link>
+
+              <Link 
+                to="/ideology-quiz" 
+                className="flex items-center gap-4 px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-purple-600 rounded-xl transition-all duration-200 group relative"
+                title="Ideology Quiz"
+              >
+                <Sparkles className="h-6 w-6 shrink-0" strokeWidth={2.5} />
+                {!isSidebarCollapsed && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold">Ideology Quiz</span>
+                    <span className="px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">NEW</span>
+                  </div>
+                )}
               </Link>
 
               <Link 
@@ -192,7 +207,7 @@ function Header({ user, onLogout }) {
 
           {/* Bottom Section */}
           {user && (
-            <div className="border-t-2 border-gray-200 p-3 space-y-1">
+            <div className="border-t border-gray-200 p-3 space-y-1">
               <Link
                 to="/settings"
                 className="flex items-center gap-4 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-xl transition-all duration-200"
@@ -248,7 +263,7 @@ function Header({ user, onLogout }) {
           {/* Toggle Button */}
           <button
             onClick={toggleSidebar}
-            className="absolute -right-3 top-24 bg-white border-2 border-gray-200 rounded-full p-1 hover:bg-gray-50 transition-all duration-200 shadow-lg"
+            className="absolute -right-3 top-24 bg-white border border-gray-200 rounded-full p-1.5 hover:bg-gray-50 transition-all duration-200 shadow-lg z-10"
             aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isSidebarCollapsed ? (
@@ -263,7 +278,7 @@ function Header({ user, onLogout }) {
       {/* Top Header */}
       <header className={`sticky top-0 z-40 transition-all duration-200 ${
   scrolled 
-    ? 'bg-white shadow-lg border-b-2 border-orange-200' 
+    ? 'bg-white shadow-md border-b border-gray-200' 
     : 'bg-white border-b border-gray-100'
 } ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
         <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -281,7 +296,7 @@ function Header({ user, onLogout }) {
                   </Link>
                   <Link 
                     to="/signup" 
-                    className="px-6 py-3 text-base font-black text-white bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+                    className="px-6 py-3 text-base font-black text-white bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                   >
                     Sign up
                   </Link>
@@ -303,7 +318,7 @@ function Header({ user, onLogout }) {
 
                   <Link 
                     to="/write" 
-                    className="flex items-center gap-2 px-6 py-3 text-base font-black text-white bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+                    className="flex items-center gap-2 px-6 py-3 text-base font-black text-white bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                   >
                     <PenTool className="h-5 w-5" strokeWidth={3} />
                     <span>Write</span>
@@ -325,7 +340,7 @@ function Header({ user, onLogout }) {
                       <ChevronDown className={`h-5 w-5 text-gray-600 transition-transform duration-200 ${isUserDropdownOpen ? 'rotate-180' : ''}`} strokeWidth={2.5} />
                     </button>
                     {isUserDropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border-2 border-gray-100 overflow-hidden">
+                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
                         <div className="py-2">
                           <Link
                             to={`/user/${encodeURIComponent(user.display_name)}`}
@@ -374,7 +389,7 @@ function Header({ user, onLogout }) {
 
           {/* Mobile Menu */}
           {isMobileMenuOpen && (
-            <nav className="lg:hidden pb-4 border-t-2 border-gray-100 bg-gradient-to-b from-white to-gray-50">
+            <nav className="lg:hidden pb-4 border-t border-gray-100 bg-gradient-to-b from-white to-gray-50">
               <div className="flex flex-col pt-4 space-y-2">
                 <Link 
                   to="/browse" 
@@ -386,6 +401,21 @@ function Header({ user, onLogout }) {
                   </div>
                   <span>Browse</span>
                 </Link>
+                
+                <Link 
+                  to="/ideology-quiz" 
+                  className="flex items-center gap-4 text-base font-bold text-gray-800 hover:bg-purple-50 py-4 px-5 rounded-xl transition-all duration-150"
+                  onClick={closeMobileMenu}
+                >
+                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <Sparkles className="h-6 w-6 text-purple-600" strokeWidth={2.5} />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>Ideology Quiz</span>
+                    <span className="px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">NEW</span>
+                  </div>
+                </Link>
+                
                 <Link 
                   to="/about" 
                   className="flex items-center gap-4 text-base font-bold text-gray-800 hover:bg-blue-50 py-4 px-5 rounded-xl transition-all duration-150"
@@ -461,14 +491,14 @@ function Header({ user, onLogout }) {
                     
                     <Link 
                       to="/write" 
-                      className="flex items-center gap-4 text-base font-black text-white bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 py-4 px-5 rounded-2xl shadow-xl mx-3 justify-center transition-all duration-150"
+                      className="flex items-center gap-4 text-base font-black text-white bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 py-4 px-5 rounded-2xl shadow-lg mx-3 justify-center transition-all duration-150"
                       onClick={closeMobileMenu}
                     >
                       <PenTool className="h-6 w-6" strokeWidth={3} />
                       <span>Write</span>
                     </Link>
                     
-                    <div className="bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 mx-3 p-5 rounded-2xl border-2 border-orange-200">
+                    <div className="bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 mx-3 p-5 rounded-2xl border border-orange-200">
                       <Link
                         to={`/user/${encodeURIComponent(user.display_name)}`}
                         className="flex items-center gap-4 text-base font-bold text-gray-800 hover:text-orange-600 transition-colors"
@@ -558,7 +588,7 @@ function Header({ user, onLogout }) {
                     </Link>
                     <Link 
                       to="/signup" 
-                      className="flex items-center justify-center gap-3 text-base font-black text-white bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 py-4 px-5 rounded-2xl shadow-xl mx-3 transition-all duration-150"
+                      className="flex items-center justify-center gap-3 text-base font-black text-white bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 py-4 px-5 rounded-2xl shadow-lg mx-3 transition-all duration-150"
                       onClick={closeMobileMenu}
                     >
                       <User className="h-6 w-6" strokeWidth={3} />
