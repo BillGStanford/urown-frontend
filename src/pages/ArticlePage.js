@@ -61,15 +61,21 @@ const ArticlePage = () => {
   const [reporting, setReporting] = useState(false);
   const [reportSuccess, setReportSuccess] = useState(false);
   const [activeSection, setActiveSection] = useState('article');
+  
+  // Add these new state variables for follow functionality
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [checkingFollowStatus, setCheckingFollowStatus] = useState(true);
+  
   const articleContentRef = useRef(null);
   const abortControllerRef = useRef(null);
 
   // Premium Reading Features
   const [focusMode, setFocusMode] = useState(false);
   const [fontSize, setFontSize] = useState(20);
-  const [fontFamily, setFontFamily] = useState('sans'); // Changed from 'serif' to 'sans'
+  const [fontFamily, setFontFamily] = useState('serif');
   const [lineHeight, setLineHeight] = useState(1.8);
-  const [contentWidth, setContentWidth] = useState('max'); // Default wide setting
+  const [contentWidth, setContentWidth] = useState('max');
   const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState('');
   const [highlightColor, setHighlightColor] = useState('#fef08a');
@@ -81,11 +87,60 @@ const ArticlePage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [notePos, setNotePos] = useState({ x: 32, y: 128 });
-  const [annotatedHighlights, setAnnotatedHighlights] = useState([]); // New state for annotated highlights
-  const [showNoteInput, setShowNoteInput] = useState(false); // State to show/hide note input
-  const [currentHighlight, setCurrentHighlight] = useState(null); // Currently selected highlight for annotation
-  const [noteText, setNoteText] = useState(''); // Text for the current note
   const notePanelRef = useRef(null);
+
+  // Add this useEffect to check follow status when article loads
+  useEffect(() => {
+    const checkFollowStatus = async () => {
+      if (!user || !article) {
+        setCheckingFollowStatus(false);
+        return;
+      }
+      
+      try {
+        const response = await axios.get(`/users/${article.user_id}/follow/status`);
+        setIsFollowing(response.data.isFollowing);
+      } catch (err) {
+        console.error('Error checking follow status:', err);
+      } finally {
+        setCheckingFollowStatus(false);
+      }
+    };
+    
+    checkFollowStatus();
+  }, [user, article]);
+
+  // Add this handler function for follow/unfollow
+  const handleFollowAuthor = async (e) => {
+    e.stopPropagation(); // Prevent navigation if button is inside a link
+    
+    if (!user) {
+      navigate('/signup');
+      return;
+    }
+
+    // Prevent following yourself
+    if (user.id === article.user_id) {
+      return;
+    }
+
+    try {
+      setFollowLoading(true);
+      
+      if (isFollowing) {
+        await axios.delete(`/users/${article.user_id}/follow`);
+        setIsFollowing(false);
+      } else {
+        await axios.post(`/users/${article.user_id}/follow`);
+        setIsFollowing(true);
+      }
+    } catch (err) {
+      console.error('Follow/unfollow error:', err);
+      setError(err.response?.data?.error || 'Failed to follow/unfollow user');
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   const generateSlug = (title) => {
     return title
@@ -426,42 +481,10 @@ const ArticlePage = () => {
       span.style.padding = '2px 0';
       span.style.borderRadius = '2px';
       span.className = 'highlight-span';
-      span.dataset.highlightId = `highlight-${Date.now()}`;
       
       try {
         range.surroundContents(span);
-        
-        // Add click handler to the highlight
-        span.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const highlightId = span.dataset.highlightId;
-          const existingAnnotation = annotatedHighlights.find(h => h.id === highlightId);
-          
-          if (existingAnnotation) {
-            // Show existing annotation
-            alert(`Note: ${existingAnnotation.note}`);
-          } else {
-            // Prompt for new annotation
-            const note = prompt('Add a note for this highlight:');
-            if (note) {
-              setAnnotatedHighlights([...annotatedHighlights, {
-                id: highlightId,
-                text: selectedText,
-                color: highlightColor,
-                note: note
-              }]);
-              
-              // Add visual indicator that this highlight has a note
-              span.style.borderBottom = '2px dotted #333';
-            }
-          }
-        });
-        
-        setHighlights([...highlights, { 
-          id: span.dataset.highlightId,
-          text: selectedText, 
-          color: highlightColor 
-        }]);
+        setHighlights([...highlights, { text: selectedText, color: highlightColor }]);
       } catch (e) {
         console.log('Could not highlight selection');
       }
@@ -478,15 +501,14 @@ const ArticlePage = () => {
       parent.removeChild(el);
     });
     setHighlights([]);
-    setAnnotatedHighlights([]);
   };
 
   const getContentWidthClass = () => {
     switch (contentWidth) {
       case 'narrow': return 'max-w-2xl';
       case 'comfortable': return 'max-w-3xl';
-      case 'max': return 'max-w-6xl'; // Increased width for default wide setting
-      default: return 'max-w-6xl'; // Increased width for default wide setting
+      case 'max': return 'max-w-4xl';
+      default: return 'max-w-4xl';
     }
   };
 
@@ -756,23 +778,6 @@ const ArticlePage = () => {
               </div>
             </div>
           )}
-          {annotatedHighlights.length > 0 && (
-            <div className="mt-4">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className={`text-sm font-bold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Annotated Highlights ({annotatedHighlights.length})
-                </h4>
-              </div>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {annotatedHighlights.map((annotation, idx) => (
-                  <div key={idx} className={`p-2 rounded-lg text-xs ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`} style={{ borderLeft: `3px solid ${annotation.color}` }}>
-                    <div className="font-medium mb-1">{annotation.text.substring(0, 40)}...</div>
-                    <div className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Note: {annotation.note}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -781,34 +786,11 @@ const ArticlePage = () => {
         <div className={`fixed left-8 bottom-8 z-40 ${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl shadow-2xl p-4`}>
           <p className={`text-sm font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Select text to highlight</p>
           <div className="flex gap-2">
-            <button 
-              onClick={() => setHighlightColor('#fef08a')} 
-              className={`w-8 h-8 rounded-full bg-yellow-200 border-2 ${highlightColor === '#fef08a' ? 'border-gray-900 scale-125' : 'border-gray-300'} hover:scale-110 transition-transform`} 
-              title="Yellow" 
-            />
-            <button 
-              onClick={() => setHighlightColor('#bfdbfe')} 
-              className={`w-8 h-8 rounded-full bg-blue-200 border-2 ${highlightColor === '#bfdbfe' ? 'border-gray-900 scale-125' : 'border-gray-300'} hover:scale-110 transition-transform`} 
-              title="Blue" 
-            />
-            <button 
-              onClick={() => setHighlightColor('#bbf7d0')} 
-              className={`w-8 h-8 rounded-full bg-green-200 border-2 ${highlightColor === '#bbf7d0' ? 'border-gray-900 scale-125' : 'border-gray-300'} hover:scale-110 transition-transform`} 
-              title="Green" 
-            />
-            <button 
-              onClick={() => setHighlightColor('#fecaca')} 
-              className={`w-8 h-8 rounded-full bg-red-200 border-2 ${highlightColor === '#fecaca' ? 'border-gray-900 scale-125' : 'border-gray-300'} hover:scale-110 transition-transform`} 
-              title="Red" 
-            />
-            <button 
-              onClick={() => setHighlightColor('#e9d5ff')} 
-              className={`w-8 h-8 rounded-full bg-purple-200 border-2 ${highlightColor === '#e9d5ff' ? 'border-gray-900 scale-125' : 'border-gray-300'} hover:scale-110 transition-transform`} 
-              title="Purple" 
-            />
-          </div>
-          <div className={`mt-3 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Click on highlighted text to add a note
+            <button onClick={() => setHighlightColor('#fef08a')} className="w-8 h-8 rounded-full bg-yellow-200 border-2 border-gray-300 hover:scale-110 transition-transform" title="Yellow" />
+            <button onClick={() => setHighlightColor('#bfdbfe')} className="w-8 h-8 rounded-full bg-blue-200 border-2 border-gray-300 hover:scale-110 transition-transform" title="Blue" />
+            <button onClick={() => setHighlightColor('#bbf7d0')} className="w-8 h-8 rounded-full bg-green-200 border-2 border-gray-300 hover:scale-110 transition-transform" title="Green" />
+            <button onClick={() => setHighlightColor('#fecaca')} className="w-8 h-8 rounded-full bg-red-200 border-2 border-gray-300 hover:scale-110 transition-transform" title="Red" />
+            <button onClick={() => setHighlightColor('#e9d5ff')} className="w-8 h-8 rounded-full bg-purple-200 border-2 border-gray-300 hover:scale-110 transition-transform" title="Purple" />
           </div>
         </div>
       )}
@@ -841,19 +823,57 @@ const ArticlePage = () => {
               </p>
             )}
 
-            {/* Author & Meta Info */}
-   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8 pb-8 border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}">
+            {/* Author & Meta Info - Updated with Follow/Unfollow functionality */}
+            <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8 pb-8 border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
               <div className="flex items-center gap-4">
                 <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-gradient-to-br ${getTierColor(article.tier)} shadow-lg ring-4 ${darkMode ? 'ring-gray-900' : 'ring-white'}`}>
                   <span className="text-2xl">{getTierEmoji(article.tier)}</span>
                 </div>
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className={`font-bold text-xl ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <div className="flex items-center gap-3 mb-1">
+                    <h3 
+                      onClick={() => navigate(`/user/${article.display_name}`)}
+                      className={`font-bold text-xl cursor-pointer hover:text-yellow-600 transition-colors ${darkMode ? 'text-white' : 'text-gray-900'}`}
+                    >
                       {article.display_name}
                     </h3>
                     {article.certified && (
                       <Award size={18} className="text-purple-500" title="Editorial Certified" />
+                    )}
+                    
+                    {/* Follow/Unfollow Button */}
+                    {user && user.id !== article.user_id && (
+                      <button
+                        onClick={handleFollowAuthor}
+                        disabled={followLoading || checkingFollowStatus}
+                        className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                          isFollowing
+                            ? `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'}`
+                            : 'bg-yellow-500 text-white hover:bg-yellow-600 shadow-sm'
+                        } ${(followLoading || checkingFollowStatus) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {followLoading ? (
+                          <span className="flex items-center gap-1">
+                            <div className="animate-spin rounded-full h-3 w-3 border-2 border-t-transparent border-current"></div>
+                          </span>
+                        ) : checkingFollowStatus ? (
+                          '...'
+                        ) : isFollowing ? (
+                          'Following'
+                        ) : (
+                          'Follow'
+                        )}
+                      </button>
+                    )}
+                    
+                    {/* Sign up prompt for non-logged in users */}
+                    {!user && (
+                      <button
+                        onClick={() => navigate('/signup')}
+                        className="px-4 py-1.5 rounded-full text-sm font-semibold bg-yellow-500 text-white hover:bg-yellow-600 shadow-sm transition-all duration-200"
+                      >
+                        Follow
+                      </button>
                     )}
                   </div>
                   <div className={`flex items-center gap-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
