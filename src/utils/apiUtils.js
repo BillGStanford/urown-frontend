@@ -5,7 +5,9 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? 'https://urown-backend.onrender.com/api' 
   : 'http://localhost:5000/api';
 
+// Configure axios defaults
 axios.defaults.baseURL = API_BASE_URL;
+axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 // Add request interceptor for debugging
 axios.interceptors.request.use(
@@ -25,7 +27,10 @@ axios.interceptors.request.use(
 // Add response interceptor for debugging
 axios.interceptors.response.use(
   response => {
-    console.log(`Response from ${response.config.url}:`, response.status, response.data);
+    console.log(`Response from ${response.config.url}:`, response.status);
+    if (response.data) {
+      console.log('Response data:', response.data);
+    }
     return response;
   },
   error => {
@@ -99,6 +104,7 @@ export const handleUnauthorized = (error) => {
   return Promise.reject(error);
 };
 
+// Request deduplication wrapper
 export const fetchWithDeduplication = async (requestKey, axiosRequest) => {
   // If there's already a pending request for this key, return its promise
   if (pendingRequests[requestKey]) {
@@ -128,14 +134,14 @@ export const fetchWithDeduplication = async (requestKey, axiosRequest) => {
   }
 };
 
-// Helper function to create API requests
+// Function to create API requests
 export const createApiRequest = (endpoint, options = {}) => {
   const { method = 'GET', data, params, headers = {} } = options;
   
   return () => {
     const config = {
       method,
-      url: endpoint, // Don't add /api here since we set it as baseURL
+      url: endpoint, // Don't add /api here since it's in baseURL
       headers: {
         'Content-Type': 'application/json',
         ...headers
@@ -160,11 +166,10 @@ export const createApiRequest = (endpoint, options = {}) => {
   };
 };
 
-// Add a response interceptor to handle common errors globally
+// Add a response interceptor to handle 401 and 403 globally
 axios.interceptors.response.use(
   response => response,
   error => {
-    // Handle 401 Unauthorized and 403 Forbidden errors globally
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
       handleUnauthorized(error);
     }
@@ -172,7 +177,7 @@ axios.interceptors.response.use(
   }
 );
 
-// Export the axios instance for use in components
+// Export axios instance for use in components
 export { axios };
 
 // Debug function to check API configuration

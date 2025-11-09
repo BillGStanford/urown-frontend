@@ -1,8 +1,7 @@
-// src/pages/WriteRedFlaggedPage.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import axios from 'axios';
+import { createApiRequest } from '../utils/apiUtils';
 
 const WriteRedFlaggedPage = () => {
   const navigate = useNavigate();
@@ -99,7 +98,11 @@ const WriteRedFlaggedPage = () => {
     setLoading(true);
     
     try {
-      const response = await axios.post('/api/redflagged', formData);
+      const response = await createApiRequest('/redflagged', {
+        method: 'POST',
+        data: formData
+      });
+      
       navigate(`/redflagged/${response.data.post.id}`);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to create post');
@@ -125,8 +128,8 @@ const WriteRedFlaggedPage = () => {
             ★
           </button>
         ))}
-        <span className="ml-2 text-sm text-gray-600">{value}/5</span>
       </div>
+      <span className="ml-2 text-sm text-gray-600">{value}/5</span>
     </div>
   );
   
@@ -136,11 +139,11 @@ const WriteRedFlaggedPage = () => {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-black text-gray-900 mb-2">
+            <h1 className="text-3xl font-black text-center">
               🚩 Share Your Experience
             </h1>
-            <p className="text-gray-600">
-              RedFlagged by UROWN — Where workers speak freely.
+            <p className="text-gray-600 text-center">
+              RedFlagged by UROWN — Where workers speak freely
             </p>
           </div>
           
@@ -204,31 +207,6 @@ const WriteRedFlaggedPage = () => {
               </select>
             </div>
             
-            {/* Ratings */}
-            <div className="mb-6 p-6 bg-gray-50 rounded-lg">
-              <h3 className="text-lg font-bold mb-4">Rate Your Experience</h3>
-              <RatingStars 
-                label="Fairness" 
-                value={formData.rating_fairness}
-                onChange={(val) => handleRatingChange('rating_fairness', val)}
-              />
-              <RatingStars 
-                label="Pay & Benefits" 
-                value={formData.rating_pay}
-                onChange={(val) => handleRatingChange('rating_pay', val)}
-              />
-              <RatingStars 
-                label="Company Culture" 
-                value={formData.rating_culture}
-                onChange={(val) => handleRatingChange('rating_culture', val)}
-              />
-              <RatingStars 
-                label="Management" 
-                value={formData.rating_management}
-                onChange={(val) => handleRatingChange('rating_management', val)}
-              />
-            </div>
-            
             {/* Story */}
             <div className="mb-6">
               <label className="block text-sm font-semibold mb-2">
@@ -253,26 +231,51 @@ const WriteRedFlaggedPage = () => {
               </div>
             </div>
             
-            {/* Anonymous Username */}
-            {formData.is_anonymous && (
-              <div className="mb-6">
-                <label className="block text-sm font-semibold mb-2">
-                  Username <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="anonymous_username"
-                  value={formData.anonymous_username}
-                  onChange={handleChange}
-                  placeholder="Choose a display name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  required={formData.is_anonymous}
+            {/* Ratings */}
+            <div className="mb-6 p-6 bg-gray-50 rounded-lg">
+              <h3 className="text-lg font-bold mb-4">Rate Your Experience</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <RatingStars 
+                  label="Fairness" 
+                  value={formData.rating_fairness}
+                  onChange={(val) => handleRatingChange('rating_fairness', val)}
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  No profanity or offensive language
-                </p>
+                <RatingStars 
+                  label="Pay & Benefits" 
+                  value={formData.rating_pay}
+                  onChange={(val) => handleRatingChange('rating_pay', val)}
+                />
+                <RatingStars 
+                  label="Company Culture" 
+                  value={formData.rating_culture}
+                  onChange={(val) => handleRatingChange('rating_culture', val)}
+                />
+                <RatingStars 
+                  label="Management" 
+                  value={formData.rating_management}
+                  onChange={(val) => handleRatingChange('rating_management', val)}
+                />
               </div>
-            )}
+            </div>
+            
+            {/* Anonymous Username */}
+            <div className="mb-6">
+              <label className="block text-sm font-semibold mb-2">
+                Username <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="anonymous_username"
+                value={formData.anonymous_username}
+                onChange={handleChange}
+                placeholder="Choose a display name for your post"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                required={formData.is_anonymous}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                No profanity or offensive language
+              </p>
+            </div>
             
             {/* Show Real Name Option (only if logged in) */}
             {user && (
@@ -288,7 +291,7 @@ const WriteRedFlaggedPage = () => {
                     }))}
                     className="mr-2"
                   />
-                  <span className="text-sm">Post anonymously</span>
+                  <span className="text-sm font-semibold">Post with my real name</span>
                 </label>
               </div>
             )}
@@ -305,8 +308,7 @@ const WriteRedFlaggedPage = () => {
                   required
                 />
                 <span className="text-sm text-gray-700">
-                  I agree that I am sharing my own experience truthfully. 
-                  I understand that posts are user opinions and UROWN is not responsible for content accuracy.
+                  I agree that I am sharing my own experience truthfully. I understand that posts are user opinions and UROWN is not responsible for content accuracy.
                 </span>
               </label>
             </div>
@@ -335,7 +337,7 @@ const WriteRedFlaggedPage = () => {
         <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm text-yellow-800">
             ⚠️ <strong>Disclaimer:</strong> Posts on RedFlagged are user opinions and personal experiences. 
-            UROWN does not verify the accuracy of claims and is not responsible for user-generated content.
+            UROWN does not verify the accuracy of claims and is not responsible for content accuracy.
           </p>
         </div>
       </div>
