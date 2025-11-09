@@ -5,9 +5,7 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? 'https://urown-backend.onrender.com/api' 
   : 'http://localhost:5000/api';
 
-// Configure axios defaults
 axios.defaults.baseURL = API_BASE_URL;
-axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 // Add request interceptor for debugging
 axios.interceptors.request.use(
@@ -27,10 +25,7 @@ axios.interceptors.request.use(
 // Add response interceptor for debugging
 axios.interceptors.response.use(
   response => {
-    console.log(`Response from ${response.config.url}:`, response.status);
-    if (response.data) {
-      console.log('Response data:', response.data);
-    }
+    console.log(`Response from ${response.config.url}:`, response.status, response.data);
     return response;
   },
   error => {
@@ -92,7 +87,7 @@ export const handleUnauthorized = (error) => {
     const errorMessage = error.response.data.error || 
       (error.response.status === 401 
         ? 'Your session has expired. Please log in again.' 
-        : 'You do not have permission to access this resource.');
+        : 'You do not have permission to access this resource. Your account may be banned or suspended.');
     
     // Clear user data from localStorage
     localStorage.removeItem('user');
@@ -104,7 +99,36 @@ export const handleUnauthorized = (error) => {
   return Promise.reject(error);
 };
 
-// Function to create API requests
+export const fetchWithDeduplication = async (requestKey, axiosRequest) => {
+  // If there's already a pending request for this key, return its promise
+  if (pendingRequests[requestKey]) {
+    return pendingRequests[requestKey];
+  }
+  
+  // Create a new request
+  const requestPromise = fetchWithRetry(axiosRequest)
+    .catch(error => {
+      // Handle 401 Unauthorized and 403 Forbidden errors
+      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+        handleUnauthorized(error);
+      }
+      throw error;
+    });
+  
+  // Store the promise
+  pendingRequests[requestKey] = requestPromise;
+  
+  try {
+    // Wait for the request to complete
+    const result = await requestPromise;
+    return result;
+  } finally {
+    // Clean up the pending request
+    delete pendingRequests[requestKey];
+  }
+};
+
+// Helper function to create API requests
 export const createApiRequest = (endpoint, options = {}) => {
   const { method = 'GET', data, params, headers = {} } = options;
   
@@ -136,10 +160,11 @@ export const createApiRequest = (endpoint, options = {}) => {
   };
 };
 
-// Add a response interceptor to handle 401 and 403 globally
+// Add a response interceptor to handle common errors globally
 axios.interceptors.response.use(
   response => response,
   error => {
+    // Handle 401 Unauthorized and 403 Forbidden errors globally
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
       handleUnauthorized(error);
     }
@@ -147,7 +172,7 @@ axios.interceptors.response.use(
   }
 );
 
-// Export axios instance for use in components
+// Export the axios instance for use in components
 export { axios };
 
 // Debug function to check API configuration
@@ -160,7 +185,10 @@ export const debugApiConfig = () => {
 // Function to validate user session before making admin requests
 export const validateUserSession = async () => {
   try {
-    const response = await createApiRequest('/admin/user-check', { method: 'POST' })();
+    const response = await fetchWithDeduplication(
+      'admin-user-check',
+      createApiRequest('/admin/user-check', { method: 'POST' })
+    );
     return response.data.valid;
   } catch (error) {
     console.error('Session validation error:', error);
