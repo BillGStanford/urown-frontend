@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import { useUser } from '../context/UserContext';
-import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Dice, Lightbulb, Coffee, Music, Book, PenTool, Smile } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Dices, Lightbulb, Coffee, Music, Book, PenTool, Smile } from 'lucide-react';
 
 function HomePage() {
   const [activeDebates, setActiveDebates] = useState([]);
@@ -323,7 +323,7 @@ function HomePage() {
                     onClick={() => setDailyPrompt(dailyPrompts[Math.floor(Math.random() * dailyPrompts.length)])}
                     className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-bold rounded-xl transition-all"
                   >
-                    <Dice className="w-5 h-5" strokeWidth={2.5} />
+                    <Dices className="w-5 h-5" strokeWidth={2.5} />
                     Get Another Prompt
                   </button>
                 </div>

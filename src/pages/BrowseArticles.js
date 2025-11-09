@@ -4,7 +4,7 @@ import { axios } from '../utils/apiUtils';
 import ArticleCard from '../components/ArticleCard';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import TrendingOpinions from '../components/TrendingOpinions';
-import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown, Sparkles, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Dice, Lightbulb, Coffee, Music, Smile, Sun, Moon, Cloud } from 'lucide-react';
+import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown, Sparkles, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Dices, Lightbulb, Coffee, Music, Smile, Sun, Moon, Cloud } from 'lucide-react';
 
 function BrowseArticles() {
   const [articles, setArticles] = useState([]);
@@ -392,7 +392,7 @@ function BrowseArticles() {
                     onClick={handleNewPrompt}
                     className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-bold rounded-xl transition-all text-sm"
                   >
-                    <Dice className="w-4 h-4" strokeWidth={2.5} />
+                    <Dices className="w-4 h-4" strokeWidth={2.5} />
                     Get Another Prompt
                   </button>
                 </div>
