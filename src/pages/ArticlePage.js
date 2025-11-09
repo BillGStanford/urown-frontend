@@ -454,29 +454,48 @@ const ArticlePage = () => {
   };
 
   const formatContent = (content) => {
-    return content.split('\n\n').map((paragraph, index) => {
-      if (index === 0) {
+    // Create a temporary div to parse HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = content;
+    
+    // Get all paragraphs and block elements
+    const elements = tempDiv.querySelectorAll('p, h1, h2, h3, blockquote, pre, ul, ol, hr');
+    
+    if (elements.length > 0) {
+      // If content has HTML structure, render it
+      return (
+        <div 
+          dangerouslySetInnerHTML={{ __html: content }}
+          className="article-content"
+          style={{ fontSize: `${fontSize}px`, lineHeight }}
+        />
+      );
+    } else {
+      // Fallback to plain text formatting if no HTML structure
+      return content.split('\n\n').map((paragraph, index) => {
+        if (index === 0) {
+          return (
+            <p 
+              key={index} 
+              className={`mb-8 leading-relaxed first-letter:text-7xl first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:mt-1 ${darkMode ? 'first-letter:text-yellow-400' : 'first-letter:text-gray-900'}`}
+              style={{ fontSize: `${fontSize}px`, lineHeight }}
+            >
+              {paragraph}
+            </p>
+          );
+        }
+        
         return (
           <p 
             key={index} 
-            className={`mb-8 leading-relaxed first-letter:text-7xl first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:mt-1 ${darkMode ? 'first-letter:text-yellow-400' : 'first-letter:text-gray-900'}`}
+            className="mb-8 leading-relaxed"
             style={{ fontSize: `${fontSize}px`, lineHeight }}
           >
             {paragraph}
           </p>
         );
-      }
-      
-      return (
-        <p 
-          key={index} 
-          className="mb-8 leading-relaxed"
-          style={{ fontSize: `${fontSize}px`, lineHeight }}
-        >
-          {paragraph}
-        </p>
-      );
-    });
+      });
+    }
   };
 
   if (loading) {

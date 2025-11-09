@@ -247,14 +247,25 @@ function WriteArticle() {
     }
   };
 
-  const handleContentChange = (content) => {
+const handleContentChange = (content) => {
     if (content.length > maxChars) {
       return;
     }
     
+    // Clean up the HTML content
+    let cleanContent = content
+      // Remove empty paragraphs
+      .replace(/<p><\/p>/g, '')
+      .replace(/<p>\s*<\/p>/g, '')
+      // Remove empty divs
+      .replace(/<div><\/div>/g, '')
+      .replace(/<div>\s*<\/div>/g, '')
+      // Normalize line breaks
+      .trim();
+    
     setFormData(prev => ({
       ...prev,
-      content
+      content: cleanContent
     }));
     
     if (error) setError('');
