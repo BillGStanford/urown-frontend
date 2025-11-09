@@ -4,7 +4,7 @@ import { axios } from '../utils/apiUtils';
 import ArticleCard from '../components/ArticleCard';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import TrendingOpinions from '../components/TrendingOpinions';
-import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown, Sparkles, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Dices, Lightbulb, Coffee, Music, Smile, Sun, Moon, Cloud } from 'lucide-react';
+import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown, Sparkles, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe } from 'lucide-react';
 
 function BrowseArticles() {
   const [articles, setArticles] = useState([]);
@@ -21,36 +21,9 @@ function BrowseArticles() {
   const [isTopicFilterOpen, setIsTopicFilterOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [totalArticleCount, setTotalArticleCount] = useState(0);
-  const [selectedMood, setSelectedMood] = useState(null);
-  const [isMoodFilterOpen, setIsMoodFilterOpen] = useState(false);
-  const [dailyPrompt, setDailyPrompt] = useState('');
   const articlesPerPage = 12;
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Daily prompts for inspiration
-  const dailyPrompts = [
-    "If you could have dinner with any historical figure, who would it be and why?",
-    "What's a small thing that made you happy today?",
-    "Describe your perfect weekend in 3 sentences",
-    "What's a skill you'd love to learn and why?",
-    "If you could solve one world problem, what would it be?",
-    "What's the best advice you've ever received?",
-    "Create a new holiday and describe its traditions",
-    "What's something you've changed your mind about recently?",
-    "If you could time travel, would you go to the past or future?",
-    "What's a book/movie that changed your perspective?"
-  ];
-
-  // Moods for filtering
-  const moods = [
-    { id: 'inspired', name: 'Inspired', icon: Lightbulb, color: 'yellow' },
-    { id: 'thoughtful', name: 'Thoughtful', icon: Coffee, color: 'brown' },
-    { id: 'playful', name: 'Playful', icon: Smile, color: 'pink' },
-    { id: 'relaxed', name: 'Relaxed', icon: Cloud, color: 'blue' },
-    { id: 'energetic', name: 'Energetic', icon: Zap, color: 'orange' },
-    { id: 'creative', name: 'Creative', icon: Music, color: 'purple' }
-  ];
 
   // Fetch topics on component mount
   useEffect(() => {
@@ -64,10 +37,6 @@ function BrowseArticles() {
     };
 
     fetchTopics();
-    
-    // Set a random daily prompt
-    const randomPrompt = dailyPrompts[Math.floor(Math.random() * dailyPrompts.length)];
-    setDailyPrompt(randomPrompt);
   }, []);
 
   // Check for topic in URL parameters
@@ -102,7 +71,7 @@ function BrowseArticles() {
     setCurrentPage(1);
     setTotalArticleCount(0);
     fetchArticles(true);
-  }, [selectedTopic, selectedMood]);
+  }, [selectedTopic]);
 
   // Fetch more articles when page changes
   useEffect(() => {
@@ -136,7 +105,7 @@ function BrowseArticles() {
       setRefreshing(true);
       const offset = reset ? 0 : (currentPage - 1) * articlesPerPage;
       
-      const cacheKey = `articles-${articlesPerPage}-${offset}-false-${selectedTopic || 'all'}-${selectedMood || 'all'}`;
+      const cacheKey = `articles-${articlesPerPage}-${offset}-false-${selectedTopic || 'all'}`;
       let cachedData = reset ? null : getCachedData(cacheKey);
       
       if (!cachedData) {
@@ -148,10 +117,6 @@ function BrowseArticles() {
         
         if (selectedTopic) {
           params.topicId = selectedTopic;
-        }
-        
-        if (selectedMood) {
-          params.mood = selectedMood;
         }
         
         const response = await fetchWithRetry(() => 
@@ -231,39 +196,19 @@ function BrowseArticles() {
     }
   };
 
-  const handleMoodSelect = (moodId) => {
-    setIsMoodFilterOpen(false);
-    setSelectedMood(moodId);
-  };
-
   const clearTopicFilter = () => {
     setIsTopicFilterOpen(false);
     navigate('/browse');
-  };
-
-  const clearMoodFilter = () => {
-    setIsMoodFilterOpen(false);
-    setSelectedMood(null);
   };
 
   const toggleTopicFilter = () => {
     setIsTopicFilterOpen(!isTopicFilterOpen);
   };
 
-  const toggleMoodFilter = () => {
-    setIsMoodFilterOpen(!isMoodFilterOpen);
-  };
-
   const getSelectedTopicName = () => {
     if (!selectedTopic) return 'All Topics';
     const topic = topics.find(t => t.id === selectedTopic);
     return topic ? topic.name : 'Unknown Topic';
-  };
-
-  const getSelectedMoodName = () => {
-    if (!selectedMood) return 'All Moods';
-    const mood = moods.find(m => m.id === selectedMood);
-    return mood ? mood.name : 'Unknown Mood';
   };
 
   const getTopicIcon = (topicName) => {
@@ -283,19 +228,6 @@ function BrowseArticles() {
     
     const IconComponent = iconMap[topicName] || Sparkles;
     return <IconComponent className="w-4 h-4" strokeWidth={2.5} />;
-  };
-
-  const getMoodIcon = (moodId) => {
-    const mood = moods.find(m => m.id === moodId);
-    if (!mood) return <Sparkles className="w-4 h-4" strokeWidth={2.5} />;
-    const IconComponent = mood.icon;
-    return <IconComponent className="w-4 h-4" strokeWidth={2.5} />;
-  };
-
-  const getMoodColor = (moodId) => {
-    const mood = moods.find(m => m.id === moodId);
-    if (!mood) return 'gray';
-    return mood.color;
   };
 
   const filteredArticles = articles.filter(article => {
@@ -326,11 +258,6 @@ function BrowseArticles() {
     fetchArticles(true);
   };
 
-  const handleNewPrompt = () => {
-    const newPrompt = dailyPrompts[Math.floor(Math.random() * dailyPrompts.length)];
-    setDailyPrompt(newPrompt);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
@@ -342,15 +269,15 @@ function BrowseArticles() {
               <div className="inline-flex items-center gap-2 bg-white border border-gray-300 px-4 py-2 rounded-lg shadow-sm mb-6">
                 <Sparkles className="w-4 h-4 text-orange-600" strokeWidth={2.5} />
                 <span className="text-gray-700 font-semibold text-sm">
-                  {searchTerm ? filteredArticles.length : totalArticleCount} {searchTerm ? 'Results' : 'Thoughts'}
+                  {searchTerm ? filteredArticles.length : totalArticleCount} {searchTerm ? 'Results' : 'Articles'}
                 </span>
               </div>
               
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-4 sm:mb-6 text-gray-900 leading-tight">
-                Discover Ideas
+                Explore Opinions
               </h1>
               <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl">
-                Explore thoughts, stories, and perspectives from our creative community
+                Dive into thought-provoking articles from writers around the world
               </p>
               
               {/* Search Bar */}
@@ -358,44 +285,11 @@ function BrowseArticles() {
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="text"
-                  placeholder="Search for ideas, stories, or people..."
+                  placeholder="Search by title, author, or content..."
                   value={searchTerm}
                   onChange={handleSearch}
                   className="w-full pl-12 pr-4 py-3.5 text-base border-2 border-gray-300 focus:border-gray-900 focus:outline-none transition-all rounded-xl bg-white shadow-sm"
                 />
-              </div>
-            </div>
-
-            {/* Daily Prompt Card */}
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 mb-8 border-2 border-purple-200 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-200 rounded-full filter blur-3xl opacity-30 -mr-16 -mt-16"></div>
-              <div className="absolute bottom-0 left-0 w-40 h-40 bg-pink-200 rounded-full filter blur-3xl opacity-30 -ml-20 -mb-20"></div>
-              
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
-                    <Lightbulb className="w-5 h-5 text-white" strokeWidth={2.5} />
-                  </div>
-                  <h2 className="text-xl font-black text-gray-900">Daily Inspiration</h2>
-                </div>
-                
-                <p className="text-lg text-gray-800 font-medium mb-4">{dailyPrompt}</p>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Link 
-                    to="/write" 
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg transform hover:scale-105 text-sm"
-                  >
-                    <PenTool className="w-4 h-4" strokeWidth={2.5} />
-                    Write About This
-                  </Link>
-                  <button 
-                    onClick={handleNewPrompt}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-bold rounded-xl transition-all text-sm"
-                  >
-                    <Dices className="w-4 h-4" strokeWidth={2.5} />
-                    Get Another Prompt
-                  </button>
-                </div>
               </div>
             </div>
 
@@ -412,19 +306,6 @@ function BrowseArticles() {
                       <button
                         onClick={clearTopicFilter}
                         className="text-orange-600 hover:text-orange-700 ml-1"
-                        aria-label="Clear filter"
-                      >
-                        <X size={16} strokeWidth={2.5} />
-                      </button>
-                    </div>
-                  )}
-                  {selectedMood && (
-                    <div className={`flex items-center gap-2 bg-${getMoodColor(selectedMood)}-50 border border-${getMoodColor(selectedMood)}-200 px-3 py-2 rounded-lg`}>
-                      {getMoodIcon(selectedMood)}
-                      <span className={`text-sm font-bold text-${getMoodColor(selectedMood)}-700`}>{getSelectedMoodName()}</span>
-                      <button
-                        onClick={clearMoodFilter}
-                        className={`text-${getMoodColor(selectedMood)}-600 hover:text-${getMoodColor(selectedMood)}-700 ml-1`}
                         aria-label="Clear filter"
                       >
                         <X size={16} strokeWidth={2.5} />
@@ -450,7 +331,7 @@ function BrowseArticles() {
                     disabled={filteredArticles.length === 0 && articles.length === 0}
                   >
                     <Shuffle size={16} strokeWidth={2.5} />
-                    <span className="hidden sm:inline">Surprise Me</span>
+                    <span className="hidden sm:inline">Random</span>
                   </button>
 
                   {/* View Mode Toggle */}
@@ -520,54 +401,9 @@ function BrowseArticles() {
                   )}
                 </div>
 
-                {/* Mood Filter */}
-                <div>
-                  <button
-                    onClick={toggleMoodFilter}
-                    className="flex items-center justify-between w-full sm:w-auto sm:min-w-[200px] px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Smile size={16} className="text-gray-600" strokeWidth={2.5} />
-                      <span className="text-sm font-bold text-gray-700">Mood: {getSelectedMoodName()}</span>
-                    </div>
-                    <ChevronDown className={`h-4 w-4 text-gray-600 transition-transform ${isMoodFilterOpen ? 'rotate-180' : ''}`} strokeWidth={2.5} />
-                  </button>
-                  
-                  {isMoodFilterOpen && (
-                    <div className="mt-3 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        <button
-                          onClick={() => handleMoodSelect(null)}
-                          className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
-                            !selectedMood 
-                              ? 'bg-gray-600 text-white' 
-                              : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                          }`}
-                        >
-                          All Moods
-                        </button>
-                        {moods.map(mood => (
-                          <button
-                            key={mood.id}
-                            onClick={() => handleMoodSelect(mood.id)}
-                            className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${
-                              selectedMood === mood.id 
-                                ? `bg-${mood.color}-600 text-white` 
-                                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                            }`}
-                          >
-                            <mood.icon className="w-4 h-4" strokeWidth={2.5} />
-                            {mood.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 {/* Counter Opinions Toggle */}
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-gray-700">Show Responses Only</span>
+                  <span className="text-sm font-bold text-gray-700">Show Counter Opinions Only</span>
                   <label className="flex items-center cursor-pointer group">
                     <div className="relative">
                       <input
@@ -603,7 +439,7 @@ function BrowseArticles() {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 mb-4">
                   <RefreshCw className="h-8 w-8 text-white animate-spin" strokeWidth={2.5} />
                 </div>
-                <div className="text-xl font-bold text-gray-900">Loading thoughts...</div>
+                <div className="text-xl font-bold text-gray-900">Loading articles...</div>
               </div>
             )}
 
@@ -613,9 +449,9 @@ function BrowseArticles() {
                 <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-6 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-2xl flex items-center justify-center">
                   <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-orange-600" strokeWidth={2.5} />
                 </div>
-                <div className="text-2xl sm:text-3xl font-black mb-4 text-gray-900">No Thoughts Yet</div>
+                <div className="text-2xl sm:text-3xl font-black mb-4 text-gray-900">No Articles Yet</div>
                 <div className="text-base sm:text-lg text-gray-600 mb-8">
-                  Be the first to share your perspective!
+                  Be the first to share your opinion!
                 </div>
                 <Link to="/write" className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black px-8 py-4 text-lg font-bold transition-all rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105">
                   Start Writing
@@ -634,7 +470,7 @@ function BrowseArticles() {
                 <div className="text-base sm:text-lg text-gray-600 mb-8">
                   {searchTerm 
                     ? 'Try different keywords or clear your search' 
-                    : `No thoughts found for "${getSelectedTopicName()}". Be the first to write about it!`}
+                    : `No articles found for "${getSelectedTopicName()}". Be the first to write about it!`}
                 </div>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   {searchTerm ? (
@@ -651,7 +487,7 @@ function BrowseArticles() {
                         className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black px-8 py-3 font-bold transition-all rounded-xl shadow-md"
                       >
                         <Zap className="h-5 w-5" strokeWidth={2.5} />
-                        Share a Thought
+                        Write Article
                       </Link>
                       <button 
                         onClick={clearTopicFilter}
@@ -727,10 +563,10 @@ function BrowseArticles() {
                 
                 <div className="relative z-10">
                   <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4">
-                    Share Your Perspective
+                    Have Your Say
                   </h2>
                   <p className="text-base sm:text-lg md:text-xl mb-8 text-gray-300 max-w-2xl mx-auto">
-                    Join the conversation. Your unique voice matters here.
+                    Join the conversation. Write your perspective and engage with others.
                   </p>
                   <Link 
                     to="/write" 
@@ -753,7 +589,7 @@ function BrowseArticles() {
                     <TrendingUp className="w-7 h-7 text-white" strokeWidth={2.5} />
                     <h3 className="text-2xl font-black text-white">Trending Now</h3>
                   </div>
-                  <p className="text-sm text-orange-100">Popular conversations today</p>
+                  <p className="text-sm text-orange-100">Most debated topics today</p>
                 </div>
                 <div className="bg-white">
                   <TrendingOpinions />
