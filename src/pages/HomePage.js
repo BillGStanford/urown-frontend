@@ -4,7 +4,7 @@ import axios from 'axios';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import { useUser } from '../context/UserContext';
 import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe } from 'lucide-react';
-import RedFlaggedBanner from './RedFlaggedBanner';
+import RedFlaggedBanner from '../components/RedFlaggedBanner';
 
 function HomePage() {
   const [activeDebates, setActiveDebates] = useState([]);
