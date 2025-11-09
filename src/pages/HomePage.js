@@ -4,6 +4,7 @@ import axios from 'axios';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import { useUser } from '../context/UserContext';
 import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe } from 'lucide-react';
+import RedFlaggedBanner from './RedFlaggedBanner';
 
 function HomePage() {
   const [activeDebates, setActiveDebates] = useState([]);
@@ -25,7 +26,7 @@ function HomePage() {
         setLoading(true);
         
         // Fetch debate topics
-        const debatesResponse = await fetchWithRetry(() => axios.get('/debate-topics'));
+        const debatesResponse = await fetchWithRetry(() => axios.get('/api/debate-topics'));
         setActiveDebates(debatesResponse.data.topics || []);
         
         // Fetch certified articles - NO LIMIT to show all
@@ -150,6 +151,9 @@ function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* RedFlagged Banner */}
+      <RedFlaggedBanner />
+      
       {/* Hero Section - Only for non-logged users */}
       {!user && (
         <div className="relative overflow-hidden bg-white border-b border-gray-200">
@@ -168,7 +172,7 @@ function HomePage() {
                 <div className="text-gray-900 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight mb-2">
                   The Premier Platform
                 </div>
-                <div className="text-gray-900 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
+                <div className="text-gray-900 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight mb-2">
                   for Intellectual
                 </div>
                 <div className="text-orange-600 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
@@ -177,8 +181,8 @@ function HomePage() {
               </h1>
               
               {/* Subheadline */}
-              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-6 sm:mb-8 lg:mb-10 leading-relaxed max-w-3xl animate-slide-up-delay">
-                Join industry experts, academics, and thought leaders in rigorous, evidence-based debates on the issues shaping our world.
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-6 sm:mb-8 lg:mb-10 leading-relaxed max-w-3xl mx-auto animate-slide-up-delay">
+                Join industry experts, academics, and thought leaders in rigorous, evidence-based debates on issues shaping our world.
               </p>
               
               {/* CTA Buttons */}
@@ -193,14 +197,15 @@ function HomePage() {
                 
                 <Link 
                   to="/signup" 
-                  className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-bold text-gray-900 bg-white border-2 border-gray-900 rounded-xl hover:bg-gray-50 transition-all duration-200 transform hover:scale-105"
+                  className="group inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-bold text-gray-900 bg-white border-2 border-gray-900 rounded-xl hover:bg-gray-50 transition-all duration-200 transform hover:scale-105"
                 >
                   Create Account
+                  <ChevronRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
               
               {/* Trust Indicators */}
-              <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4 sm:gap-8 text-xs sm:text-sm text-gray-600 animate-fade-in-delay">
+              <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4 sm:gap-8 text-xs sm:text-sm text-gray-600 animate-fade-in-delay-3">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                     <Award className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" strokeWidth={2.5} />
@@ -215,41 +220,6 @@ function HomePage() {
                 </div>
               </div>
             </div>
-
-            {/* Stats Grid */}
-            <div className="mt-12 sm:mt-16 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 animate-slide-up-delay-3">
-              <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-105">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                  <Award className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" strokeWidth={2.5} />
-                </div>
-                <div className="text-2xl sm:text-3xl font-black text-gray-900 mb-1">{certifiedArticles.length}</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-semibold">Certified Articles</div>
-              </div>
-
-              <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-105">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                  <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" strokeWidth={2.5} />
-                </div>
-                <div className="text-2xl sm:text-3xl font-black text-gray-900 mb-1">Active</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-semibold">Ongoing Debates</div>
-              </div>
-
-              <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-105">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                  <Users className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" strokeWidth={2.5} />
-                </div>
-                <div className="text-2xl sm:text-3xl font-black text-gray-900 mb-1">15K+</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-semibold">Monthly Readers</div>
-              </div>
-
-              <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-105">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                  <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" strokeWidth={2.5} />
-                </div>
-                <div className="text-2xl sm:text-3xl font-black text-gray-900 mb-1">24/7</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-semibold">Platform Access</div>
-              </div>
-            </div>
           </div>
         </div>
       )}
@@ -261,7 +231,9 @@ function HomePage() {
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-3 sm:mb-4">
               Welcome back, <span className="bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">{user.display_name}</span>
             </h1>
-            <p className="text-lg sm:text-xl text-gray-600 font-medium">What will you debate today?</p>
+            <p className="text-lg sm:text-xl text-gray-600 font-medium mb-6 sm:mb-8 max-w-3xl mx-auto">
+              What will you debate today? Explore active discussions, read certified content, or start your own conversation.
+            </p>
           </div>
         )}
 
@@ -271,10 +243,10 @@ function HomePage() {
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-2 sm:gap-3">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
-                  <Flame className="w-5 h-5 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
+                  <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-white" strokeWidth={2.5} />
                 </div>
                 <span className="hidden sm:inline">Active Debates</span>
-                <span className="sm:hidden">Debates</span>
+                <span className="sm:hidden text-xl">Debates</span>
               </h2>
               <Link to="/browse" className="hidden sm:flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-900 text-white font-bold text-xs sm:text-sm rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
                 Browse
@@ -297,7 +269,9 @@ function HomePage() {
                       <h3 className="text-base sm:text-lg font-black text-gray-900 mb-1 sm:mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
                         {debate.title}
                       </h3>
-                      <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">{debate.description}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
+                        {debate.description}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-xs sm:text-sm">
@@ -305,15 +279,15 @@ function HomePage() {
                       <Users className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2.5} />
                       {debate.opinions_count} opinions
                     </span>
-                    <span className="text-orange-600 font-black flex items-center gap-1 group-hover:gap-2 transition-all">
+                    <span className="text-orange-600 font-black flex items-center gap-1 sm:gap-2 group-hover:gap-3 transition-all">
                       Join <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                     </span>
                   </div>
                 </Link>
               ))}
             </div>
-            <Link to="/browse" className="sm:hidden flex items-center justify-center gap-2 mt-4 px-6 py-3 bg-gray-900 text-white font-bold text-sm rounded-xl hover:bg-gray-800 transition-all w-full">
-              Browse All
+            <Link to="/browse" className="sm:hidden flex items-center justify-center gap-2 mt-4 px-6 py-3 bg-gray-900 text-white font-bold text-sm rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-105 w-full">
+              Browse All Debates
               <ChevronRight className="w-4 h-4" />
             </Link>
           </section>
@@ -325,10 +299,10 @@ function HomePage() {
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-2 sm:gap-3">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
-                  <Award className="w-5 h-5 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
+                  <Award className="w-5 h-5 sm:w-6 sm:h-6 text-white" strokeWidth={2.5} />
                 </div>
                 <span className="hidden sm:inline">Editorial Picks</span>
-                <span className="sm:hidden">Certified</span>
+                <span className="sm:hidden text-xl">Certified</span>
               </h2>
               <div className="hidden sm:flex items-center gap-2">
                 <button
@@ -357,11 +331,13 @@ function HomePage() {
                       className="group bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 border-2 border-orange-200 hover:border-orange-500 flex-shrink-0 transform hover:scale-105 animate-fade-in-up text-left"
                       style={{ width: '280px', animationDelay: `${index * 100}ms` }}
                     >
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 bg-orange-600 rounded-lg flex items-center justify-center shadow-md">
-                          <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={3} />
-                        </div>
-                        <span className="text-xs font-black text-orange-600 uppercase tracking-wider">Certified</span>
+                      <div className="flex items-center gap-2 mb-3 flex-wrap">
+                        {article.certified && (
+                          <div className="flex items-center gap-1 px-2 py-1 bg-orange-600 text-orange-600 text-xs font-black rounded-md">
+                            <Award className="w-3 h-3" strokeWidth={3} />
+                            Certified
+                          </div>
+                        )}
                       </div>
                       <h3 className="text-base sm:text-lg font-black text-gray-900 mb-3 group-hover:text-orange-600 transition-colors line-clamp-2">
                         {article.title}
@@ -390,10 +366,10 @@ function HomePage() {
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-2 sm:gap-3">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
-                  <TrendingUp className="w-5 h-5 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
+                  <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-white" strokeWidth={2.5} />
                 </div>
                 <span className="hidden sm:inline">Popular Voices</span>
-                <span className="sm:hidden">Top Users</span>
+                <span className="sm:hidden text-xl">Top Users</span>
               </h2>
               <div className="hidden sm:flex items-center gap-2">
                 <button
@@ -414,23 +390,23 @@ function HomePage() {
             </div>
             <div className="relative">
               <div ref={usersScrollRef} className="overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide scroll-smooth">
-                <div className="flex gap-3 sm:gap-4" style={{ minWidth: 'min-content' }}>
+                <div className="flex gap-4 sm:gap-6" style={{ minWidth: 'min-content' }}>
                   {topUsers.map((topUser, index) => (
                     <Link 
                       key={index}
                       to={`/user/${encodeURIComponent(topUser.display_name)}`}
-                      className="group bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-purple-500 flex-shrink-0 text-center transform hover:scale-105 animate-fade-in-up"
+                      className="group bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-purple-500 flex-shrink-0 transform hover:scale-105 animate-fade-in-up text-center"
                       style={{ width: '160px', animationDelay: `${index * 100}ms` }}
                     >
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 sm:mb-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xl sm:text-2xl font-black shadow-lg">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 sm:mb-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xl sm:text-2xl md:text-3xl font-black shadow-lg">
                         {topUser.display_name.charAt(0).toUpperCase()}
                       </div>
-                      <h3 className="text-sm sm:text-base font-black text-gray-900 mb-2 group-hover:text-purple-600 transition-colors truncate">
+                      <h3 className="text-base sm:text-lg font-black text-gray-900 mb-3 group-hover:text-purple-600 transition-colors truncate">
                         {topUser.display_name}
                       </h3>
-                      <div className="flex flex-col gap-1 text-xs text-gray-600 font-semibold">
-                        <span className="flex items-center justify-center gap-1">
-                          <Eye className="w-3 h-3" strokeWidth={2.5} />
+                      <div className="flex flex-col gap-1 text-xs sm:text-sm text-gray-600 mb-3 font-semibold">
+                        <span className="flex items-center gap-1">
+                          <Eye className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2.5} />
                           {formatNumber(topUser.totalViews)}
                         </span>
                         <span className="text-gray-500">{topUser.articleCount} articles</span>
@@ -440,6 +416,10 @@ function HomePage() {
                 </div>
               </div>
             </div>
+            <Link to="/browse" className="sm:hidden flex items-center justify-center gap-2 mt-4 px-6 py-3 bg-gray-900 text-white font-bold text-sm rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-105 w-full">
+              Browse All Users
+              <ChevronRight className="w-4 h-4" />
+            </Link>
           </section>
         )}
 
@@ -499,8 +479,8 @@ function HomePage() {
                           >
                             <div className="flex items-center gap-2 mb-3 flex-wrap">
                               {article.certified && (
-                                <div className="flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-600 text-xs font-black rounded-md">
-                                  <Award className="w-3 h-3" strokeWidth={2.5} />
+                                <div className="flex items-center gap-1 px-2 py-1 bg-orange-600 text-orange-600 text-xs font-black rounded-md">
+                                  <Award className="w-3 h-3" strokeWidth={3} />
                                   Certified
                                 </div>
                               )}
@@ -538,18 +518,18 @@ function HomePage() {
           <section className="mt-16 sm:mt-20 text-center py-12 sm:py-16 md:py-20 bg-gradient-to-br from-orange-50 to-pink-50 rounded-2xl sm:rounded-3xl border-2 border-orange-200 animate-fade-in px-4">
             <div className="flex justify-center mb-4 sm:mb-6">
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg animate-bounce-slow">
-                <Zap className="w-7 h-7 sm:w-10 sm:h-10 text-white" strokeWidth={2.5} />
+                <Zap className="w-6 h-6 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
               </div>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-4 sm:mb-6">
               Ready to join the conversation?
             </h2>
             <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-8 sm:mb-10 max-w-2xl mx-auto font-medium">
-              Create your free account and start sharing your perspective today.
+              Create your free account and start sharing your perspective on today's most important issues.
             </p>
             <Link 
               to="/signup"
-              className="inline-flex items-center gap-2 px-8 sm:px-10 py-4 sm:py-5 bg-gray-900 text-white font-black rounded-xl hover:bg-gray-800 transition-all duration-200 text-base sm:text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="inline-flex items-center justify-center gap-2 px-8 sm:px-10 py-4 sm:py-5 bg-gray-900 text-white font-black rounded-xl hover:bg-gray-800 transition-all duration-200 text-base sm:text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               Sign up free
               <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -625,10 +605,6 @@ function HomePage() {
 
         .animate-slide-up-delay-2 {
           animation: slide-up 0.6s ease-out 0.4s both;
-        }
-
-        .animate-slide-up-delay-3 {
-          animation: slide-up 0.6s ease-out 0.6s both;
         }
 
         .animate-fade-in-up {

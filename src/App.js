@@ -25,10 +25,14 @@ import ContactPage from './pages/ContactPage';
 import ContactDashboard from './pages/ContactDashboard';
 import IdeologyQuiz from './pages/IdeologyQuiz';
 import ReportedArticlesDashboard from './pages/ReportedArticlesDashboard';
+import AdminRedFlaggedDashboard from './pages/AdminRedFlaggedDashboard';
 import CommunityGuidelines from './pages/important/CommunityGuidelines';
 import PartnersPage from './pages/PartnersPage';
 import UserProfile from './pages/UserProfile';
 import NotificationsPage from './pages/NotificationsPage';
+import BrowseRedFlaggedPage from './pages/BrowseRedFlaggedPage';
+import WriteRedFlaggedPage from './pages/WriteRedFlaggedPage';
+import RedFlaggedPostPage from './pages/RedFlaggedPostPage';
 import About from './pages/AboutUsPage';
 import LibraryPage from './pages/LibraryPage';
 import CareerPage from './pages/important/CareersPage';
@@ -117,6 +121,10 @@ function AppRoutes() {
   element={user && (user.role === 'admin' || user.role === 'super-admin') ? <AdminWriteArticle /> : <Navigate to="/" />} 
 />
           <Route 
+            path="/admin/redflagged" 
+            element={user && (user.role === 'admin' || user.role === 'super-admin') ? <AdminRedFlaggedDashboard /> : <Navigate to="/" />} 
+          />
+          <Route 
             path="/editorial" 
             element={user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') ? <EditorialBoard /> : <Navigate to="/" />} 
           />
@@ -138,6 +146,9 @@ function AppRoutes() {
 />
           <Route path="/community-guidelines" element={<CommunityGuidelines />} />
           <Route path="/about" element={<About />} />
+          <Route path="/redflagged" element={<BrowseRedFlaggedPage />} />
+<Route path="/redflagged/write" element={<WriteRedFlaggedPage />} />
+<Route path="/redflagged/:id" element={<RedFlaggedPostPage />} />
           <Route path="/partners" element={<PartnersPage />} />
           <Route path="/careers" element={<CareerPage />} />
           <Route path="*" element={<Navigate to="/" />} />
