@@ -105,6 +105,7 @@ const WriteRedFlaggedPage = () => {
       
       navigate(`/redflagged/${response.data.post.id}`);
     } catch (err) {
+      console.error('Create post error:', err);
       setError(err.response?.data?.error || 'Failed to create post');
       setLoading(false);
     }
@@ -247,7 +248,7 @@ const WriteRedFlaggedPage = () => {
                 />
                 <RatingStars 
                   label="Company Culture" 
-                  value={formData.rating_culture}
+                  value={   rating_culture}
                   onChange={(val) => handleRatingChange('rating_culture', val)}
                 />
                 <RatingStars 
@@ -269,7 +270,7 @@ const WriteRedFlaggedPage = () => {
                 value={formData.anonymous_username}
                 onChange={handleChange}
                 placeholder="Choose a display name for your post"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-4 py-3 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 required={formData.is_anonymous}
               />
               <p className="text-xs text-gray-500 mt-1">

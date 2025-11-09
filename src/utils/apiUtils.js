@@ -92,7 +92,7 @@ export const handleUnauthorized = (error) => {
     const errorMessage = error.response.data.error || 
       (error.response.status === 401 
         ? 'Your session has expired. Please log in again.' 
-        : 'You do not have permission to access this resource. Your account may be banned or suspended.');
+        : 'You do not have permission to access this resource.');
     
     // Clear user data from localStorage
     localStorage.removeItem('user');
@@ -102,36 +102,6 @@ export const handleUnauthorized = (error) => {
     window.location.href = `/login?error=${encodeURIComponent(errorMessage)}`;
   }
   return Promise.reject(error);
-};
-
-// Request deduplication wrapper
-export const fetchWithDeduplication = async (requestKey, axiosRequest) => {
-  // If there's already a pending request for this key, return its promise
-  if (pendingRequests[requestKey]) {
-    return pendingRequests[requestKey];
-  }
-  
-  // Create a new request
-  const requestPromise = fetchWithRetry(axiosRequest)
-    .catch(error => {
-      // Handle 401 Unauthorized and 403 Forbidden errors
-      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-        handleUnauthorized(error);
-      }
-      throw error;
-    });
-  
-  // Store the promise
-  pendingRequests[requestKey] = requestPromise;
-  
-  try {
-    // Wait for the request to complete
-    const result = await requestPromise;
-    return result;
-  } finally {
-    // Clean up the pending request
-    delete pendingRequests[requestKey];
-  }
 };
 
 // Function to create API requests
@@ -190,10 +160,7 @@ export const debugApiConfig = () => {
 // Function to validate user session before making admin requests
 export const validateUserSession = async () => {
   try {
-    const response = await fetchWithDeduplication(
-      'admin-user-check',
-      createApiRequest('/admin/user-check', { method: 'POST' })
-    );
+    const response = await createApiRequest('/admin/user-check', { method: 'POST' })();
     return response.data.valid;
   } catch (error) {
     console.error('Session validation error:', error);
