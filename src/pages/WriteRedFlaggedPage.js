@@ -6,7 +6,6 @@ import { createApiRequest } from '../utils/apiUtils';
 const WriteRedFlaggedPage = () => {
   const navigate = useNavigate();
   const { user } = useUser();
-  
   const [formData, setFormData] = useState({
     company_name: '',
     position: '',
@@ -24,7 +23,6 @@ const WriteRedFlaggedPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [charCount, setCharCount] = useState(0);
-  
   const experienceTypes = [
     'Toxic Management',
     'Pay Issues',
@@ -40,18 +38,18 @@ const WriteRedFlaggedPage = () => {
     'Other'
   ];
   
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    
-    if (name === 'story') {
-      setCharCount(value.length);
-    }
-    
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
+const handleChange = (e) => {
+  const { name, value, type, checked } = e.target;
+  
+  if (name === 'story') {
+    setCharCount(value.length);
+  }
+  
+  setFormData(prev => ({
+    ...prev,
+    [name]: type === 'checkbox' ? checked : value
+  }));
+};
   
   const handleRatingChange = (ratingType, value) => {
     setFormData(prev => ({
@@ -91,7 +89,7 @@ const WriteRedFlaggedPage = () => {
     }
     
     if (!formData.terms_agreed) {
-      setError('You must agree to the terms');
+      setError('You must agree to terms');
       return;
     }
     
@@ -105,7 +103,6 @@ const WriteRedFlaggedPage = () => {
       
       navigate(`/redflagged/${response.data.post.id}`);
     } catch (err) {
-      console.error('Create post error:', err);
       setError(err.response?.data?.error || 'Failed to create post');
       setLoading(false);
     }
@@ -148,12 +145,6 @@ const WriteRedFlaggedPage = () => {
             </p>
           </div>
           
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
-              {error}
-            </div>
-          )}
-          
           <form onSubmit={handleSubmit}>
             {/* Company Name */}
             <div className="mb-6">
@@ -166,7 +157,7 @@ const WriteRedFlaggedPage = () => {
                 value={formData.company_name}
                 onChange={handleChange}
                 placeholder="e.g., Starbucks, Amazon, Google"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-4 py-3 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 required
               />
             </div>
@@ -182,7 +173,7 @@ const WriteRedFlaggedPage = () => {
                 value={formData.position}
                 onChange={handleChange}
                 placeholder="e.g., Barista, Warehouse Associate, Software Engineer"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-4 py-3 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
               />
               <p className="text-xs text-gray-500 mt-1">
                 Leave blank to protect anonymity
@@ -198,7 +189,7 @@ const WriteRedFlaggedPage = () => {
                 name="experience_type"
                 value={formData.experience_type}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-4 py-3 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 required
               >
                 <option value="">Select experience type</option>
@@ -219,7 +210,7 @@ const WriteRedFlaggedPage = () => {
                 onChange={handleChange}
                 placeholder="Share your experience in detail. What happened? How did it make you feel? What would you want others to know?"
                 rows={10}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                className="w-full px-4 py-3 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
                 required
               />
               <div className="flex justify-between mt-2">
@@ -248,7 +239,7 @@ const WriteRedFlaggedPage = () => {
                 />
                 <RatingStars 
                   label="Company Culture" 
-                  value={   rating_culture}
+                  value={formData.rating_culture}
                   onChange={(val) => handleRatingChange('rating_culture', val)}
                 />
                 <RatingStars 
@@ -260,23 +251,25 @@ const WriteRedFlaggedPage = () => {
             </div>
             
             {/* Anonymous Username */}
-            <div className="mb-6">
-              <label className="block text-sm font-semibold mb-2">
-                Username <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="anonymous_username"
-                value={formData.anonymous_username}
-                onChange={handleChange}
-                placeholder="Choose a display name for your post"
-                className="w-full px-4 py-3 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                required={formData.is_anonymous}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                No profanity or offensive language
-              </p>
-            </div>
+            {formData.is_anonymous && (
+              <div className="mb-6">
+                <label className="block text-sm font-semibold mb-2">
+                  Username <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="anonymous_username"
+                  value={formData.anonymous_username}
+                  onChange={handleChange}
+                  placeholder="Choose a display name for your post"
+                  className="w-full px-4 py-3 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  required={formData.is_anonymous}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  No profanity or offensive language
+                </p>
+              </div>
+            )}
             
             {/* Show Real Name Option (only if logged in) */}
             {user && (
@@ -326,7 +319,7 @@ const WriteRedFlaggedPage = () => {
               <button
                 type="button"
                 onClick={() => navigate('/redflagged')}
-                className="px-6 py-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                className="px-6 py-4 border-gray-300 rounded-lg hover:bg-gray-50 transition"
               >
                 Cancel
               </button>
@@ -335,7 +328,7 @@ const WriteRedFlaggedPage = () => {
         </div>
         
         {/* Disclaimer */}
-        <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <div className="mt-6 p-4 bg-yellow-50 border-yellow-200 rounded-lg">
           <p className="text-sm text-yellow-800">
             ⚠️ <strong>Disclaimer:</strong> Posts on RedFlagged are user opinions and personal experiences. 
             UROWN does not verify the accuracy of claims and is not responsible for content accuracy.
