@@ -3,13 +3,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import { useUser } from '../context/UserContext';
-import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Dice, Lightbulb, Coffee, Music, Book, PenTool, Smile } from 'lucide-react';
 
 function HomePage() {
   const [activeDebates, setActiveDebates] = useState([]);
   const [certifiedArticles, setCertifiedArticles] = useState([]);
   const [topUsers, setTopUsers] = useState([]);
   const [articlesByTopic, setArticlesByTopic] = useState({});
+  const [dailyPrompt, setDailyPrompt] = useState('');
+  const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useUser();
   const navigate = useNavigate();
@@ -19,10 +21,28 @@ function HomePage() {
   const usersScrollRef = useRef(null);
   const topicScrollRefs = useRef({});
 
+  // Daily prompts for inspiration
+  const dailyPrompts = [
+    "If you could have dinner with any historical figure, who would it be and why?",
+    "What's a small thing that made you happy today?",
+    "Describe your perfect weekend in 3 sentences",
+    "What's a skill you'd love to learn and why?",
+    "If you could solve one world problem, what would it be?",
+    "What's the best advice you've ever received?",
+    "Create a new holiday and describe its traditions",
+    "What's something you've changed your mind about recently?",
+    "If you could time travel, would you go to the past or future?",
+    "What's a book/movie that changed your perspective?"
+  ];
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        
+        // Set a random daily prompt
+        const randomPrompt = dailyPrompts[Math.floor(Math.random() * dailyPrompts.length)];
+        setDailyPrompt(randomPrompt);
         
         // Fetch debate topics
         const debatesResponse = await fetchWithRetry(() => axios.get('/debate-topics'));
@@ -82,6 +102,16 @@ function HomePage() {
           .slice(0, 10);
         
         setTopUsers(topUsersArray);
+        
+        // Simulate recent activity (in a real app, this would come from an API)
+        const activities = [
+          { type: 'article', user: 'Alex Chen', action: 'published a new thought', time: '2 minutes ago' },
+          { type: 'comment', user: 'Jordan Smith', action: 'commented on', target: 'The Future of AI', time: '5 minutes ago' },
+          { type: 'article', user: 'Sam Johnson', action: 'shared a quick thought', time: '12 minutes ago' },
+          { type: 'like', user: 'Taylor Kim', action: 'liked', target: 'Morning Coffee Rituals', time: '18 minutes ago' },
+          { type: 'article', user: 'Morgan Davis', action: 'started a new discussion', time: '25 minutes ago' }
+        ];
+        setRecentActivity(activities);
         
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -160,25 +190,25 @@ function HomePage() {
               {/* Status Badge */}
               <div className="inline-flex items-center gap-2 bg-white border border-gray-300 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-sm mb-6 sm:mb-8 animate-fade-in">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-gray-700 font-semibold text-xs sm:text-sm">{activeDebates.length} Active Debates</span>
+                <span className="text-gray-700 font-semibold text-xs sm:text-sm">{activeDebates.length} Conversations Happening Now</span>
               </div>
               
               {/* Main Headline */}
               <h1 className="mb-4 sm:mb-6 animate-slide-up">
                 <div className="text-gray-900 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight mb-2">
-                  The Premier Platform
+                  Share Your Thoughts,
                 </div>
                 <div className="text-gray-900 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
-                  for Intellectual
+                  Discover New
                 </div>
                 <div className="text-orange-600 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
-                  Discourse
+                  Perspectives
                 </div>
               </h1>
               
               {/* Subheadline */}
               <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-6 sm:mb-8 lg:mb-10 leading-relaxed max-w-3xl animate-slide-up-delay">
-                Join industry experts, academics, and thought leaders in rigorous, evidence-based debates on the issues shaping our world.
+                Join a community of curious minds sharing ideas, stories, and perspectives. No expertise required - just your unique voice.
               </p>
               
               {/* CTA Buttons */}
@@ -187,7 +217,7 @@ function HomePage() {
                   to="/browse" 
                   className="group inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-bold text-white bg-gray-900 rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
-                  Explore Debates
+                  Explore Ideas
                   <ChevronRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 
@@ -195,7 +225,7 @@ function HomePage() {
                   to="/signup" 
                   className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-bold text-gray-900 bg-white border-2 border-gray-900 rounded-xl hover:bg-gray-50 transition-all duration-200 transform hover:scale-105"
                 >
-                  Create Account
+                  Join the Fun
                 </Link>
               </div>
               
@@ -203,15 +233,15 @@ function HomePage() {
               <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4 sm:gap-8 text-xs sm:text-sm text-gray-600 animate-fade-in-delay">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Award className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" strokeWidth={2.5} />
+                    <Coffee className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" strokeWidth={2.5} />
                   </div>
-                  <span className="font-semibold">Editorial Review Process</span>
+                  <span className="font-semibold">Casual & Friendly</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" strokeWidth={2.5} />
+                    <Smile className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" strokeWidth={2.5} />
                   </div>
-                  <span className="font-semibold">Expert Community</span>
+                  <span className="font-semibold">No Judgment Zone</span>
                 </div>
               </div>
             </div>
@@ -220,10 +250,10 @@ function HomePage() {
             <div className="mt-12 sm:mt-16 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 animate-slide-up-delay-3">
               <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-105">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                  <Award className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" strokeWidth={2.5} />
+                  <PenTool className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" strokeWidth={2.5} />
                 </div>
                 <div className="text-2xl sm:text-3xl font-black text-gray-900 mb-1">{certifiedArticles.length}</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-semibold">Certified Articles</div>
+                <div className="text-xs sm:text-sm text-gray-600 font-semibold">Featured Thoughts</div>
               </div>
 
               <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-105">
@@ -231,7 +261,7 @@ function HomePage() {
                   <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" strokeWidth={2.5} />
                 </div>
                 <div className="text-2xl sm:text-3xl font-black text-gray-900 mb-1">Active</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-semibold">Ongoing Debates</div>
+                <div className="text-xs sm:text-sm text-gray-600 font-semibold">Conversations</div>
               </div>
 
               <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-105">
@@ -239,15 +269,15 @@ function HomePage() {
                   <Users className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" strokeWidth={2.5} />
                 </div>
                 <div className="text-2xl sm:text-3xl font-black text-gray-900 mb-1">15K+</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-semibold">Monthly Readers</div>
+                <div className="text-xs sm:text-sm text-gray-600 font-semibold">Creative Minds</div>
               </div>
 
               <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-105">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                  <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" strokeWidth={2.5} />
+                  <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" strokeWidth={2.5} />
                 </div>
                 <div className="text-2xl sm:text-3xl font-black text-gray-900 mb-1">24/7</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-semibold">Platform Access</div>
+                <div className="text-xs sm:text-sm text-gray-600 font-semibold">Inspiration</div>
               </div>
             </div>
           </div>
@@ -261,8 +291,93 @@ function HomePage() {
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-3 sm:mb-4">
               Welcome back, <span className="bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">{user.display_name}</span>
             </h1>
-            <p className="text-lg sm:text-xl text-gray-600 font-medium">What will you debate today?</p>
+            <p className="text-lg sm:text-xl text-gray-600 font-medium">Ready to share something interesting today?</p>
           </div>
+        )}
+
+        {/* Daily Prompt Section */}
+        <section className="mb-12 sm:mb-16">
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-purple-200 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-200 rounded-full filter blur-3xl opacity-30 -mr-16 -mt-16"></div>
+            <div className="absolute bottom-0 left-0 w-40 h-40 bg-pink-200 rounded-full filter blur-3xl opacity-30 -ml-20 -mb-20"></div>
+            
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                  <Lightbulb className="w-6 h-6 text-white" strokeWidth={2.5} />
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black text-gray-900">Daily Prompt</h2>
+              </div>
+              
+              <div className="bg-white rounded-xl p-4 sm:p-6 mb-6 shadow-sm">
+                <p className="text-lg sm:text-xl text-gray-800 font-medium mb-4">{dailyPrompt}</p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Link 
+                    to="/write" 
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg transform hover:scale-105"
+                  >
+                    <PenTool className="w-5 h-5" strokeWidth={2.5} />
+                    Write About This
+                  </Link>
+                  <button 
+                    onClick={() => setDailyPrompt(dailyPrompts[Math.floor(Math.random() * dailyPrompts.length)])}
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-bold rounded-xl transition-all"
+                  >
+                    <Dice className="w-5 h-5" strokeWidth={2.5} />
+                    Get Another Prompt
+                  </button>
+                </div>
+              </div>
+              
+              <p className="text-sm text-gray-600">
+                <span className="font-semibold">Pro tip:</span> There's no right or wrong answer - just share what comes to mind!
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Recent Activity Section */}
+        {recentActivity.length > 0 && (
+          <section className="mb-12 sm:mb-16">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-2 sm:gap-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
+                  <Zap className="w-5 h-5 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
+                </div>
+                <span className="hidden sm:inline">Community Activity</span>
+                <span className="sm:hidden">Activity</span>
+              </h2>
+              <Link to="/browse" className="hidden sm:flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-900 text-white font-bold text-xs sm:text-sm rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
+                See All
+                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+              </Link>
+            </div>
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-200">
+              <div className="space-y-4">
+                {recentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center text-blue-600 font-bold">
+                      {activity.user.charAt(0)}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-900">
+                        <span className="font-semibold">{activity.user}</span> {activity.action}
+                        {activity.target && <span className="font-semibold"> "{activity.target}"</span>}
+                      </p>
+                      <p className="text-xs text-gray-500">{activity.time}</p>
+                    </div>
+                    {activity.type === 'article' && <Book className="w-4 h-4 text-gray-400" />}
+                    {activity.type === 'comment' && <MessageSquare className="w-4 h-4 text-gray-400" />}
+                    {activity.type === 'like' && <Heart className="w-4 h-4 text-gray-400" />}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Link to="/browse" className="sm:hidden flex items-center justify-center gap-2 mt-4 px-6 py-3 bg-gray-900 text-white font-bold text-sm rounded-xl hover:bg-gray-800 transition-all w-full">
+              See All Activity
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </section>
         )}
 
         {/* Active Debates Section */}
@@ -273,8 +388,8 @@ function HomePage() {
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
                   <Flame className="w-5 h-5 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
                 </div>
-                <span className="hidden sm:inline">Active Debates</span>
-                <span className="sm:hidden">Debates</span>
+                <span className="hidden sm:inline">Trending Conversations</span>
+                <span className="sm:hidden">Trending</span>
               </h2>
               <Link to="/browse" className="hidden sm:flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-900 text-white font-bold text-xs sm:text-sm rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
                 Browse
@@ -303,7 +418,7 @@ function HomePage() {
                   <div className="flex items-center justify-between text-xs sm:text-sm">
                     <span className="text-gray-500 flex items-center gap-1 sm:gap-2 font-semibold">
                       <Users className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2.5} />
-                      {debate.opinions_count} opinions
+                      {debate.opinions_count} thoughts
                     </span>
                     <span className="text-orange-600 font-black flex items-center gap-1 group-hover:gap-2 transition-all">
                       Join <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -325,10 +440,10 @@ function HomePage() {
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-2 sm:gap-3">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
-                  <Award className="w-5 h-5 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
+                  <Star className="w-5 h-5 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
                 </div>
-                <span className="hidden sm:inline">Editorial Picks</span>
-                <span className="sm:hidden">Certified</span>
+                <span className="hidden sm:inline">Community Favorites</span>
+                <span className="sm:hidden">Favorites</span>
               </h2>
               <div className="hidden sm:flex items-center gap-2">
                 <button
@@ -359,9 +474,9 @@ function HomePage() {
                     >
                       <div className="flex items-center gap-2 mb-3">
                         <div className="w-7 h-7 sm:w-8 sm:h-8 bg-orange-600 rounded-lg flex items-center justify-center shadow-md">
-                          <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={3} />
+                          <Star className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={3} />
                         </div>
-                        <span className="text-xs font-black text-orange-600 uppercase tracking-wider">Certified</span>
+                        <span className="text-xs font-black text-orange-600 uppercase tracking-wider">Featured</span>
                       </div>
                       <h3 className="text-base sm:text-lg font-black text-gray-900 mb-3 group-hover:text-orange-600 transition-colors line-clamp-2">
                         {article.title}
@@ -390,10 +505,10 @@ function HomePage() {
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-2 sm:gap-3">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
-                  <TrendingUp className="w-5 h-5 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
+                  <Users className="w-5 h-5 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
                 </div>
-                <span className="hidden sm:inline">Popular Voices</span>
-                <span className="sm:hidden">Top Users</span>
+                <span className="hidden sm:inline">Creative Voices</span>
+                <span className="sm:hidden">Voices</span>
               </h2>
               <div className="hidden sm:flex items-center gap-2">
                 <button
@@ -433,7 +548,7 @@ function HomePage() {
                           <Eye className="w-3 h-3" strokeWidth={2.5} />
                           {formatNumber(topUser.totalViews)}
                         </span>
-                        <span className="text-gray-500">{topUser.articleCount} articles</span>
+                        <span className="text-gray-500">{topUser.articleCount} thoughts</span>
                       </div>
                     </Link>
                   ))}
@@ -500,8 +615,8 @@ function HomePage() {
                             <div className="flex items-center gap-2 mb-3 flex-wrap">
                               {article.certified && (
                                 <div className="flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-600 text-xs font-black rounded-md">
-                                  <Award className="w-3 h-3" strokeWidth={2.5} />
-                                  Certified
+                                  <Star className="w-3 h-3" strokeWidth={2.5} />
+                                  Featured
                                 </div>
                               )}
                               {article.topics && article.topics.slice(0, 2).map(t => (
@@ -538,20 +653,20 @@ function HomePage() {
           <section className="mt-16 sm:mt-20 text-center py-12 sm:py-16 md:py-20 bg-gradient-to-br from-orange-50 to-pink-50 rounded-2xl sm:rounded-3xl border-2 border-orange-200 animate-fade-in px-4">
             <div className="flex justify-center mb-4 sm:mb-6">
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg animate-bounce-slow">
-                <Zap className="w-7 h-7 sm:w-10 sm:h-10 text-white" strokeWidth={2.5} />
+                <Smile className="w-7 h-7 sm:w-10 sm:h-10 text-white" strokeWidth={2.5} />
               </div>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-4 sm:mb-6">
-              Ready to join the conversation?
+              Ready to share your thoughts?
             </h2>
             <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-8 sm:mb-10 max-w-2xl mx-auto font-medium">
-              Create your free account and start sharing your perspective today.
+              Join our community of curious minds. No expertise required - just your unique perspective.
             </p>
             <Link 
               to="/signup"
               className="inline-flex items-center gap-2 px-8 sm:px-10 py-4 sm:py-5 bg-gray-900 text-white font-black rounded-xl hover:bg-gray-800 transition-all duration-200 text-base sm:text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
             >
-              Sign up free
+              Join the Fun
               <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </Link>
           </section>
