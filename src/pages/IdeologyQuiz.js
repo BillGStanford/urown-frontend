@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createApiRequest } from '../utils/apiUtils';
 import { useIdeology } from '../hooks/useIdeology';
+import { useUser } from '../context/UserContext';
 
 // Keep the existing QUESTIONS_10 and QUESTIONS_40 arrays
 const QUESTIONS_10 = [
@@ -213,22 +214,14 @@ const QUESTIONS_40 = [
 
 const IdeologyQuiz = () => {
   const navigate = useNavigate();
+  const { user } = useUser(); // Get user state from UserContext
   const [quizType, setQuizType] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
   const [showResult, setShowResult] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { refetch: refetchIdeology } = useIdeology();
-
-  // Check if user is logged in on component mount
-  useEffect(() => {
-    // This assumes you have a way to check if the user is logged in
-    // You might need to adjust this based on your authentication system
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    setIsLoggedIn(!!token);
-  }, []);
 
   const questions = quizType === '10' ? QUESTIONS_10 : QUESTIONS_40;
 
@@ -251,8 +244,8 @@ const IdeologyQuiz = () => {
 
   const saveResult = async (isPublic) => {
     // Check if user is logged in
-    if (!isLoggedIn) {
-      // Show signup encouragement instead of trying to save
+    if (!user) {
+      // Navigate to signup page with a message about saving results
       navigate('/signup', { 
         state: { 
           message: 'Create an account to save your quiz results and track your worldview over time!',
@@ -442,7 +435,7 @@ const IdeologyQuiz = () => {
             <div className="border-t pt-6">
               <h3 className="text-xl font-bold mb-4">What would you like to do?</h3>
               
-              {!isLoggedIn && (
+              {!user && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                   <p className="text-blue-800 text-sm">
                     Create an account to save your results and track your worldview over time!
@@ -456,7 +449,7 @@ const IdeologyQuiz = () => {
                   disabled={loading}
                   className="bg-blue-600 text-white px-4 py-3 sm:px-6 sm:py-4 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 font-semibold text-sm sm:text-base"
                 >
-                  {loading ? 'Saving...' : isLoggedIn ? 'Show Worldview Publicly' : 'Sign Up & Save Publicly'}
+                  {loading ? 'Saving...' : user ? 'Show Worldview Publicly' : 'Sign Up & Save Publicly'}
                 </button>
                 
                 <button
@@ -464,7 +457,7 @@ const IdeologyQuiz = () => {
                   disabled={loading}
                   className="bg-gray-600 text-white px-4 py-3 sm:px-6 sm:py-4 rounded-lg hover:bg-gray-700 transition disabled:opacity-50 font-semibold text-sm sm:text-base"
                 >
-                  {loading ? 'Saving...' : isLoggedIn ? 'Keep This Private' : 'Sign Up & Save Privately'}
+                  {loading ? 'Saving...' : user ? 'Keep This Private' : 'Sign Up & Save Privately'}
                 </button>
               </div>
 
