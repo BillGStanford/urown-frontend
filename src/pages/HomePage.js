@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import { useUser } from '../context/UserContext';
+import RedFlaggedBanner from '../components/RedFlaggedBanner';
 import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe } from 'lucide-react';
 
 function HomePage() {
@@ -151,6 +152,7 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section - Only for non-logged users */}
+      <RedFlaggedBanner />
       {!user && (
         <div className="relative overflow-hidden bg-white border-b border-gray-200">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-white"></div>

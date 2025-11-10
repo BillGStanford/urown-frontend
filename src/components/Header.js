@@ -22,7 +22,8 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  FlagIcon
 } from 'lucide-react';
 
 function Header({ user, onLogout }) {
@@ -173,6 +174,15 @@ function Header({ user, onLogout }) {
                 <Mail className="h-6 w-6 shrink-0" strokeWidth={2.5} />
                 {!isSidebarCollapsed && <span className="font-bold">Contact</span>}
               </Link>
+                 <Link 
+                to="/redflagged" 
+                className="flex items-center gap-4 px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-purple-600 rounded-xl transition-all duration-200 group"
+                title="RedFlagged"
+              >
+                <FlagIcon className="h-6 w-6 shrink-0" strokeWidth={2.5} />
+                {!isSidebarCollapsed && <span className="font-bold">RedFlagged</span>}
+              </Link>
+              
 
               {user && (
                 <>
@@ -445,6 +455,16 @@ function Header({ user, onLogout }) {
                     <Mail className="h-6 w-6 text-purple-600" strokeWidth={2.5} />
                   </div>
                   <span>Contact</span>
+                </Link>
+                  <Link 
+                  to="/redflagged" 
+                  className="flex items-center gap-4 text-base font-bold text-gray-800 hover:bg-purple-50 py-4 px-5 rounded-xl transition-all duration-150"
+                  onClick={closeMobileMenu}
+                >
+                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <FlagIcon className="h-6 w-6 text-purple-600" strokeWidth={2.5} />
+                  </div>
+                  <span>RedFlagged</span>
                 </Link>
                 
                 {user ? (
