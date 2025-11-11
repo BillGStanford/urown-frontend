@@ -105,7 +105,7 @@ const BrowseRedFlaggedPage = () => {
           </div>
           <div className="text-right">
             <div className={`text-3xl font-black ${getRatingColor(post.overall_rating)}`}>
-              {post.overall_rating.toFixed(1)}
+              {Number(post.overall_rating).toFixed(1)}
             </div>
             <div className="text-xs text-gray-500">★ ★ ★ ★ ★</div>
           </div>
