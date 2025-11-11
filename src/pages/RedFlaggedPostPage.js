@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import apiRequest from '../utils/apiUtils';
+import { createApiRequest, fetchWithDeduplication } from '../utils/apiUtils';
 
 const RedFlaggedPostPage = () => {
   const { id } = useParams();
