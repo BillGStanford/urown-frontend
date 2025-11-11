@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import apiRequest from '../utils/apiUtils';
+import { createRedFlaggedPost } from '../utils/redFlaggedApi';
 
 const WriteRedFlaggedPage = () => {
   const navigate = useNavigate();
@@ -98,16 +98,13 @@ const WriteRedFlaggedPage = () => {
     
     setLoading(true);
     
-    try {
-      const response = await apiRequest('/redflagged', {
-        method: 'POST',
-        body: JSON.stringify(formData)
-      });
-      navigate(`/redflagged/${response.post.id}`);
-    } catch (err) {
-      setError(err.message || 'Failed to create post');
-      setLoading(false);
-    }
+try {
+  const response = await createRedFlaggedPost(formData);
+  navigate(`/redflagged/${response.post.id}`);
+} catch (err) {
+  setError(err.response?.data?.error || 'Failed to create post');
+  setLoading(false);
+}
   };
   
   const RatingStars = ({ label, value, onChange }) => (

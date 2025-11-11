@@ -2,7 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import { createApiRequest, fetchWithDeduplication } from '../utils/apiUtils';
+import { 
+  fetchRedFlaggedPost, 
+  addReaction, 
+  getMyReactions, 
+  addComment, 
+  fetchRelatedPosts 
+} from '../utils/redFlaggedApi';
 
 const RedFlaggedPostPage = () => {
   const { id } = useParams();
@@ -34,82 +40,72 @@ const RedFlaggedPostPage = () => {
     fetchRelated();
   }, [id]);
   
-  const fetchPost = async () => {
-    try {
-      setLoading(true);
-      const response = await apiRequest(`/redflagged/${id}`);
-      setPost(response.post);
-      setReactions(response.reactions);
-      setComments(response.comments);
-    } catch (error) {
-      console.error('Failed to fetch post:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchPost = async () => {
+  try {
+    setLoading(true);
+    const data = await fetchRedFlaggedPost(id);
+    setPost(data.post);
+    setReactions(data.reactions);
+    setComments(data.comments);
+  } catch (error) {
+    console.error('Failed to fetch post:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const fetchMyReactions = async () => {
+  try {
+    const data = await getMyReactions(id);
+    setMyReactions(data.reactions);
+  } catch (error) {
+    console.error('Failed to fetch my reactions:', error);
+  }
+};
+
+const fetchRelated = async () => {
+  try {
+    const data = await fetchRelatedPosts(id, 5);
+    setRelatedPosts(data.posts);
+  } catch (error) {
+    console.error('Failed to fetch related posts:', error);
+  }
+};
+
+const handleReaction = async (reactionType) => {
+  try {
+    await addReaction(id, reactionType);
+    fetchPost();
+    fetchMyReactions();
+  } catch (error) {
+    console.error('Failed to add reaction:', error);
+  }
+};
+
+const handleCommentSubmit = async (e) => {
+  e.preventDefault();
   
-  const fetchMyReactions = async () => {
-    try {
-      const response = await apiRequest(`/redflagged/${id}/my-reactions`);
-      setMyReactions(response.reactions);
-    } catch (error) {
-      console.error('Failed to fetch my reactions:', error);
-    }
-  };
+  if (!commentForm.commenter_name.trim() || !commentForm.comment.trim()) {
+    return;
+  }
   
-  const fetchRelated = async () => {
-    try {
-      const response = await apiRequest(`/redflagged/${id}/related?limit=5`);
-      setRelatedPosts(response.posts);
-    } catch (error) {
-      console.error('Failed to fetch related posts:', error);
-    }
-  };
+  setCommentLoading(true);
   
-  const handleReaction = async (reactionType) => {
-    try {
-      await apiRequest(`/redflagged/${id}/react`, {
-        method: 'POST',
-        body: JSON.stringify({ reaction_type: reactionType })
-      });
-      
-      // Refresh data
-      fetchPost();
-      fetchMyReactions();
-    } catch (error) {
-      console.error('Failed to add reaction:', error);
-    }
-  };
-  
-  const handleCommentSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!commentForm.commenter_name.trim() || !commentForm.comment.trim()) {
-      return;
-    }
-    
-    setCommentLoading(true);
-    
-    try {
-      await apiRequest(`/redflagged/${id}/comments`, {
-        method: 'POST',
-        body: JSON.stringify(commentForm)
-      });
-      
-      // Reset form and refresh
-      setCommentForm({
-        commenter_name: '',
-        comment: '',
-        is_company_response: false
-      });
-      fetchPost();
-    } catch (error) {
-      console.error('Failed to add comment:', error);
-      alert(error.message || 'Failed to add comment');
-    } finally {
-      setCommentLoading(false);
-    }
-  };
+  try {
+    await addComment(id, commentForm);
+    setCommentForm({
+      commenter_name: '',
+      comment: '',
+      is_company_response: false
+    });
+    fetchPost();
+  } catch (error) {
+    console.error('Failed to add comment:', error);
+    alert(error.response?.data?.error || 'Failed to add comment');
+  } finally {
+    setCommentLoading(false);
+  }
+};
   
   const getRatingColor = (rating) => {
     if (rating >= 4) return 'text-green-600';
