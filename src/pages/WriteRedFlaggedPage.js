@@ -2,11 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import { 
-  createRedFlaggedPost, 
-  validatePostData, 
-  EXPERIENCE_TYPES 
-} from '../utils/redFlaggedApi';
+import apiRequest from '../utils/apiUtils';
 
 const WriteRedFlaggedPage = () => {
   const navigate = useNavigate();
@@ -103,10 +99,13 @@ const WriteRedFlaggedPage = () => {
     setLoading(true);
     
     try {
-      const response = await axios.post('/api/redflagged', formData);
-      navigate(`/redflagged/${response.data.post.id}`);
+      const response = await apiRequest('/redflagged', {
+        method: 'POST',
+        body: JSON.stringify(formData)
+      });
+      navigate(`/redflagged/${response.post.id}`);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to create post');
+      setError(err.message || 'Failed to create post');
       setLoading(false);
     }
   };

@@ -2,18 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import {
-  fetchRedFlaggedPost,
-  addReaction,
-  getMyReactions,
-  addComment,
-  fetchRelatedPosts,
-  getRatingColor,
-  getExperienceBadgeColor,
-  REACTION_TYPES,
-  shareToSocial,
-  copyShareText
-} from '../utils/redFlaggedApi';
+import apiRequest from '../utils/apiUtils';
 
 const RedFlaggedPostPage = () => {
   const { id } = useParams();
@@ -42,16 +31,16 @@ const RedFlaggedPostPage = () => {
   useEffect(() => {
     fetchPost();
     fetchMyReactions();
-    fetchRelatedPosts();
+    fetchRelated();
   }, [id]);
   
   const fetchPost = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/redflagged/${id}`);
-      setPost(response.data.post);
-      setReactions(response.data.reactions);
-      setComments(response.data.comments);
+      const response = await apiRequest(`/redflagged/${id}`);
+      setPost(response.post);
+      setReactions(response.reactions);
+      setComments(response.comments);
     } catch (error) {
       console.error('Failed to fetch post:', error);
     } finally {
@@ -61,17 +50,17 @@ const RedFlaggedPostPage = () => {
   
   const fetchMyReactions = async () => {
     try {
-      const response = await axios.get(`/api/redflagged/${id}/my-reactions`);
-      setMyReactions(response.data.reactions);
+      const response = await apiRequest(`/redflagged/${id}/my-reactions`);
+      setMyReactions(response.reactions);
     } catch (error) {
       console.error('Failed to fetch my reactions:', error);
     }
   };
   
-  const fetchRelatedPosts = async () => {
+  const fetchRelated = async () => {
     try {
-      const response = await axios.get(`/api/redflagged/${id}/related?limit=5`);
-      setRelatedPosts(response.data.posts);
+      const response = await apiRequest(`/redflagged/${id}/related?limit=5`);
+      setRelatedPosts(response.posts);
     } catch (error) {
       console.error('Failed to fetch related posts:', error);
     }
@@ -79,8 +68,9 @@ const RedFlaggedPostPage = () => {
   
   const handleReaction = async (reactionType) => {
     try {
-      const response = await axios.post(`/api/redflagged/${id}/react`, {
-        reaction_type: reactionType
+      await apiRequest(`/redflagged/${id}/react`, {
+        method: 'POST',
+        body: JSON.stringify({ reaction_type: reactionType })
       });
       
       // Refresh data
@@ -101,7 +91,10 @@ const RedFlaggedPostPage = () => {
     setCommentLoading(true);
     
     try {
-      await axios.post(`/api/redflagged/${id}/comments`, commentForm);
+      await apiRequest(`/redflagged/${id}/comments`, {
+        method: 'POST',
+        body: JSON.stringify(commentForm)
+      });
       
       // Reset form and refresh
       setCommentForm({
@@ -112,7 +105,7 @@ const RedFlaggedPostPage = () => {
       fetchPost();
     } catch (error) {
       console.error('Failed to add comment:', error);
-      alert(error.response?.data?.error || 'Failed to add comment');
+      alert(error.message || 'Failed to add comment');
     } finally {
       setCommentLoading(false);
     }
@@ -187,8 +180,8 @@ const RedFlaggedPostPage = () => {
                   </span>
                 </div>
                 <div className="text-center ml-6">
-                  <div className={`text-5xl font-black ${getRatingColor(post.overall_rating)}`}>
-                    {post.overall_rating.toFixed(1)}
+                  <div className={`text-5xl font-black ${getRatingColor(Number(post.overall_rating))}`}>
+                    {Number(post.overall_rating).toFixed(1)}
                   </div>
                   <div className="text-sm text-gray-500 mt-1">Overall Rating</div>
                 </div>
@@ -238,7 +231,7 @@ const RedFlaggedPostPage = () => {
                 </div>
                 <div className="flex items-center gap-4">
                   <span>👁️ {post.views} views</span>
-                  <span>💬 {post.comment_count} comments</span>
+                  <span>💬 {post.comment_count || comments.length} comments</span>
                 </div>
               </div>
             </div>
@@ -400,8 +393,8 @@ const RedFlaggedPostPage = () => {
                       className="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className={`text-lg font-bold ${getRatingColor(relatedPost.overall_rating)}`}>
-                          {relatedPost.overall_rating.toFixed(1)} ★
+                        <span className={`text-lg font-bold ${getRatingColor(Number(relatedPost.overall_rating))}`}>
+                          {Number(relatedPost.overall_rating).toFixed(1)} ★
                         </span>
                         <span className="text-xs text-gray-500">
                           {relatedPost.views} views
