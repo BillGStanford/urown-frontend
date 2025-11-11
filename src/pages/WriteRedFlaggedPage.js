@@ -2,7 +2,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import axios from 'axios';
+import { 
+  createRedFlaggedPost, 
+  validatePostData, 
+  EXPERIENCE_TYPES 
+} from '../utils/redFlaggedApi';
 
 const WriteRedFlaggedPage = () => {
   const navigate = useNavigate();

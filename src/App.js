@@ -24,6 +24,10 @@ import EditorialBoard from './pages/EditorialBoard';
 import ContactPage from './pages/ContactPage';
 import ContactDashboard from './pages/ContactDashboard';
 import IdeologyQuiz from './pages/IdeologyQuiz';
+import BrowseRedFlaggedPage from './pages/BrowseRedFlaggedPage';
+import WriteRedFlaggedPage from './pages/WriteRedFlaggedPage';
+import RedFlaggedPostPage from './pages/RedFlaggedPostPage';
+import AdminRedFlaggedDashboard from './pages/AdminRedFlaggedDashboard';
 import ReportedArticlesDashboard from './pages/ReportedArticlesDashboard';
 import CommunityGuidelines from './pages/important/CommunityGuidelines';
 import PartnersPage from './pages/PartnersPage';
@@ -135,6 +139,14 @@ function AppRoutes() {
 <Route 
   path="/library" 
   element={user ? <LibraryPage /> : <Navigate to="/login" />} 
+/>
+{/* RedFlagged Routes */}
+<Route path="/redflagged" element={<BrowseRedFlaggedPage />} />
+<Route path="/redflagged/write" element={<WriteRedFlaggedPage />} />
+<Route path="/redflagged/:id" element={<RedFlaggedPostPage />} />
+<Route 
+  path="/admin/redflagged" 
+  element={user && (user.role === 'admin' || user.role === 'super-admin') ? <AdminRedFlaggedDashboard /> : <Navigate to="/" />} 
 />
           <Route path="/community-guidelines" element={<CommunityGuidelines />} />
           <Route path="/about" element={<About />} />

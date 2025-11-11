@@ -2,7 +2,18 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import axios from 'axios';
+import {
+  fetchRedFlaggedPost,
+  addReaction,
+  getMyReactions,
+  addComment,
+  fetchRelatedPosts,
+  getRatingColor,
+  getExperienceBadgeColor,
+  REACTION_TYPES,
+  shareToSocial,
+  copyShareText
+} from '../utils/redFlaggedApi';
 
 const RedFlaggedPostPage = () => {
   const { id } = useParams();
