@@ -1,3 +1,4 @@
+// utils/apiUtils.js
 import axios from 'axios';
 
 // Set base URL for all API requests based on environment
