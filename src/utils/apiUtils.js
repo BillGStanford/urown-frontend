@@ -136,7 +136,7 @@ export const createApiRequest = (endpoint, options = {}) => {
   return () => {
     const config = {
       method,
-      url: endpoint, // Don't add /api here since we set it as baseURL
+      url: endpoint,
       headers: {
         'Content-Type': 'application/json',
         ...headers

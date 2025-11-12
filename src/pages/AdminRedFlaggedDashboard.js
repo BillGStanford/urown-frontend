@@ -6,7 +6,7 @@ import axios from 'axios';
 const AdminRedFlaggedDashboard = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // all, flagged, unflagged
+  const [filter, setFilter] = useState('all');
   const [selectedPost, setSelectedPost] = useState(null);
   const [flagReason, setFlagReason] = useState('');
   
@@ -17,10 +17,12 @@ const AdminRedFlaggedDashboard = () => {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/redflagged?limit=100');
+      // Remove /api prefix since it's already in the base URL
+      const response = await axios.get('/redflagged?limit=100');
       setPosts(response.data.posts);
     } catch (error) {
       console.error('Failed to fetch posts:', error);
+      alert('Failed to fetch posts: ' + (error.response?.data?.error || error.message));
     } finally {
       setLoading(false);
     }
@@ -28,7 +30,8 @@ const AdminRedFlaggedDashboard = () => {
   
   const handleFlag = async (postId, flagged) => {
     try {
-      await axios.put(`/api/admin/redflagged/${postId}/flag`, {
+      // Remove /api prefix
+      await axios.put(`/admin/redflagged/${postId}/flag`, {
         flagged,
         flagged_reason: flagged ? flagReason : null
       });
@@ -48,7 +51,8 @@ const AdminRedFlaggedDashboard = () => {
     }
     
     try {
-      await axios.delete(`/api/admin/redflagged/${postId}`);
+      // Remove /api prefix
+      await axios.delete(`/admin/redflagged/${postId}`);
       alert('Post deleted successfully');
       fetchPosts();
     } catch (error) {
@@ -77,11 +81,19 @@ const AdminRedFlaggedDashboard = () => {
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-black text-gray-900 mb-2">
-            RedFlagged Management
-          </h1>
-          <p className="text-gray-600">Moderate and manage RedFlagged posts</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-black text-gray-900 mb-2">
+              RedFlagged Management
+            </h1>
+            <p className="text-gray-600">Moderate and manage RedFlagged posts</p>
+          </div>
+          <Link
+            to="/admin/redflagged/topics"
+            className="bg-purple-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-purple-700 transition"
+          >
+            💭 Manage Topics
+          </Link>
         </div>
         
         {/* Filters */}
@@ -156,6 +168,11 @@ const AdminRedFlaggedDashboard = () => {
                     {post.position && (
                       <div className="text-sm text-gray-500">{post.position}</div>
                     )}
+                    {post.topic_title && (
+                      <div className="text-xs text-purple-600 mt-1">
+                        💭 {post.topic_title}
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm text-gray-600">{post.experience_type}</span>
@@ -169,7 +186,8 @@ const AdminRedFlaggedDashboard = () => {
                   <td className="px-6 py-4">
                     <div className="text-xs text-gray-600">
                       <div>👁️ {post.views} views</div>
-                      <div>💬 {post.reaction_count} reactions</div>
+                      <div>❤️ {post.reaction_count} reactions</div>
+                      <div>💬 {post.comment_count || 0} comments</div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -283,9 +301,3 @@ const AdminRedFlaggedDashboard = () => {
 };
 
 export default AdminRedFlaggedDashboard;
-
-// Add this route to your App.js:
-// <Route 
-//   path="/admin/redflagged" 
-//   element={user && (user.role === 'admin' || user.role === 'super-admin') ? <AdminRedFlaggedDashboard /> : <Navigate to="/" />} 
-// />
