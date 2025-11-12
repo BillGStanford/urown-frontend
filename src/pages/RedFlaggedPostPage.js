@@ -40,72 +40,134 @@ const RedFlaggedPostPage = () => {
     fetchRelated();
   }, [id]);
   
-const fetchPost = async () => {
-  try {
-    setLoading(true);
-    const data = await fetchRedFlaggedPost(id);
-    setPost(data.post);
-    setReactions(data.reactions);
-    setComments(data.comments);
-  } catch (error) {
-    console.error('Failed to fetch post:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+  const fetchPost = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchRedFlaggedPost(id);
+      setPost(data.post);
+      setReactions(data.reactions);
+      setComments(data.comments);
+    } catch (error) {
+      console.error('Failed to fetch post:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const fetchMyReactions = async () => {
-  try {
-    const data = await getMyReactions(id);
-    setMyReactions(data.reactions);
-  } catch (error) {
-    console.error('Failed to fetch my reactions:', error);
-  }
-};
+  const fetchMyReactions = async () => {
+    try {
+      const data = await getMyReactions(id);
+      setMyReactions(data.reactions);
+    } catch (error) {
+      console.error('Failed to fetch my reactions:', error);
+    }
+  };
 
-const fetchRelated = async () => {
-  try {
-    const data = await fetchRelatedPosts(id, 5);
-    setRelatedPosts(data.posts);
-  } catch (error) {
-    console.error('Failed to fetch related posts:', error);
-  }
-};
+  const fetchRelated = async () => {
+    try {
+      const data = await fetchRelatedPosts(id, 5);
+      setRelatedPosts(data.posts);
+    } catch (error) {
+      console.error('Failed to fetch related posts:', error);
+    }
+  };
 
-const handleReaction = async (reactionType) => {
-  try {
-    await addReaction(id, reactionType);
-    fetchPost();
-    fetchMyReactions();
-  } catch (error) {
-    console.error('Failed to add reaction:', error);
-  }
-};
+  // REAL-TIME REACTION HANDLER
+  const handleReaction = async (reactionType) => {
+    const wasReacted = myReactions.includes(reactionType);
+    
+    // Optimistic UI update
+    if (wasReacted) {
+      // Remove reaction
+      setMyReactions(prev => prev.filter(r => r !== reactionType));
+      setReactions(prev => prev.map(r => 
+        r.reaction_type === reactionType 
+          ? { ...r, count: Math.max(0, parseInt(r.count) - 1) }
+          : r
+      ));
+      setPost(prev => ({ ...prev, reaction_count: prev.reaction_count - 1 }));
+    } else {
+      // Add reaction
+      setMyReactions(prev => [...prev, reactionType]);
+      setReactions(prev => {
+        const existing = prev.find(r => r.reaction_type === reactionType);
+        if (existing) {
+          return prev.map(r => 
+            r.reaction_type === reactionType 
+              ? { ...r, count: parseInt(r.count) + 1 }
+              : r
+          );
+        } else {
+          return [...prev, { reaction_type: reactionType, count: 1 }];
+        }
+      });
+      setPost(prev => ({ ...prev, reaction_count: prev.reaction_count + 1 }));
+    }
+    
+    try {
+      // Make API call
+      await addReaction(id, reactionType);
+    } catch (error) {
+      console.error('Failed to add reaction:', error);
+      // Revert on error
+      if (wasReacted) {
+        setMyReactions(prev => [...prev, reactionType]);
+        setReactions(prev => prev.map(r => 
+          r.reaction_type === reactionType 
+            ? { ...r, count: parseInt(r.count) + 1 }
+            : r
+        ));
+        setPost(prev => ({ ...prev, reaction_count: prev.reaction_count + 1 }));
+      } else {
+        setMyReactions(prev => prev.filter(r => r !== reactionType));
+        setReactions(prev => prev.map(r => 
+          r.reaction_type === reactionType 
+            ? { ...r, count: Math.max(0, parseInt(r.count) - 1) }
+            : r
+        ));
+        setPost(prev => ({ ...prev, reaction_count: prev.reaction_count - 1 }));
+      }
+    }
+  };
 
-const handleCommentSubmit = async (e) => {
-  e.preventDefault();
-  
-  if (!commentForm.commenter_name.trim() || !commentForm.comment.trim()) {
-    return;
-  }
-  
-  setCommentLoading(true);
-  
-  try {
-    await addComment(id, commentForm);
-    setCommentForm({
-      commenter_name: '',
-      comment: '',
-      is_company_response: false
-    });
-    fetchPost();
-  } catch (error) {
-    console.error('Failed to add comment:', error);
-    alert(error.response?.data?.error || 'Failed to add comment');
-  } finally {
-    setCommentLoading(false);
-  }
-};
+  // REAL-TIME COMMENT HANDLER
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!commentForm.commenter_name.trim() || !commentForm.comment.trim()) {
+      return;
+    }
+    
+    setCommentLoading(true);
+    
+    try {
+      const result = await addComment(id, commentForm);
+      
+      // Optimistic UI update - add new comment immediately
+      const newComment = {
+        ...result.comment,
+        created_at: new Date().toISOString()
+      };
+      
+      setComments(prev => [newComment, ...prev]);
+      setPost(prev => ({ 
+        ...prev, 
+        comment_count: (prev.comment_count || 0) + 1 
+      }));
+      
+      // Clear form
+      setCommentForm({
+        commenter_name: '',
+        comment: '',
+        is_company_response: false
+      });
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+      alert(error.response?.data?.error || 'Failed to add comment');
+    } finally {
+      setCommentLoading(false);
+    }
+  };
   
   const getRatingColor = (rating) => {
     if (rating >= 4) return 'text-green-600';
@@ -150,7 +212,6 @@ const handleCommentSubmit = async (e) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 py-12 px-4">
       <div className="max-w-5xl mx-auto">
-        {/* Back Button */}
         <Link
           to="/redflagged"
           className="inline-flex items-center text-red-600 hover:text-red-700 mb-6"
@@ -170,6 +231,13 @@ const handleCommentSubmit = async (e) => {
                   </h1>
                   {post.position && (
                     <p className="text-lg text-gray-600 mb-4">{post.position}</p>
+                  )}
+                  {post.topic_title && (
+                    <div className="mb-4">
+                      <span className="inline-block px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
+                        💭 Topic: {post.topic_title}
+                      </span>
+                    </div>
                   )}
                   <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${getExperienceBadgeColor(post.experience_type)}`}>
                     {post.experience_type}
@@ -219,7 +287,7 @@ const handleCommentSubmit = async (e) => {
                 </div>
               </div>
               
-              {/* Meta Info */}
+              {/* Meta Info with REAL-TIME COUNTS */}
               <div className="flex items-center justify-between text-sm text-gray-500 pt-6 border-t">
                 <div className="flex items-center gap-4">
                   <span>👤 {post.author_name}</span>
@@ -232,7 +300,7 @@ const handleCommentSubmit = async (e) => {
               </div>
             </div>
             
-            {/* Reactions */}
+            {/* Reactions with REAL-TIME UPDATES */}
             <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
               <h3 className="text-xl font-bold mb-4">React to this post</h3>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -246,27 +314,27 @@ const handleCommentSubmit = async (e) => {
                       onClick={() => handleReaction(type)}
                       className={`p-4 rounded-lg border-2 transition-all ${
                         hasReacted 
-                          ? 'border-red-500 bg-red-50' 
+                          ? 'border-red-500 bg-red-50 scale-105' 
                           : 'border-gray-200 hover:border-red-300 hover:bg-gray-50'
                       }`}
                     >
                       <div className="text-3xl mb-2">{emoji}</div>
                       <div className="text-xs font-semibold">{label}</div>
-                      <div className="text-sm text-gray-600 mt-1">{count}</div>
+                      <div className="text-sm text-gray-600 mt-1 font-bold">{count}</div>
                     </button>
                   );
                 })}
               </div>
             </div>
             
-            {/* Comments */}
+            {/* Comments with REAL-TIME UPDATES */}
             <div className="bg-white rounded-2xl shadow-xl p-6">
               <h3 className="text-xl font-bold mb-4">
                 Comments & Responses ({comments.length})
               </h3>
               
               {/* Add Comment Form */}
-              <form onSubmit={handleCommentSubmit} className="mb-8">
+              <div className="mb-8">
                 <div className="mb-4">
                   <input
                     type="text"
@@ -298,14 +366,14 @@ const handleCommentSubmit = async (e) => {
                     <span className="text-sm">I'm responding on behalf of the company</span>
                   </label>
                   <button
-                    type="submit"
+                    onClick={handleCommentSubmit}
                     disabled={commentLoading}
                     className="bg-red-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-red-700 transition disabled:opacity-50"
                   >
                     {commentLoading ? 'Posting...' : 'Post Comment'}
                   </button>
                 </div>
-              </form>
+              </div>
               
               {/* Comments List */}
               <div className="space-y-4">

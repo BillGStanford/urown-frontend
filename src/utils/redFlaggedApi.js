@@ -15,9 +15,8 @@ import {
 
 // Get all RedFlagged posts with filters
 export const fetchRedFlaggedPosts = async (filters = {}) => {
-  const { company, experienceType, minRating, maxRating, sort = 'recent', limit = 20, offset = 0 } = filters;
+  const { company, experienceType, topicId, minRating, maxRating, sort = 'recent', limit = 20, offset = 0 } = filters;
   
-  // Create cache key from filters
   const cacheKey = `redflagged_posts_${JSON.stringify(filters)}`;
   const cached = getCachedData(cacheKey);
   if (cached) return cached;
@@ -25,6 +24,7 @@ export const fetchRedFlaggedPosts = async (filters = {}) => {
   const params = { limit, offset, sort };
   if (company) params.company = company;
   if (experienceType) params.experienceType = experienceType;
+  if (topicId) params.topicId = topicId;
   if (minRating) params.minRating = minRating;
   if (maxRating) params.maxRating = maxRating;
   
@@ -159,6 +159,24 @@ export const fetchCompanyAnalytics = async (companyName) => {
 };
 
 // ==========================================
+// TOPIC FUNCTIONS
+// ==========================================
+
+// Get active topics
+export const fetchActiveTopics = async () => {
+  const cacheKey = 'redflagged_active_topics';
+  const cached = getCachedData(cacheKey);
+  if (cached) return cached;
+  
+  const response = await fetchWithRetry(
+    createApiRequest('/redflagged/topics/active')
+  );
+  
+  setCachedData(cacheKey, response.data);
+  return response.data;
+};
+
+// ==========================================
 // ADMIN FUNCTIONS
 // ==========================================
 
@@ -179,6 +197,62 @@ export const deleteRedFlaggedPost = async (postId) => {
   const response = await fetchWithRetry(
     createApiRequest(`/admin/redflagged/${postId}`, {
       method: 'DELETE'
+    })
+  );
+  
+  return response.data;
+};
+
+// Get all topics (admin only)
+export const fetchAllTopics = async () => {
+  const response = await fetchWithRetry(
+    createApiRequest('/admin/redflagged/topics')
+  );
+  
+  return response.data;
+};
+
+// Create topic (admin/editorial only)
+export const createTopic = async (topicData) => {
+  const response = await fetchWithRetry(
+    createApiRequest('/admin/redflagged/topics', {
+      method: 'POST',
+      data: topicData
+    })
+  );
+  
+  return response.data;
+};
+
+// Update topic (admin/editorial only)
+export const updateTopic = async (topicId, topicData) => {
+  const response = await fetchWithRetry(
+    createApiRequest(`/admin/redflagged/topics/${topicId}`, {
+      method: 'PUT',
+      data: topicData
+    })
+  );
+  
+  return response.data;
+};
+
+// Delete topic (admin/editorial only)
+export const deleteTopic = async (topicId) => {
+  const response = await fetchWithRetry(
+    createApiRequest(`/admin/redflagged/topics/${topicId}`, {
+      method: 'DELETE'
+    })
+  );
+  
+  return response.data;
+};
+
+// Toggle topic active status (admin/editorial only)
+export const toggleTopicActive = async (topicId, active) => {
+  const response = await fetchWithRetry(
+    createApiRequest(`/admin/redflagged/topics/${topicId}/toggle`, {
+      method: 'PUT',
+      data: { active }
     })
   );
   
@@ -352,8 +426,14 @@ export default {
   fetchTrendingCompanies,
   fetchTrendingPosts,
   fetchCompanyAnalytics,
+  fetchActiveTopics,
   flagPost,
   deleteRedFlaggedPost,
+  fetchAllTopics,
+  createTopic,
+  updateTopic,
+  deleteTopic,
+  toggleTopicActive,
   getExperienceBadgeColor,
   getRatingColor,
   formatPostDate,

@@ -1,12 +1,17 @@
 // src/pages/WriteRedFlaggedPage.js
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import { createRedFlaggedPost } from '../utils/redFlaggedApi';
+import { createRedFlaggedPost, fetchActiveTopics } from '../utils/redFlaggedApi';
 
 const WriteRedFlaggedPage = () => {
   const navigate = useNavigate();
   const { user } = useUser();
+  const [searchParams] = useSearchParams();
+  const topicIdFromUrl = searchParams.get('topic');
+  
+  const [topics, setTopics] = useState([]);
+  const [selectedTopic, setSelectedTopic] = useState(null);
   
   const [formData, setFormData] = useState({
     company_name: '',
@@ -19,7 +24,8 @@ const WriteRedFlaggedPage = () => {
     rating_management: 3,
     anonymous_username: '',
     is_anonymous: true,
-    terms_agreed: false
+    terms_agreed: false,
+    topic_id: null
   });
   
   const [loading, setLoading] = useState(false);
@@ -40,6 +46,29 @@ const WriteRedFlaggedPage = () => {
     'Work-Life Balance',
     'Other'
   ];
+  
+  useEffect(() => {
+    loadTopics();
+  }, []);
+  
+  useEffect(() => {
+    if (topicIdFromUrl && topics.length > 0) {
+      const topic = topics.find(t => t.id === parseInt(topicIdFromUrl));
+      if (topic) {
+        setSelectedTopic(topic);
+        setFormData(prev => ({ ...prev, topic_id: topic.id }));
+      }
+    }
+  }, [topicIdFromUrl, topics]);
+  
+  const loadTopics = async () => {
+    try {
+      const data = await fetchActiveTopics();
+      setTopics(data.topics || []);
+    } catch (error) {
+      console.error('Failed to load topics:', error);
+    }
+  };
   
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -98,13 +127,13 @@ const WriteRedFlaggedPage = () => {
     
     setLoading(true);
     
-try {
-  const response = await createRedFlaggedPost(formData);
-  navigate(`/redflagged/${response.post.id}`);
-} catch (err) {
-  setError(err.response?.data?.error || 'Failed to create post');
-  setLoading(false);
-}
+    try {
+      const response = await createRedFlaggedPost(formData);
+      navigate(`/redflagged/${response.post.id}`);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to create post');
+      setLoading(false);
+    }
   };
   
   const RatingStars = ({ label, value, onChange }) => (
@@ -144,6 +173,55 @@ try {
             </p>
           </div>
           
+          {/* Topic Banner if selected */}
+          {selectedTopic && (
+            <div className="mb-6 p-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold mb-2">
+                    💭 Writing for Topic: {selectedTopic.title}
+                  </h3>
+                  <p className="text-sm opacity-90">{selectedTopic.description}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setSelectedTopic(null);
+                    setFormData(prev => ({ ...prev, topic_id: null }));
+                  }}
+                  className="text-white/80 hover:text-white text-2xl ml-4"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* Topic Selection (if not already selected) */}
+          {!selectedTopic && topics.length > 0 && (
+            <div className="mb-6">
+              <label className="block text-sm font-semibold mb-2">
+                💭 Write for a Topic (Optional)
+              </label>
+              <select
+                value={formData.topic_id || ''}
+                onChange={(e) => {
+                  const topicId = e.target.value ? parseInt(e.target.value) : null;
+                  const topic = topics.find(t => t.id === topicId);
+                  setSelectedTopic(topic || null);
+                  setFormData(prev => ({ ...prev, topic_id: topicId }));
+                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              >
+                <option value="">No topic - General experience</option>
+                {topics.map(topic => (
+                  <option key={topic.id} value={topic.id}>
+                    {topic.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          
           {error && (
             <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
               {error}
@@ -151,6 +229,7 @@ try {
           )}
           
           <form onSubmit={handleSubmit}>
+            {/* Rest of the form fields remain the same */}
             {/* Company Name */}
             <div className="mb-6">
               <label className="block text-sm font-semibold mb-2">

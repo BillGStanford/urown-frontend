@@ -28,6 +28,7 @@ import BrowseRedFlaggedPage from './pages/BrowseRedFlaggedPage';
 import WriteRedFlaggedPage from './pages/WriteRedFlaggedPage';
 import RedFlaggedPostPage from './pages/RedFlaggedPostPage';
 import AdminRedFlaggedDashboard from './pages/AdminRedFlaggedDashboard';
+import AdminRedFlaggedTopics from './pages/AdminRedFlaggedTopics';
 import ReportedArticlesDashboard from './pages/ReportedArticlesDashboard';
 import CommunityGuidelines from './pages/important/CommunityGuidelines';
 import PartnersPage from './pages/PartnersPage';
@@ -147,6 +148,14 @@ function AppRoutes() {
 <Route 
   path="/admin/redflagged" 
   element={user && (user.role === 'admin' || user.role === 'super-admin') ? <AdminRedFlaggedDashboard /> : <Navigate to="/" />} 
+/>
+<Route 
+  path="/admin/redflagged/topics" 
+  element={
+    user && (user.role === 'admin' || user.role === 'super-admin' || user.role === 'editorial-board') 
+      ? <AdminRedFlaggedTopics /> 
+      : <Navigate to="/" />
+  } 
 />
           <Route path="/community-guidelines" element={<CommunityGuidelines />} />
           <Route path="/about" element={<About />} />
