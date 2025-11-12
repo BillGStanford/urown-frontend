@@ -178,7 +178,7 @@ const AdminRedFlaggedDashboard = () => {
                     <span className="text-sm text-gray-600">{post.experience_type}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-bold text-lg">{post.overall_rating.toFixed(1)}</span>
+                    <span className="font-bold text-lg">{Number(post.overall_rating).toFixed(1)}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm">{post.author_name}</span>
