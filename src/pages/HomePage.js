@@ -1,27 +1,31 @@
+// src/pages/HomePage.js
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import { useUser } from '../context/UserContext';
 import RedFlaggedBanner from '../components/RedFlaggedBanner';
-import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Filter, Bookmark, Share2, ThumbsUp, MessageCircle, Repeat2, BarChart3, User, Hash, Clock } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Filter, Bookmark, Share2, ThumbsUp, MessageCircle, Repeat2, BarChart3, User, Hash, Clock, X, Home, Search, PenTool, UserPlus, Menu } from 'lucide-react';
 
 function HomePage() {
   const [activeDebates, setActiveDebates] = useState([]);
   const [certifiedArticles, setCertifiedArticles] = useState([]);
   const [topUsers, setTopUsers] = useState([]);
-  const [articlesByTopic, setArticlesByTopic] = useState({});
   const [dailyFeed, setDailyFeed] = useState([]);
   const [topLeaders, setTopLeaders] = useState([]);
+  const [redFlaggedContent, setRedFlaggedContent] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('trending');
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [topics, setTopics] = useState([]);
+  const [selectedTopic, setSelectedTopic] = useState(null);
   const { user } = useUser();
   const navigate = useNavigate();
   
   // Refs for scroll containers
   const certifiedScrollRef = useRef(null);
   const usersScrollRef = useRef(null);
-  const topicScrollRefs = useRef({});
   const dailyFeedScrollRef = useRef(null);
 
   useEffect(() => {
@@ -48,24 +52,23 @@ function HomePage() {
         );
         const allArticles = articlesResponse.data.articles || [];
         
-        // Group articles by their first topic (views > 500)
-        const grouped = {};
-        allArticles
-          .filter(article => article.views >= 500)
-          .forEach(article => {
-            const topic = article.topics && article.topics.length > 0 ? article.topics[0] : 'Uncategorized';
-            if (!grouped[topic]) {
-              grouped[topic] = [];
-            }
-            grouped[topic].push(article);
-          });
+        // Fetch RedFlagged content
+        try {
+          const redFlaggedResponse = await fetchWithRetry(() => axios.get('/redflagged'));
+          setRedFlaggedContent(redFlaggedResponse.data.articles || []);
+        } catch (err) {
+          console.error('Error fetching RedFlagged content:', err);
+          setRedFlaggedContent([]);
+        }
         
-        // Sort articles within each topic by views
-        Object.keys(grouped).forEach(topic => {
-          grouped[topic].sort((a, b) => b.views - a.views);
+        // Extract unique topics from articles
+        const uniqueTopics = new Set();
+        allArticles.forEach(article => {
+          if (article.topics && article.topics.length > 0) {
+            article.topics.forEach(topic => uniqueTopics.add(topic));
+          }
         });
-        
-        setArticlesByTopic(grouped);
+        setTopics(Array.from(uniqueTopics));
         
         // Calculate top users from articles
         const userStats = {};
@@ -99,12 +102,17 @@ function HomePage() {
         setTopUsers(topUsersArray);
         setTopLeaders(leadersArray);
         
-        // Create daily feed from recent articles
+        // Create daily feed from recent articles and RedFlagged content
         const recentArticles = [...allArticles]
           .sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date))
           .slice(0, 20);
         
-        setDailyFeed(recentArticles);
+        // Combine regular articles with RedFlagged content
+        const combinedFeed = [...recentArticles, ...redFlaggedContent]
+          .sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || b.date))
+          .slice(0, 30);
+        
+        setDailyFeed(combinedFeed);
         
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -163,6 +171,11 @@ function HomePage() {
     navigate(`/article/${articleId}`);
   };
 
+  // Handle username click - navigate to user profile
+  const handleUserClick = (username) => {
+    navigate(`/user/${encodeURIComponent(username)}`);
+  };
+
   // Format date for social media style
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -186,16 +199,27 @@ function HomePage() {
     }
   };
 
-  // Filter daily feed based on selected filter
+  // Filter daily feed based on selected filter and topic
   const getFilteredFeed = () => {
-    if (activeFilter === 'trending') {
-      return [...dailyFeed].sort((a, b) => b.views - a.views);
-    } else if (activeFilter === 'recent') {
-      return [...dailyFeed].sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
-    } else if (activeFilter === 'popular') {
-      return [...dailyFeed].sort((a, b) => (b.likes || 0) - (a.likes || 0));
+    let filtered = [...dailyFeed];
+    
+    // Filter by topic if selected
+    if (selectedTopic) {
+      filtered = filtered.filter(article => 
+        article.topics && article.topics.includes(selectedTopic)
+      );
     }
-    return dailyFeed;
+    
+    // Sort by selected filter
+    if (activeFilter === 'trending') {
+      filtered.sort((a, b) => b.views - a.views);
+    } else if (activeFilter === 'recent') {
+      filtered.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
+    } else if (activeFilter === 'popular') {
+      filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+    }
+    
+    return filtered;
   };
 
   if (loading) {
@@ -207,7 +231,7 @@ function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-16 md:pb-0">
       {/* Hero Section - Only for non-logged users */}
       <RedFlaggedBanner />
       {!user && (
@@ -430,7 +454,17 @@ function HomePage() {
                           <Eye className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2.5} />
                           {formatNumber(article.views)}
                         </span>
-                        <span className="truncate">by {article.display_name}</span>
+                        <span className="truncate">by 
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleUserClick(article.display_name);
+                            }}
+                            className="text-orange-600 hover:text-orange-800 ml-1"
+                          >
+                            {article.display_name}
+                          </button>
+                        </span>
                       </div>
                       <p className="text-xs sm:text-sm text-gray-600 line-clamp-3">
                         {truncateText(article.content.replace(/<[^>]*>/g, ''), 120)}
@@ -502,151 +536,6 @@ function HomePage() {
           </section>
         )}
 
-        {/* Leaderboard Snippet Section */}
-        {topLeaders.length > 0 && (
-          <section className="mb-12 sm:mb-16">
-            <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-2 sm:gap-3">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
-                  <Trophy className="w-5 h-5 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
-                </div>
-                <span className="hidden sm:inline">Leaderboard</span>
-                <span className="sm:hidden">Top 5</span>
-              </h2>
-              <Link to="/leaderboard" className="hidden sm:flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-900 text-white font-bold text-xs sm:text-sm rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
-                View All
-                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
-              </Link>
-            </div>
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-200">
-              <div className="space-y-3 sm:space-y-4">
-                {topLeaders.map((leader, index) => (
-                  <div key={index} className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center font-black text-lg sm:text-xl rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 text-white shadow-md">
-                      {index + 1}
-                    </div>
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-md">
-                      {leader.display_name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm sm:text-base font-bold text-gray-900 truncate">{leader.display_name}</h3>
-                      <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2.5} />
-                          <span className="font-semibold">UROWN: {formatNumber(Math.round(leader.urownScore))}</span>
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Eye className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2.5} />
-                          {formatNumber(leader.totalViews)} views
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex-shrink-0">
-                      {index === 0 && <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500" />}
-                      {index === 1 && <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />}
-                      {index === 2 && <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-amber-700" />}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Link to="/leaderboard" className="sm:hidden flex items-center justify-center gap-2 mt-4 px-6 py-3 bg-gray-900 text-white font-bold text-sm rounded-xl hover:bg-gray-800 transition-all w-full">
-                View Full Leaderboard
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </section>
-        )}
-
-        {/* Articles by Topic Sections with Horizontal Scroll */}
-        {Object.keys(articlesByTopic).length > 0 && (
-          <div className="space-y-12 sm:space-y-16">
-            {Object.entries(articlesByTopic)
-              .sort(([, articlesA], [, articlesB]) => {
-                const totalViewsA = articlesA.reduce((sum, a) => sum + a.views, 0);
-                const totalViewsB = articlesB.reduce((sum, b) => sum + b.views, 0);
-                return totalViewsB - totalViewsA;
-              })
-              .map(([topic, articles]) => (
-                <section key={topic}>
-                  <div className="flex items-center justify-between mb-4 sm:mb-6">
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-2 sm:gap-3">
-                      <span className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-xl sm:rounded-2xl flex items-center justify-center">
-                        {getTopicIcon(topic)}
-                      </span>
-                      <span className="hidden sm:inline">{topic}</span>
-                      <span className="sm:hidden text-xl">{topic}</span>
-                    </h2>
-                    <div className="flex items-center gap-2">
-                      <div className="hidden sm:flex items-center gap-2">
-                        <button
-                          onClick={() => scroll(topicScrollRefs.current[topic], 'left')}
-                          className="p-2 bg-white border-2 border-gray-900 rounded-lg hover:bg-gray-900 hover:text-white transition-all"
-                          aria-label="Scroll left"
-                        >
-                          <ChevronLeft className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => scroll(topicScrollRefs.current[topic], 'right')}
-                          className="p-2 bg-white border-2 border-gray-900 rounded-lg hover:bg-gray-900 hover:text-white transition-all"
-                          aria-label="Scroll right"
-                        >
-                          <ChevronRight className="w-5 h-5" />
-                        </button>
-                      </div>
-                      <Link to={`/browse?topic=${topic}`} className="hidden md:flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-900 text-white font-bold text-xs sm:text-sm rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
-                        Browse <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <div 
-                      ref={el => topicScrollRefs.current[topic] = el}
-                      className="overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide scroll-smooth"
-                    >
-                      <div className="flex gap-4 sm:gap-6" style={{ minWidth: 'min-content' }}>
-                        {articles.slice(0, 8).map((article, index) => (
-                          <button
-                            key={article.id}
-                            onClick={() => handleArticleClick(article.id)}
-                            className="group bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-orange-500 flex-shrink-0 transform hover:scale-105 animate-fade-in-up text-left"
-                            style={{ width: '280px', animationDelay: `${index * 50}ms` }}
-                          >
-                            <div className="flex items-center gap-2 mb-3 flex-wrap">
-                              {article.certified && (
-                                <div className="flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-600 text-xs font-black rounded-md">
-                                  <Award className="w-3 h-3" strokeWidth={2.5} />
-                                  Certified
-                                </div>
-                              )}
-                              {article.topics && article.topics.slice(0, 2).map(t => (
-                                <span key={t} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-bold rounded-md">
-                                  {t}
-                                </span>
-                              ))}
-                            </div>
-                            <h3 className="text-base sm:text-lg font-black text-gray-900 mb-3 group-hover:text-orange-600 transition-colors line-clamp-2">
-                              {article.title}
-                            </h3>
-                            <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-3 font-semibold">
-                              <span className="flex items-center gap-1">
-                                <Eye className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2.5} />
-                                {formatNumber(article.views)}
-                              </span>
-                              <span className="truncate">by {article.display_name}</span>
-                            </div>
-                            <p className="text-xs sm:text-sm text-gray-600 line-clamp-3">
-                              {truncateText(article.content.replace(/<[^>]*>/g, ''), 120)}
-                            </p>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              ))}
-          </div>
-        )}
-
         {/* Daily Feed Section */}
         <section className="mt-16 sm:mt-20">
           <div className="flex items-center justify-between mb-6 sm:mb-8">
@@ -712,12 +601,43 @@ function HomePage() {
               <ThumbsUp className="w-4 h-4" strokeWidth={2.5} />
               Popular
             </button>
-            <button
-              className="px-4 py-2 rounded-lg font-bold text-sm sm:text-base transition-all flex items-center gap-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 whitespace-nowrap"
-            >
-              <Filter className="w-4 h-4" strokeWidth={2.5} />
-              More Filters
-            </button>
+            <div className="relative">
+              <button
+                className={`px-4 py-2 rounded-lg font-bold text-sm sm:text-base transition-all flex items-center gap-2 whitespace-nowrap ${
+                  selectedTopic 
+                    ? 'bg-gray-900 text-white' 
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                }`}
+              >
+                <Filter className="w-4 h-4" strokeWidth={2.5} />
+                {selectedTopic || 'Topics'}
+              </button>
+              {selectedTopic && (
+                <button
+                  onClick={() => setSelectedTopic(null)}
+                  className="absolute -top-1 -right-1 bg-gray-900 text-white rounded-full p-1"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+            {topics.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                {topics.slice(0, 5).map(topic => (
+                  <button
+                    key={topic}
+                    onClick={() => setSelectedTopic(topic === selectedTopic ? null : topic)}
+                    className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+                      selectedTopic === topic
+                        ? 'bg-gray-900 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    #{topic}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Feed Items */}
@@ -725,7 +645,11 @@ function HomePage() {
             {getFilteredFeed().slice(0, 10).map((article, index) => (
               <div 
                 key={article.id}
-                className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-500 animate-fade-in-up"
+                className={`bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-md hover:shadow-xl transition-all duration-300 border ${
+                  article.is_redflagged 
+                    ? 'border-red-200 hover:border-red-500' 
+                    : 'border-gray-200 hover:border-blue-500'
+                } animate-fade-in-up`}
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="flex items-start gap-3 sm:gap-4">
@@ -734,13 +658,24 @@ function HomePage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-base sm:text-lg font-bold text-gray-900">{article.display_name}</h3>
+                      <button
+                        onClick={() => handleUserClick(article.display_name)}
+                        className="text-base sm:text-lg font-bold text-gray-900 hover:text-blue-600 transition-colors"
+                      >
+                        {article.display_name}
+                      </button>
                       <span className="text-gray-500 text-xs sm:text-sm">·</span>
                       <span className="text-gray-500 text-xs sm:text-sm">{formatDate(article.created_at || article.date)}</span>
                       {article.certified && (
                         <div className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-600 text-xs font-black rounded-md">
                           <Award className="w-3 h-3" strokeWidth={2.5} />
                           Certified
+                        </div>
+                      )}
+                      {article.is_redflagged && (
+                        <div className="flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-600 text-xs font-black rounded-md">
+                          <Flame className="w-3 h-3" strokeWidth={2.5} />
+                          RedFlagged
                         </div>
                       )}
                     </div>
@@ -757,9 +692,16 @@ function HomePage() {
                       {article.topics && article.topics.length > 0 && (
                         <div className="flex flex-wrap gap-2 mb-3">
                           {article.topics.slice(0, 3).map(topic => (
-                            <span key={topic} className="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded-md">
+                            <button
+                              key={topic}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedTopic(topic);
+                              }}
+                              className="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded-md hover:bg-blue-100 transition-colors"
+                            >
                               #{topic}
-                            </span>
+                            </button>
                           ))}
                         </div>
                       )}
@@ -768,15 +710,14 @@ function HomePage() {
                       <div className="flex items-center gap-4 sm:gap-6">
                         <button className="flex items-center gap-1 text-gray-500 hover:text-blue-600 transition-colors">
                           <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
-                          <span className="text-xs sm:text-sm font-semibold">{article.comments || Math.floor(Math.random() * 100)}</span>
+                          <span className="text-xs sm:text-sm font-semibold">{article.comments || 0}</span>
                         </button>
                         <button className="flex items-center gap-1 text-gray-500 hover:text-green-600 transition-colors">
                           <Repeat2 className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
-                          <span className="text-xs sm:text-sm font-semibold">{Math.floor(Math.random() * 50)}</span>
                         </button>
                         <button className="flex items-center gap-1 text-gray-500 hover:text-red-600 transition-colors">
                           <Heart className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
-                          <span className="text-xs sm:text-sm font-semibold">{article.likes || Math.floor(Math.random() * 200)}</span>
+                          <span className="text-xs sm:text-sm font-semibold">{article.likes || 0}</span>
                         </button>
                         <button className="flex items-center gap-1 text-gray-500 hover:text-blue-600 transition-colors">
                           <Share2 className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
@@ -794,9 +735,9 @@ function HomePage() {
           </div>
           
           <div className="mt-8 text-center">
-            <button className="px-6 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-all">
-              Load More
-            </button>
+            <Link to="/browse" className="px-6 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-all">
+              Go to Browse Page
+            </Link>
           </div>
         </section>
 
@@ -824,6 +765,217 @@ function HomePage() {
           </section>
         )}
       </div>
+
+      {/* Leaderboard Sidebar */}
+      {topLeaders.length > 0 && (
+        <div className={`fixed right-0 top-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 z-50 overflow-y-auto ${
+          isLeaderboardOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}>
+          <div className="sticky top-0 bg-white p-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <Trophy className="h-6 w-6 text-yellow-500" />
+              Leaderboard
+            </h2>
+            <button
+              onClick={() => setIsLeaderboardOpen(false)}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          
+          <div className="p-4">
+            <div className="space-y-3">
+              {topLeaders.map((leader, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center font-black text-lg rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 text-white shadow-md">
+                    {index + 1}
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-md">
+                    {leader.display_name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-bold text-gray-900 truncate">{leader.display_name}</h3>
+                    <div className="flex items-center gap-3 text-xs text-gray-600">
+                      <span className="flex items-center gap-1">
+                        <BarChart3 className="w-3 h-3" strokeWidth={2.5} />
+                        <span className="font-semibold">UROWN: {formatNumber(Math.round(leader.urownScore))}</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" strokeWidth={2.5} />
+                        {formatNumber(leader.totalViews)} views
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0">
+                    {index === 0 && <Trophy className="w-5 h-5 text-yellow-500" />}
+                    {index === 1 && <Trophy className="w-5 h-5 text-gray-400" />}
+                    {index === 2 && <Trophy className="w-5 h-5 text-amber-700" />}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <Link
+              to="/leaderboard"
+              className="block w-full py-3 px-4 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors duration-200 font-bold text-center flex items-center justify-center gap-2 mt-6"
+            >
+              <Trophy className="h-5 w-5" />
+              Visit Page
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Leaderboard Toggle Button */}
+      {topLeaders.length > 0 && (
+        <button
+          onClick={() => setIsLeaderboardOpen(true)}
+          className="fixed right-4 bottom-20 md:bottom-4 w-14 h-14 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center text-white z-40 transition-all duration-200 transform hover:scale-110"
+        >
+          <Trophy className="h-6 w-6" />
+        </button>
+      )}
+
+      {/* Mobile Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-40">
+        <div className="grid grid-cols-5 gap-1">
+          <Link
+            to="/"
+            className="flex flex-col items-center justify-center py-2 px-1 text-gray-600 hover:text-orange-600 transition-colors"
+          >
+            <Home className="h-5 w-5" />
+            <span className="text-xs mt-1">Home</span>
+          </Link>
+          <Link
+            to="/browse"
+            className="flex flex-col items-center justify-center py-2 px-1 text-gray-600 hover:text-orange-600 transition-colors"
+          >
+            <Search className="h-5 w-5" />
+            <span className="text-xs mt-1">Browse</span>
+          </Link>
+          {user ? (
+            <Link
+              to="/write"
+              className="flex flex-col items-center justify-center py-2 px-1 text-gray-600 hover:text-orange-600 transition-colors"
+            >
+              <PenTool className="h-5 w-5" />
+              <span className="text-xs mt-1">Write</span>
+            </Link>
+          ) : (
+            <Link
+              to="/signup"
+              className="flex flex-col items-center justify-center py-2 px-1 text-gray-600 hover:text-orange-600 transition-colors"
+            >
+              <UserPlus className="h-5 w-5" />
+              <span className="text-xs mt-1">Join</span>
+            </Link>
+          )}
+          <Link
+            to="/leaderboard"
+            className="flex flex-col items-center justify-center py-2 px-1 text-gray-600 hover:text-orange-600 transition-colors"
+          >
+            <Trophy className="h-5 w-5" />
+            <span className="text-xs mt-1">Top</span>
+          </Link>
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="flex flex-col items-center justify-center py-2 px-1 text-gray-600 hover:text-orange-600 transition-colors"
+          >
+            <Menu className="h-5 w-5" />
+            <span className="text-xs mt-1">Menu</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden">
+          <div className="absolute right-0 top-0 h-full w-64 bg-white shadow-xl">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">Menu</h2>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-4">
+              <div className="space-y-2">
+                <Link
+                  to="/ideology-quiz"
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Ideology Quiz
+                </Link>
+                <Link
+                  to="/about"
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  About
+                </Link>
+                <Link
+                  to="/partners"
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Partners
+                </Link>
+                <Link
+                  to="/contact"
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Contact
+                </Link>
+                <Link
+                  to="/redflagged"
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  RedFlagged
+                </Link>
+                {user && (
+                  <>
+                    <div className="border-t border-gray-200 my-2"></div>
+                    <Link
+                      to="/library"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Library
+                    </Link>
+                    <Link
+                      to={`/user/${encodeURIComponent(user.display_name)}`}
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      to="/dashboard"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/settings"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Settings
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {
