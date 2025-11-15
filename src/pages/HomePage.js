@@ -261,7 +261,7 @@ function HomePage() {
               
               {/* Subheadline */}
               <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-6 sm:mb-8 lg:mb-10 leading-relaxed max-w-3xl animate-slide-up-delay">
-                Join industry experts, academics, and thought leaders in rigorous, evidence-based debates on the issues shaping our world.
+                Join industry experts, academics, and thought leaders in rigorous, evidence-based debates on issues shaping our world.
               </p>
               
               {/* CTA Buttons */}
