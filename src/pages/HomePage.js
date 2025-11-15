@@ -240,7 +240,7 @@ function HomePage() {
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                   <Users className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" strokeWidth={2.5} />
                 </div>
-                <div className="text-2xl sm:text-3xl font-black text-gray-900 mb-1">15K+</div>
+                <div className="text-2xl sm:text-3xl font-black text-gray-900 mb-1">38K+</div>
                 <div className="text-xs sm:text-sm text-gray-600 font-semibold">Monthly Readers</div>
               </div>
 
