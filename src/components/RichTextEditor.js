@@ -61,10 +61,49 @@ const RichTextEditor = ({
   // Initialize editor with content
   useEffect(() => {
     if (editorRef.current && value !== editorRef.current.innerHTML) {
-      editorRef.current.innerHTML = value;
+      // Clean the HTML before setting it
+      const cleanHTML = cleanHTML(value);
+      editorRef.current.innerHTML = cleanHTML;
       updateCounts();
     }
   }, [value]);
+
+  // Clean HTML function to remove unwanted tags and formatting
+  const cleanHTML = (html) => {
+    if (!html) return '';
+    
+    // Create a temporary div to parse HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // Remove all div and br tags that are just for spacing
+    const divs = tempDiv.querySelectorAll('div');
+    divs.forEach(div => {
+      // Check if div is empty or only contains whitespace
+      if (!div.textContent.trim()) {
+        div.remove();
+      } else {
+        // Convert div to p if it's not already a block element
+        const p = document.createElement('p');
+        while (div.firstChild) {
+          p.appendChild(div.firstChild);
+        }
+        div.parentNode.replaceChild(p, div);
+      }
+    });
+    
+    // Remove excessive br tags
+    const brs = tempDiv.querySelectorAll('br');
+    brs.forEach(br => {
+      // Remove br if it's followed by another br or a block element
+      const nextSibling = br.nextSibling;
+      if (nextSibling && (nextSibling.nodeName === 'BR' || ['P', 'DIV', 'H1', 'H2', 'H3', 'BLOCKQUOTE'].includes(nextSibling.nodeName))) {
+        br.remove();
+      }
+    });
+    
+    return tempDiv.innerHTML;
+  };
 
   // Update character and word counts
   const updateCounts = useCallback(() => {
@@ -97,12 +136,20 @@ const RichTextEditor = ({
   const handleContentChange = useCallback(() => {
     if (!editorRef.current) return;
     
-    const content = editorRef.current.innerHTML;
+    // Get the HTML content and clean it
+    let content = editorRef.current.innerHTML;
+    content = cleanHTML(content);
+    
+    // Update the editor with cleaned content
+    if (content !== editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = content;
+    }
+    
     onChange(content);
     updateCounts();
     saveToHistory();
     updateActiveFormats();
-  }, [onChange, updateCounts, saveToHistory]);
+  }, [onChange, updateCounts, saveToHistory, cleanHTML]);
 
   // Update active formats
   const updateActiveFormats = useCallback(() => {
@@ -267,9 +314,9 @@ const RichTextEditor = ({
 
   return (
     <div className={`rich-text-editor ${darkMode ? 'dark' : ''}`}>
-      <div className={`flex flex-col h-full ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} border-2 ${darkMode ? 'border-gray-700' : 'border-black'} rounded-lg overflow-hidden transition-all duration-200 ${isFocused ? 'ring-2 ring-blue-500' : ''}`}>
+      <div className={`flex flex-col h-full ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} border rounded-lg overflow-hidden transition-all duration-200 ${isFocused ? 'ring-2 ring-blue-500' : ''}`}>
         {/* Toolbar */}
-        <div className={`toolbar flex flex-wrap items-center p-2 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-300'} border-b`}>
+        <div className={`toolbar flex flex-wrap items-center p-2 ${darkMode ? 'bg-gray-800' : 'bg-gray-50'} border-b`}>
           {/* Undo/Redo */}
           <div className="toolbar-group flex items-center mr-2 mb-1">
             <button
@@ -515,7 +562,9 @@ const RichTextEditor = ({
             style={{ 
               minHeight: '400px',
               whiteSpace: 'pre-wrap',
-              wordWrap: 'break-word'
+              wordWrap: 'break-word',
+              fontWeight: 'normal', // Ensure default font weight is normal
+              fontFamily: 'inherit' // Use inherited font family
             }}
             suppressContentEditableWarning={true}
           />
@@ -531,7 +580,7 @@ const RichTextEditor = ({
         </div>
 
         {/* Status Bar */}
-        <div className={`status-bar flex justify-between items-center px-4 py-2 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-300'} border-t text-sm`}>
+        <div className={`status-bar flex justify-between items-center px-4 py-2 ${darkMode ? 'bg-gray-800' : 'bg-gray-50'} border-t text-sm`}>
           <div className="flex items-center space-x-4">
             <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               Words: {wordCount}
@@ -664,6 +713,11 @@ const RichTextEditor = ({
         
         .editor-content li {
           margin-bottom: 0.25rem;
+        }
+        
+        /* Ensure normal font weight for paragraphs */
+        .editor-content p {
+          font-weight: normal;
         }
       `}</style>
     </div>

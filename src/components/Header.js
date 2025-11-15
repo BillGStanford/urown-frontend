@@ -297,6 +297,13 @@ function Header({ user, onLogout }) {
                     <PenTool className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={3} />
                     <span className="hidden md:inline">Write</span>
                   </Link>
+                    <Link 
+                    to="/browse" 
+                    className="hidden sm:flex items-center gap-2 px-3 sm:px-4 lg:px-6 py-2 lg:py-3 text-sm lg:text-base font-black text-white bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 rounded-xl lg:rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                  >
+                    <PenTool className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={3} />
+                    <span className="hidden md:inline">Browse</span>
+                  </Link>
 
                   {/* Write Button - Mobile (Icon Only) */}
                   <Link 

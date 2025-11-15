@@ -121,10 +121,8 @@ const UserProfile = () => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        
-        const response = await axios.get(`${API_URL}/users/${encodeURIComponent(display_name)}`, { headers });
+        // Don't include authorization headers for public profile access
+        const response = await axios.get(`${API_URL}/users/${encodeURIComponent(display_name)}`);
         
         console.log('=== USER PROFILE DATA ===');
         console.log('Full response:', response.data);
@@ -162,6 +160,7 @@ const UserProfile = () => {
         }
       } catch (err) {
         console.error('Failed to fetch current user:', err);
+        // Don't set error here as it's not critical for the page to function
       }
     };
 
@@ -174,12 +173,15 @@ const UserProfile = () => {
       
       try {
         const token = localStorage.getItem('token');
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        
-        const response = await axios.get(`${API_URL}/user/rank`, { headers });
-        setUserRank(response.data);
+        // Only try to fetch rank if user is logged in
+        if (token) {
+          const headers = { Authorization: `Bearer ${token}` };
+          const response = await axios.get(`${API_URL}/user/rank`, { headers });
+          setUserRank(response.data);
+        }
       } catch (err) {
         console.error('Failed to fetch user rank:', err);
+        // Don't set error here as it's not critical for the page to function
       }
     };
 
@@ -192,16 +194,19 @@ const UserProfile = () => {
       
       try {
         const token = localStorage.getItem('token');
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        
-        const response = await axios.get(`${API_URL}/users/suggested/${encodeURIComponent(user.ideology)}`, { 
-          headers,
-          params: { exclude_user_id: user.id }
-        });
-        
-        setSuggestedUsers(response.data.users || []);
+        // Only try to fetch suggested users if user is logged in
+        if (token) {
+          const headers = { Authorization: `Bearer ${token}` };
+          const response = await axios.get(`${API_URL}/users/suggested/${encodeURIComponent(user.ideology)}`, { 
+            headers,
+            params: { exclude_user_id: user.id }
+          });
+          
+          setSuggestedUsers(response.data.users || []);
+        }
       } catch (err) {
         console.error('Failed to fetch suggested users:', err);
+        // Don't set error here as it's not critical for the page to function
       }
     };
 

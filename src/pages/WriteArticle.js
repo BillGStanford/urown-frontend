@@ -1,4 +1,4 @@
-// pages/WriteArticle.js (Fixed)
+// pages/WriteArticle.js (Updated)
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { axios } from '../utils/apiUtils';
@@ -247,7 +247,7 @@ function WriteArticle() {
     }
   };
 
-const handleContentChange = (content) => {
+  const handleContentChange = (content) => {
     if (content.length > maxChars) {
       return;
     }

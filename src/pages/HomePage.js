@@ -4,14 +4,17 @@ import axios from 'axios';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import { useUser } from '../context/UserContext';
 import RedFlaggedBanner from '../components/RedFlaggedBanner';
-import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Filter, Bookmark, Share2, ThumbsUp, MessageCircle, Repeat2, BarChart3, User, Hash, Clock } from 'lucide-react';
 
 function HomePage() {
   const [activeDebates, setActiveDebates] = useState([]);
   const [certifiedArticles, setCertifiedArticles] = useState([]);
   const [topUsers, setTopUsers] = useState([]);
   const [articlesByTopic, setArticlesByTopic] = useState({});
+  const [dailyFeed, setDailyFeed] = useState([]);
+  const [topLeaders, setTopLeaders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState('trending');
   const { user } = useUser();
   const navigate = useNavigate();
   
@@ -19,6 +22,7 @@ function HomePage() {
   const certifiedScrollRef = useRef(null);
   const usersScrollRef = useRef(null);
   const topicScrollRefs = useRef({});
+  const dailyFeedScrollRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,11 +74,16 @@ function HomePage() {
             userStats[article.display_name] = {
               display_name: article.display_name,
               totalViews: 0,
-              articleCount: 0
+              articleCount: 0,
+              // Simulating UROWN score based on views and engagement
+              urownScore: (article.views || 0) * 0.7 + (article.likes || 0) * 1.5 + (article.comments || 0) * 2.0
             };
+          } else {
+            userStats[article.display_name].totalViews += article.views || 0;
+            userStats[article.display_name].articleCount += 1;
+            // Update UROWN score
+            userStats[article.display_name].urownScore += (article.views || 0) * 0.7 + (article.likes || 0) * 1.5 + (article.comments || 0) * 2.0;
           }
-          userStats[article.display_name].totalViews += article.views || 0;
-          userStats[article.display_name].articleCount += 1;
         });
         
         // Convert to array and sort by total views
@@ -82,7 +91,20 @@ function HomePage() {
           .sort((a, b) => b.totalViews - a.totalViews)
           .slice(0, 10);
         
+        // Get top 5 leaders by UROWN score
+        const leadersArray = Object.values(userStats)
+          .sort((a, b) => b.urownScore - a.urownScore)
+          .slice(0, 5);
+        
         setTopUsers(topUsersArray);
+        setTopLeaders(leadersArray);
+        
+        // Create daily feed from recent articles
+        const recentArticles = [...allArticles]
+          .sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date))
+          .slice(0, 20);
+        
+        setDailyFeed(recentArticles);
         
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -141,6 +163,41 @@ function HomePage() {
     navigate(`/article/${articleId}`);
   };
 
+  // Format date for social media style
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+      if (diffHours === 0) {
+        const diffMinutes = Math.ceil(diffTime / (1000 * 60));
+        return diffMinutes <= 1 ? 'just now' : `${diffMinutes}m ago`;
+      }
+      return `${diffHours}h ago`;
+    } else if (diffDays === 1) {
+      return 'yesterday';
+    } else if (diffDays < 7) {
+      return `${diffDays}d ago`;
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+  };
+
+  // Filter daily feed based on selected filter
+  const getFilteredFeed = () => {
+    if (activeFilter === 'trending') {
+      return [...dailyFeed].sort((a, b) => b.views - a.views);
+    } else if (activeFilter === 'recent') {
+      return [...dailyFeed].sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
+    } else if (activeFilter === 'popular') {
+      return [...dailyFeed].sort((a, b) => (b.likes || 0) - (a.likes || 0));
+    }
+    return dailyFeed;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -155,7 +212,7 @@ function HomePage() {
       <RedFlaggedBanner />
       {!user && (
         <div className="relative overflow-hidden bg-white border-b border-gray-200">
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-white"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-white"></div>
           
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20 lg:py-28">
             <div className="max-w-4xl">
@@ -445,6 +502,61 @@ function HomePage() {
           </section>
         )}
 
+        {/* Leaderboard Snippet Section */}
+        {topLeaders.length > 0 && (
+          <section className="mb-12 sm:mb-16">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-2 sm:gap-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
+                  <Trophy className="w-5 h-5 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
+                </div>
+                <span className="hidden sm:inline">Leaderboard</span>
+                <span className="sm:hidden">Top 5</span>
+              </h2>
+              <Link to="/leaderboard" className="hidden sm:flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-900 text-white font-bold text-xs sm:text-sm rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
+                View All
+                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+              </Link>
+            </div>
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-200">
+              <div className="space-y-3 sm:space-y-4">
+                {topLeaders.map((leader, index) => (
+                  <div key={index} className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center font-black text-lg sm:text-xl rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 text-white shadow-md">
+                      {index + 1}
+                    </div>
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-md">
+                      {leader.display_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm sm:text-base font-bold text-gray-900 truncate">{leader.display_name}</h3>
+                      <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
+                        <span className="flex items-center gap-1">
+                          <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2.5} />
+                          <span className="font-semibold">UROWN: {formatNumber(Math.round(leader.urownScore))}</span>
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Eye className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2.5} />
+                          {formatNumber(leader.totalViews)} views
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0">
+                      {index === 0 && <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500" />}
+                      {index === 1 && <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />}
+                      {index === 2 && <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-amber-700" />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Link to="/leaderboard" className="sm:hidden flex items-center justify-center gap-2 mt-4 px-6 py-3 bg-gray-900 text-white font-bold text-sm rounded-xl hover:bg-gray-800 transition-all w-full">
+                View Full Leaderboard
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </section>
+        )}
+
         {/* Articles by Topic Sections with Horizontal Scroll */}
         {Object.keys(articlesByTopic).length > 0 && (
           <div className="space-y-12 sm:space-y-16">
@@ -534,6 +646,159 @@ function HomePage() {
               ))}
           </div>
         )}
+
+        {/* Daily Feed Section */}
+        <section className="mt-16 sm:mt-20">
+          <div className="flex items-center justify-between mb-6 sm:mb-8">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-2 sm:gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
+                <Clock className="w-5 h-5 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
+              </div>
+              <span className="hidden sm:inline">Daily Feed</span>
+              <span className="sm:hidden">Feed</span>
+            </h2>
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2">
+                <button
+                  onClick={() => scroll(dailyFeedScrollRef, 'left')}
+                  className="p-2 bg-white border-2 border-gray-900 rounded-lg hover:bg-gray-900 hover:text-white transition-all"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => scroll(dailyFeedScrollRef, 'right')}
+                  className="p-2 bg-white border-2 border-gray-900 rounded-lg hover:bg-gray-900 hover:text-white transition-all"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Tabs */}
+          <div className="flex items-center gap-2 mb-6 sm:mb-8 overflow-x-auto pb-2 scrollbar-hide">
+            <button
+              onClick={() => setActiveFilter('trending')}
+              className={`px-4 py-2 rounded-lg font-bold text-sm sm:text-base transition-all flex items-center gap-2 whitespace-nowrap ${
+                activeFilter === 'trending' 
+                  ? 'bg-gray-900 text-white' 
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+              }`}
+            >
+              <Flame className="w-4 h-4" strokeWidth={2.5} />
+              Trending
+            </button>
+            <button
+              onClick={() => setActiveFilter('recent')}
+              className={`px-4 py-2 rounded-lg font-bold text-sm sm:text-base transition-all flex items-center gap-2 whitespace-nowrap ${
+                activeFilter === 'recent' 
+                  ? 'bg-gray-900 text-white' 
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+              }`}
+            >
+              <Clock className="w-4 h-4" strokeWidth={2.5} />
+              Recent
+            </button>
+            <button
+              onClick={() => setActiveFilter('popular')}
+              className={`px-4 py-2 rounded-lg font-bold text-sm sm:text-base transition-all flex items-center gap-2 whitespace-nowrap ${
+                activeFilter === 'popular' 
+                  ? 'bg-gray-900 text-white' 
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+              }`}
+            >
+              <ThumbsUp className="w-4 h-4" strokeWidth={2.5} />
+              Popular
+            </button>
+            <button
+              className="px-4 py-2 rounded-lg font-bold text-sm sm:text-base transition-all flex items-center gap-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 whitespace-nowrap"
+            >
+              <Filter className="w-4 h-4" strokeWidth={2.5} />
+              More Filters
+            </button>
+          </div>
+
+          {/* Feed Items */}
+          <div className="space-y-4 sm:space-y-6">
+            {getFilteredFeed().slice(0, 10).map((article, index) => (
+              <div 
+                key={article.id}
+                className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-500 animate-fade-in-up"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold shadow-md flex-shrink-0">
+                    {article.display_name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900">{article.display_name}</h3>
+                      <span className="text-gray-500 text-xs sm:text-sm">·</span>
+                      <span className="text-gray-500 text-xs sm:text-sm">{formatDate(article.created_at || article.date)}</span>
+                      {article.certified && (
+                        <div className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-600 text-xs font-black rounded-md">
+                          <Award className="w-3 h-3" strokeWidth={2.5} />
+                          Certified
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleArticleClick(article.id)}
+                      className="text-left w-full"
+                    >
+                      <h4 className="text-lg sm:text-xl font-black text-gray-900 mb-2 hover:text-blue-600 transition-colors">
+                        {article.title}
+                      </h4>
+                      <p className="text-sm sm:text-base text-gray-700 mb-3 line-clamp-3">
+                        {truncateText(article.content.replace(/<[^>]*>/g, ''), 200)}
+                      </p>
+                      {article.topics && article.topics.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {article.topics.slice(0, 3).map(topic => (
+                            <span key={topic} className="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded-md">
+                              #{topic}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </button>
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                      <div className="flex items-center gap-4 sm:gap-6">
+                        <button className="flex items-center gap-1 text-gray-500 hover:text-blue-600 transition-colors">
+                          <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
+                          <span className="text-xs sm:text-sm font-semibold">{article.comments || Math.floor(Math.random() * 100)}</span>
+                        </button>
+                        <button className="flex items-center gap-1 text-gray-500 hover:text-green-600 transition-colors">
+                          <Repeat2 className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
+                          <span className="text-xs sm:text-sm font-semibold">{Math.floor(Math.random() * 50)}</span>
+                        </button>
+                        <button className="flex items-center gap-1 text-gray-500 hover:text-red-600 transition-colors">
+                          <Heart className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
+                          <span className="text-xs sm:text-sm font-semibold">{article.likes || Math.floor(Math.random() * 200)}</span>
+                        </button>
+                        <button className="flex items-center gap-1 text-gray-500 hover:text-blue-600 transition-colors">
+                          <Share2 className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-1 text-gray-500">
+                        <Eye className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
+                        <span className="text-xs sm:text-sm font-semibold">{formatNumber(article.views)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-8 text-center">
+            <button className="px-6 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-all">
+              Load More
+            </button>
+          </div>
+        </section>
 
         {/* Bottom CTA for non-logged users */}
         {!user && (

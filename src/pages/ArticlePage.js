@@ -1,3 +1,4 @@
+// ArticlePage.js (Complete Updated Version)
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
@@ -453,10 +454,50 @@ const ArticlePage = () => {
     }
   };
 
-  const formatContent = (content) => {
+  // Clean HTML content to remove unwanted tags and formatting
+  const cleanContent = (html) => {
+    if (!html) return '';
+    
     // Create a temporary div to parse HTML
     const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = content;
+    tempDiv.innerHTML = html;
+    
+    // Remove all div and br tags that are just for spacing
+    const divs = tempDiv.querySelectorAll('div');
+    divs.forEach(div => {
+      // Check if div is empty or only contains whitespace
+      if (!div.textContent.trim()) {
+        div.remove();
+      } else {
+        // Convert div to p if it's not already a block element
+        const p = document.createElement('p');
+        while (div.firstChild) {
+          p.appendChild(div.firstChild);
+        }
+        div.parentNode.replaceChild(p, div);
+      }
+    });
+    
+    // Remove excessive br tags
+    const brs = tempDiv.querySelectorAll('br');
+    brs.forEach(br => {
+      // Remove br if it's followed by another br or a block element
+      const nextSibling = br.nextSibling;
+      if (nextSibling && (nextSibling.nodeName === 'BR' || ['P', 'DIV', 'H1', 'H2', 'H3', 'BLOCKQUOTE'].includes(nextSibling.nodeName))) {
+        br.remove();
+      }
+    });
+    
+    return tempDiv.innerHTML;
+  };
+
+  const formatContent = (content) => {
+    // Clean the HTML content first
+    const cleanHTML = cleanContent(content);
+    
+    // Create a temporary div to parse HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = cleanHTML;
     
     // Get all paragraphs and block elements
     const elements = tempDiv.querySelectorAll('p, h1, h2, h3, blockquote, pre, ul, ol, hr');
@@ -465,9 +506,13 @@ const ArticlePage = () => {
       // If content has HTML structure, render it
       return (
         <div 
-          dangerouslySetInnerHTML={{ __html: content }}
+          dangerouslySetInnerHTML={{ __html: cleanHTML }}
           className="article-content"
-          style={{ fontSize: `${fontSize}px`, lineHeight }}
+          style={{ 
+            fontSize: `${fontSize}px`, 
+            lineHeight,
+            fontWeight: 'normal' // Ensure default font weight is normal
+          }}
         />
       );
     } else {
@@ -478,7 +523,11 @@ const ArticlePage = () => {
             <p 
               key={index} 
               className={`mb-8 leading-relaxed first-letter:text-7xl first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:mt-1 ${darkMode ? 'first-letter:text-yellow-400' : 'first-letter:text-gray-900'}`}
-              style={{ fontSize: `${fontSize}px`, lineHeight }}
+              style={{ 
+                fontSize: `${fontSize}px`, 
+                lineHeight,
+                fontWeight: 'normal' // Ensure default font weight is normal
+              }}
             >
               {paragraph}
             </p>
@@ -489,7 +538,11 @@ const ArticlePage = () => {
           <p 
             key={index} 
             className="mb-8 leading-relaxed"
-            style={{ fontSize: `${fontSize}px`, lineHeight }}
+            style={{ 
+              fontSize: `${fontSize}px`, 
+              lineHeight,
+              fontWeight: 'normal' // Ensure default font weight is normal
+            }}
           >
             {paragraph}
           </p>
@@ -860,6 +913,7 @@ const ArticlePage = () => {
           ref={articleContentRef} 
           className={`${fontFamilyClass} ${darkMode ? 'text-gray-200' : 'text-gray-800'} ${focusMode ? 'pt-16' : ''}`}
           onMouseUp={handleTextSelection}
+          style={{ fontWeight: 'normal' }} // Ensure default font weight is normal
         >
           {formatContent(article.content)}
         </div>
