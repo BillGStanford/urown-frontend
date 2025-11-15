@@ -23,12 +23,82 @@ import {
   Lock,
   Unlock,
   MessageSquare,
-  UserPlus
+  UserPlus,
+  Zap,
+  TrendingUp,
+  Trophy,
+  Target,
+  Activity
 } from 'lucide-react';
 
 const API_URL = process.env.NODE_ENV === 'production' 
   ? 'https://urown-backend.onrender.com/api'  
   : 'http://localhost:5000/api';
+
+// URownScoreCard Component
+const URownScoreCard = ({ user, userRank, stats }) => {
+  if (!user.urown_score && user.urown_score !== 0) return null;
+
+  return (
+    <div className="bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 rounded-2xl shadow-xl border-4 border-white/20 overflow-hidden">
+      <div className="p-6 text-white">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold flex items-center gap-2">
+            <Zap className="h-6 w-6" />
+            UROWN Score
+          </h3>
+          {userRank && userRank.rank <= 15 && (
+            <div className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/30">
+              <Trophy className="h-4 w-4" />
+              <span className="text-sm font-bold">Top 15</span>
+            </div>
+          )}
+        </div>
+
+        <div className="mb-6">
+          <div className="text-5xl font-extrabold mb-2">
+            {user.urown_score.toLocaleString()}
+          </div>
+          {userRank && (
+            <div className="flex items-center gap-4 text-white/90">
+              <div className="flex items-center gap-1">
+                <TrendingUp className="h-4 w-4" />
+                <span className="text-sm">Rank #{userRank.rank}</span>
+              </div>
+              <span className="text-white/60">•</span>
+              <div className="text-sm">
+                Top {Math.round((userRank.rank / userRank.total_users) * 100)}%
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-3">
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-white/80">Total Articles</span>
+              <span className="font-bold">{stats?.totalArticles || 0}</span>
+            </div>
+            <div className="w-full bg-white/20 rounded-full h-2">
+              <div 
+                className="bg-white rounded-full h-2 transition-all duration-500"
+                style={{ width: `${Math.min(((stats?.totalArticles || 0) / 10) * 100, 100)}%` }}
+              ></div>
+            </div>
+          </div>
+
+          <Link
+            to="/leaderboard"
+            className="block w-full py-3 px-4 bg-white text-orange-600 rounded-xl hover:bg-white/90 transition-colors duration-200 font-bold text-center flex items-center justify-center gap-2"
+          >
+            <Trophy className="h-5 w-5" />
+            View Leaderboard
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const UserProfile = () => {
   const { display_name } = useParams();
@@ -45,6 +115,7 @@ const UserProfile = () => {
   const [discordUsername, setDiscordUsername] = useState('');
   const [discordLoading, setDiscordLoading] = useState(false);
   const [suggestedUsers, setSuggestedUsers] = useState([]);
+  const [userRank, setUserRank] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -98,6 +169,24 @@ const UserProfile = () => {
   }, []);
 
   useEffect(() => {
+    const fetchUserRank = async () => {
+      if (!user) return;
+      
+      try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        
+        const response = await axios.get(`${API_URL}/user/rank`, { headers });
+        setUserRank(response.data);
+      } catch (err) {
+        console.error('Failed to fetch user rank:', err);
+      }
+    };
+
+    fetchUserRank();
+  }, [user]);
+
+  useEffect(() => {
     const fetchSuggestedUsers = async () => {
       if (!user?.ideology || !user?.ideology_public) return;
       
@@ -122,9 +211,7 @@ const UserProfile = () => {
   }, [user]);
 
   const handleFollow = async () => {
-    if (!currentUser) {
-      return;
-    }
+    if (!currentUser) return;
 
     try {
       setFollowLoading(true);
@@ -157,7 +244,6 @@ const UserProfile = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const newVisibility = !user.ideology_public;
-      console.log('Toggling visibility to:', newVisibility);
 
       await axios.patch(`${API_URL}/user/ideology/visibility`, 
         { ideology_public: newVisibility },
@@ -168,8 +254,6 @@ const UserProfile = () => {
         ...prev, 
         ideology_public: newVisibility 
       }));
-
-      console.log('Visibility updated successfully to:', newVisibility);
     } catch (err) {
       console.error('Toggle visibility error:', err);
       setError(err.response?.data?.error || 'Failed to update visibility');
@@ -213,17 +297,8 @@ const UserProfile = () => {
 
   const certifiedCount = articles.filter(article => article.certified).length;
   const isCertifiedByFollowers = user && user.followers >= 100;
-  
   const isOwnProfile = currentUser && user && currentUser.id === user.id;
   const shouldShowIdeology = user?.ideology && (isOwnProfile || user?.ideology_public === true);
-
-  console.log('Ideology Display Logic:', {
-    hasIdeology: !!user?.ideology,
-    isOwnProfile,
-    currentUserExists: !!currentUser,
-    ideologyPublic: user?.ideology_public,
-    shouldShowIdeology
-  });
 
   if (loading) {
     return (
@@ -317,6 +392,11 @@ const UserProfile = () => {
                 {/* Stats Row */}
                 <div className="flex items-center justify-center md:justify-start gap-6 text-white">
                   <div>
+                    <span className="text-2xl font-bold">{user.urown_score || 0}</span>
+                    <span className="text-sm text-white/80 ml-2">UROWN Score</span>
+                  </div>
+                  <div className="w-px h-6 bg-white/30"></div>
+                  <div>
                     <span className="text-2xl font-bold">{stats.totalArticles}</span>
                     <span className="text-sm text-white/80 ml-2">Articles</span>
                   </div>
@@ -357,6 +437,9 @@ const UserProfile = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - About & Connect */}
           <div className="lg:col-span-1 space-y-6">
+            {/* UROWN Score Card */}
+            <URownScoreCard user={user} userRank={userRank} stats={stats} />
+
             {/* Achievements Card */}
             {certifiedCount > 0 && (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
@@ -556,6 +639,7 @@ const UserProfile = () => {
                 {articles.map((article) => (
                   <div key={article.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
                     <div className="p-6">
+                      {/* Author Info */}
                       <div className="flex items-start gap-4 mb-4">
                         <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
                           <span className="text-lg font-bold text-white">
@@ -575,6 +659,7 @@ const UserProfile = () => {
                         </div>
                       </div>
 
+                      {/* Article Title & Preview */}
                       <Link to={`/article/${article.id}`} className="block group">
                         <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
                           {article.title}
@@ -584,6 +669,7 @@ const UserProfile = () => {
                         </p>
                       </Link>
 
+                      {/* Badges */}
                       {(article.certified || article.topics?.length > 0) && (
                         <div className="flex flex-wrap gap-2 mb-4">
                           {article.certified && (
@@ -600,6 +686,7 @@ const UserProfile = () => {
                         </div>
                       )}
 
+                      {/* Footer */}
                       <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                         <div className="flex items-center gap-4 text-sm text-gray-500">
                           <div className="flex items-center gap-2">

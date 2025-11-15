@@ -112,7 +112,7 @@ function SignupPage() {
         <div className="text-center mb-12 animate-slide-up">
           <div className="inline-flex items-center gap-3 bg-white border-2 border-gray-900 px-5 py-3 rounded-xl shadow-lg mb-6">
             <CheckCircle className="w-6 h-6 text-green-600" />
-            <span className="font-bold text-lg">Join 15K+ thinkers</span>
+            <span className="font-bold text-lg">Join 38k+ thinkers</span>
           </div>
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-black text-gray-900 mb-4">
             Create Your

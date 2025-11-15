@@ -37,6 +37,8 @@ import NotificationsPage from './pages/NotificationsPage';
 import About from './pages/AboutUsPage';
 import LibraryPage from './pages/LibraryPage';
 import CareerPage from './pages/important/CareersPage';
+import LeaderboardPage from './pages/LeaderboardPage';
+
 import GlobalError from './components/GlobalError';
 
 const API_URL = process.env.NODE_ENV === 'production' 
@@ -76,6 +78,7 @@ function AppRoutes() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/browse" element={<BrowseArticles />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/article/:id/:slug?" element={<ArticlePage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/debate/:id" element={<DebateCategoryPage />} />
