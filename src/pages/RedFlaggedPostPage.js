@@ -22,16 +22,9 @@ const RedFlaggedPostPage = () => {
   const [commentForm, setCommentForm] = useState({
     commenter_name: '',
     comment: '',
-    is_company_response: false,
-    gif: null
+    is_company_response: false
   });
   const [commentLoading, setCommentLoading] = useState(false);
-  
-  // GIF search states
-  const [showGifPicker, setShowGifPicker] = useState(false);
-  const [gifSearchQuery, setGifSearchQuery] = useState('');
-  const [gifResults, setGifResults] = useState([]);
-  const [gifLoading, setGifLoading] = useState(false);
   
   const reactionEmojis = {
     agree: { emoji: '✊', label: 'I Agree' },
@@ -79,52 +72,13 @@ const RedFlaggedPostPage = () => {
     }
   };
 
-  // Search GIFs using Tenor API
-  const searchGifs = async (query) => {
-    if (!query.trim()) {
-      setGifResults([]);
-      return;
-    }
-    
-    setGifLoading(true);
-    try {
-      // Using Tenor API (you'll need to get a free API key from https://tenor.com/gifapi)
-      const TENOR_API_KEY = 'AIzaSyAKd4SfnAWWAk1_nKlqrLvt3J8ePJsJU7E'; // Use your own key
-      const response = await fetch(
-        `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=${TENOR_API_KEY}&limit=20`
-      );
-      const data = await response.json();
-      
-      if (data.results) {
-        setGifResults(data.results);
-      }
-    } catch (error) {
-      console.error('GIF search error:', error);
-    } finally {
-      setGifLoading(false);
-    }
-  };
-
-  // Handle GIF selection
-  const selectGif = (gif) => {
-    const gifUrl = gif.media_formats.gif.url;
-    setCommentForm(prev => ({ ...prev, gif: gifUrl }));
-    setShowGifPicker(false);
-    setGifSearchQuery('');
-    setGifResults([]);
-  };
-
-  // Remove selected GIF
-  const removeGif = () => {
-    setCommentForm(prev => ({ ...prev, gif: null }));
-  };
-
   // REAL-TIME REACTION HANDLER
   const handleReaction = async (reactionType) => {
     const wasReacted = myReactions.includes(reactionType);
     
     // Optimistic UI update
     if (wasReacted) {
+      // Remove reaction
       setMyReactions(prev => prev.filter(r => r !== reactionType));
       setReactions(prev => prev.map(r => 
         r.reaction_type === reactionType 
@@ -133,6 +87,7 @@ const RedFlaggedPostPage = () => {
       ));
       setPost(prev => ({ ...prev, reaction_count: prev.reaction_count - 1 }));
     } else {
+      // Add reaction
       setMyReactions(prev => [...prev, reactionType]);
       setReactions(prev => {
         const existing = prev.find(r => r.reaction_type === reactionType);
@@ -150,6 +105,7 @@ const RedFlaggedPostPage = () => {
     }
     
     try {
+      // Make API call
       await addReaction(id, reactionType);
     } catch (error) {
       console.error('Failed to add reaction:', error);
@@ -203,8 +159,7 @@ const RedFlaggedPostPage = () => {
       setCommentForm({
         commenter_name: '',
         comment: '',
-        is_company_response: false,
-        gif: null
+        is_company_response: false
       });
     } catch (error) {
       console.error('Failed to add comment:', error);
@@ -332,7 +287,7 @@ const RedFlaggedPostPage = () => {
                 </div>
               </div>
               
-              {/* Meta Info */}
+              {/* Meta Info with REAL-TIME COUNTS */}
               <div className="flex items-center justify-between text-sm text-gray-500 pt-6 border-t">
                 <div className="flex items-center gap-4">
                   <span>👤 {post.author_name}</span>
@@ -345,7 +300,7 @@ const RedFlaggedPostPage = () => {
               </div>
             </div>
             
-            {/* Reactions */}
+            {/* Reactions with REAL-TIME UPDATES */}
             <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
               <h3 className="text-xl font-bold mb-4">React to this post</h3>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -372,7 +327,7 @@ const RedFlaggedPostPage = () => {
               </div>
             </div>
             
-            {/* Comments Section */}
+            {/* Comments with REAL-TIME UPDATES */}
             <div className="bg-white rounded-2xl shadow-xl p-6">
               <h3 className="text-xl font-bold mb-4">
                 Comments & Responses ({comments.length})
@@ -400,75 +355,6 @@ const RedFlaggedPostPage = () => {
                     required
                   />
                 </div>
-                
-                {/* GIF Section */}
-                <div className="mb-4">
-                  {commentForm.gif ? (
-                    <div className="relative inline-block">
-                      <img 
-                        src={commentForm.gif} 
-                        alt="Selected GIF" 
-                        className="max-w-xs rounded-lg border-2 border-gray-300"
-                      />
-                      <button
-                        onClick={removeGif}
-                        className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-2 hover:bg-red-700 transition"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setShowGifPicker(!showGifPicker)}
-                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-semibold text-sm transition"
-                    >
-                      🎬 Add GIF
-                    </button>
-                  )}
-                  
-                  {/* GIF Picker */}
-                  {showGifPicker && (
-                    <div className="mt-4 p-4 border rounded-lg bg-gray-50">
-                      <div className="mb-4">
-                        <input
-                          type="text"
-                          value={gifSearchQuery}
-                          onChange={(e) => {
-                            setGifSearchQuery(e.target.value);
-                            searchGifs(e.target.value);
-                          }}
-                          placeholder="Search for GIFs..."
-                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500"
-                        />
-                      </div>
-                      
-                      {gifLoading && (
-                        <div className="text-center py-4">
-                          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-red-500 mx-auto"></div>
-                        </div>
-                      )}
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-96 overflow-y-auto">
-                        {gifResults.map((gif) => (
-                          <img
-                            key={gif.id}
-                            src={gif.media_formats.tinygif.url}
-                            alt={gif.content_description}
-                            className="w-full h-32 object-cover rounded cursor-pointer hover:opacity-80 transition"
-                            onClick={() => selectGif(gif)}
-                          />
-                        ))}
-                      </div>
-                      
-                      {gifResults.length === 0 && !gifLoading && gifSearchQuery && (
-                        <p className="text-center text-gray-500 py-4">
-                          No GIFs found. Try a different search term.
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-                
                 <div className="flex items-center justify-between">
                   <label className="flex items-center">
                     <input
@@ -520,16 +406,9 @@ const RedFlaggedPostPage = () => {
                           {new Date(comment.created_at).toLocaleDateString()}
                         </span>
                       </div>
-                      <p className="text-gray-700 whitespace-pre-wrap mb-2">
+                      <p className="text-gray-700 whitespace-pre-wrap">
                         {comment.comment}
                       </p>
-                      {comment.gif && (
-                        <img 
-                          src={comment.gif} 
-                          alt="Comment GIF" 
-                          className="max-w-xs rounded-lg mt-2"
-                        />
-                      )}
                     </div>
                   ))
                 )}
