@@ -4,7 +4,7 @@ import { axios } from '../utils/apiUtils';
 import ArticleCard from '../components/ArticleCard';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import TrendingOpinions from '../components/TrendingOpinions';
-import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown, Sparkles, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe } from 'lucide-react';
+import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown, Sparkles, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Flame, Eye, MessageCircle } from 'lucide-react';
 
 function BrowseArticles() {
   const [articles, setArticles] = useState([]);
@@ -45,7 +45,6 @@ function BrowseArticles() {
     const topicParam = urlParams.get('topic');
     
     if (topicParam) {
-      // Check if it's a topic name (string) or ID (number)
       const topicByName = topics.find(t => t.name === topicParam);
       const topicById = topics.find(t => t.id === parseInt(topicParam));
       
@@ -65,7 +64,6 @@ function BrowseArticles() {
     }
   }, [location.search, topics]);
 
-  // Fetch articles when component mounts or when topic changes
   useEffect(() => {
     setArticles([]);
     setCurrentPage(1);
@@ -73,7 +71,6 @@ function BrowseArticles() {
     fetchArticles(true);
   }, [selectedTopic]);
 
-  // Fetch more articles when page changes
   useEffect(() => {
     if (currentPage > 1) {
       fetchArticles();
@@ -131,7 +128,6 @@ function BrowseArticles() {
       
       let newArticles = cachedData;
       
-      // Sort by certified first, then views
       newArticles = [...newArticles].sort((a, b) => {
         if (a.certified && !b.certified) return -1;
         if (!a.certified && b.certified) return 1;
@@ -227,7 +223,7 @@ function BrowseArticles() {
     };
     
     const IconComponent = iconMap[topicName] || Sparkles;
-    return <IconComponent className="w-4 h-4" strokeWidth={2.5} />;
+    return <IconComponent className="w-4 h-4" />;
   };
 
   const filteredArticles = articles.filter(article => {
@@ -259,174 +255,189 @@ function BrowseArticles() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Main Content - 2 columns */}
-          <div className="lg:col-span-2">
-            {/* Hero Header */}
-            <div className="mb-8 sm:mb-12">
-              <div className="inline-flex items-center gap-2 bg-white border border-gray-300 px-4 py-2 rounded-lg shadow-sm mb-6">
-                <Sparkles className="w-4 h-4 text-orange-600" strokeWidth={2.5} />
-                <span className="text-gray-700 font-semibold text-sm">
-                  {searchTerm ? filteredArticles.length : totalArticleCount} {searchTerm ? 'Results' : 'Articles'}
-                </span>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/30">
+      {/* Floating Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-orange-200/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-yellow-200/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-700"></div>
+        <div className="absolute -bottom-32 left-1/2 w-96 h-96 bg-red-200/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000"></div>
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Compact Header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-black text-gray-900 mb-1 flex items-center gap-3">
+                <Flame className="w-8 h-8 text-orange-500" />
+                Explore
+              </h1>
+              <p className="text-sm text-gray-600">
+                {searchTerm ? filteredArticles.length : totalArticleCount} articles • {topics.length} topics
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={handleRefresh}
+                className="p-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl transition-all shadow-sm"
+                disabled={loading || refreshing}
+              >
+                <RefreshCw size={18} className={loading || refreshing ? 'animate-spin text-orange-500' : 'text-gray-700'} />
+              </button>
+              
+              <button 
+                onClick={openRandomArticle}
+                className="p-2.5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl transition-all shadow-sm"
+                disabled={filteredArticles.length === 0 && articles.length === 0}
+              >
+                <Shuffle size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="Search articles..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="w-full pl-11 pr-4 py-3 text-sm border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all rounded-xl bg-white/80 backdrop-blur-sm shadow-sm"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar */}
+          <aside className="lg:col-span-1 space-y-4">
+            {/* Topics Filter Card */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="p-4 border-b border-gray-100">
+                <h3 className="font-bold text-gray-900 flex items-center gap-2 text-sm">
+                  <Filter size={16} className="text-orange-500" />
+                  Topics
+                </h3>
               </div>
               
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-4 sm:mb-6 text-gray-900 leading-tight">
-                Explore Opinions
-              </h1>
-              <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl">
-                Dive into thought-provoking articles from writers around the world
-              </p>
-              
-              {/* Search Bar */}
-              <div className="relative max-w-2xl">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="text"
-                  placeholder="Search by title, author, or content..."
-                  value={searchTerm}
-                  onChange={handleSearch}
-                  className="w-full pl-12 pr-4 py-3.5 text-base border-2 border-gray-300 focus:border-gray-900 focus:outline-none transition-all rounded-xl bg-white shadow-sm"
-                />
+              <div className="p-3">
+                <div className="space-y-1.5">
+                  <button
+                    onClick={() => handleTopicSelect(null)}
+                    className={`w-full px-3 py-2 rounded-lg text-xs font-semibold transition-all text-left ${
+                      !selectedTopic 
+                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md' 
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    All Topics
+                  </button>
+                  
+                  {topics.map(topic => (
+                    <button
+                      key={topic.id}
+                      onClick={() => handleTopicSelect(topic.id)}
+                      className={`w-full px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
+                        selectedTopic === topic.id 
+                          ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md' 
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {getTopicIcon(topic.name)}
+                      {topic.name}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Control Panel */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
-              {/* Top Row: Stats and Actions */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                {/* Article Count */}
-                <div className="flex items-center gap-4 flex-wrap">
-                  {selectedTopic && (
-                    <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 px-3 py-2 rounded-lg">
-                      {getTopicIcon(getSelectedTopicName())}
-                      <span className="text-sm font-bold text-orange-700">{getSelectedTopicName()}</span>
-                      <button
-                        onClick={clearTopicFilter}
-                        className="text-orange-600 hover:text-orange-700 ml-1"
-                        aria-label="Clear filter"
-                      >
-                        <X size={16} strokeWidth={2.5} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <button 
-                    onClick={handleRefresh}
-                    className="inline-flex items-center gap-2 bg-white border-2 border-gray-900 text-gray-900 px-4 py-2 font-bold hover:bg-gray-900 hover:text-white transition-all duration-200 rounded-xl text-sm"
-                    disabled={loading || refreshing}
+            {/* View Options Card */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm p-4 space-y-4">
+              {/* View Mode */}
+              <div>
+                <label className="text-xs font-semibold text-gray-600 mb-2 block">View</label>
+                <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`flex-1 p-2 rounded-md transition-all flex items-center justify-center gap-1.5 text-xs font-semibold ${
+                      viewMode === 'grid' 
+                        ? 'bg-white shadow-sm text-orange-600' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
                   >
-                    <RefreshCw size={16} className={loading || refreshing ? 'animate-spin' : ''} strokeWidth={2.5} />
-                    <span className="hidden sm:inline">Refresh</span>
+                    <Grid size={14} />
+                    Grid
                   </button>
-                  
-                  <button 
-                    onClick={openRandomArticle}
-                    className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black px-4 py-2 font-bold transition-all duration-200 rounded-xl shadow-md hover:shadow-lg text-sm"
-                    disabled={filteredArticles.length === 0 && articles.length === 0}
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`flex-1 p-2 rounded-md transition-all flex items-center justify-center gap-1.5 text-xs font-semibold ${
+                      viewMode === 'list' 
+                        ? 'bg-white shadow-sm text-orange-600' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
                   >
-                    <Shuffle size={16} strokeWidth={2.5} />
-                    <span className="hidden sm:inline">Random</span>
+                    <List size={14} />
+                    List
                   </button>
-
-                  {/* View Mode Toggle */}
-                  <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-                    <button
-                      onClick={() => setViewMode('grid')}
-                      className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                      aria-label="Grid view"
-                    >
-                      <Grid size={16} className={viewMode === 'grid' ? 'text-gray-900' : 'text-gray-500'} strokeWidth={2.5} />
-                    </button>
-                    <button
-                      onClick={() => setViewMode('list')}
-                      className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                      aria-label="List view"
-                    >
-                      <List size={16} className={viewMode === 'list' ? 'text-gray-900' : 'text-gray-500'} strokeWidth={2.5} />
-                    </button>
-                  </div>
                 </div>
               </div>
 
-              {/* Filter Section */}
-              <div className="pt-6 border-t border-gray-200 space-y-4">
-                {/* Topic Filter */}
-                <div>
-                  <button
-                    onClick={toggleTopicFilter}
-                    className="flex items-center justify-between w-full sm:w-auto sm:min-w-[200px] px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Filter size={16} className="text-gray-600" strokeWidth={2.5} />
-                      <span className="text-sm font-bold text-gray-700">Topic: {getSelectedTopicName()}</span>
-                    </div>
-                    <ChevronDown className={`h-4 w-4 text-gray-600 transition-transform ${isTopicFilterOpen ? 'rotate-180' : ''}`} strokeWidth={2.5} />
-                  </button>
-                  
-                  {isTopicFilterOpen && (
-                    <div className="mt-3 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        <button
-                          onClick={() => handleTopicSelect(null)}
-                          className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
-                            !selectedTopic 
-                              ? 'bg-orange-600 text-white' 
-                              : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                          }`}
-                        >
-                          All Topics
-                        </button>
-                        {topics.map(topic => (
-                          <button
-                            key={topic.id}
-                            onClick={() => handleTopicSelect(topic.id)}
-                            className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${
-                              selectedTopic === topic.id 
-                                ? 'bg-orange-600 text-white' 
-                                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                            }`}
-                          >
-                            {getTopicIcon(topic.name)}
-                            {topic.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Counter Opinions Toggle */}
+              {/* Counter Toggle */}
+              <div className="pt-4 border-t border-gray-100">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-gray-700">Show Counter Opinions Only</span>
-                  <label className="flex items-center cursor-pointer group">
-                    <div className="relative">
-                      <input
-                        type="checkbox"
-                        className="sr-only"
-                        checked={showCounters}
-                        onChange={handleToggleCounters}
-                      />
-                      <div className={`block w-12 h-6 rounded-full transition-all ${showCounters ? 'bg-gradient-to-r from-orange-500 to-red-500' : 'bg-gray-300'}`}></div>
-                      <div className={`absolute left-0.5 top-0.5 bg-white w-5 h-5 rounded-full transition-transform shadow-md ${showCounters ? 'transform translate-x-6' : ''}`}></div>
-                    </div>
+                  <span className="text-xs font-semibold text-gray-600">Counter Opinions</span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={showCounters}
+                      onChange={handleToggleCounters}
+                    />
+                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-orange-500 peer-checked:to-red-500"></div>
                   </label>
                 </div>
               </div>
             </div>
 
+            {/* Trending Card */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-orange-500 to-red-500 p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <TrendingUp className="w-5 h-5 text-white" />
+                  <h3 className="text-base font-black text-white">Trending</h3>
+                </div>
+                <p className="text-xs text-orange-100">Most debated today</p>
+              </div>
+              <TrendingOpinions />
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            {/* Active Filters */}
+            {selectedTopic && (
+              <div className="mb-4 flex items-center gap-2">
+                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-md">
+                  {getTopicIcon(getSelectedTopicName())}
+                  {getSelectedTopicName()}
+                  <button
+                    onClick={clearTopicFilter}
+                    className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Error State */}
             {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-xl mb-8">
-                <div className="text-lg font-bold text-red-900 mb-3">{error}</div>
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-6">
+                <div className="text-base font-bold text-red-900 mb-3">{error}</div>
                 <button 
                   onClick={handleRefresh}
-                  className="bg-gray-900 text-white px-6 py-2.5 font-bold hover:bg-gray-800 transition-all rounded-xl"
+                  className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 font-semibold transition-all rounded-lg text-sm"
                 >
                   Try Again
                 </button>
@@ -436,47 +447,45 @@ function BrowseArticles() {
             {/* Loading State */}
             {loading && articles.length === 0 && (
               <div className="text-center py-20">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 mb-4">
-                  <RefreshCw className="h-8 w-8 text-white animate-spin" strokeWidth={2.5} />
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r from-orange-500 to-red-500 mb-4 shadow-lg">
+                  <RefreshCw className="h-7 w-7 text-white animate-spin" />
                 </div>
-                <div className="text-xl font-bold text-gray-900">Loading articles...</div>
+                <div className="text-lg font-bold text-gray-900">Loading articles...</div>
               </div>
             )}
 
-            {/* No Articles State */}
+            {/* No Articles */}
             {!loading && articles.length === 0 && !error && (
-              <div className="text-center py-16 sm:py-20 bg-white rounded-2xl shadow-lg border border-gray-200 p-8 sm:p-12">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-6 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-2xl flex items-center justify-center">
-                  <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-orange-600" strokeWidth={2.5} />
+              <div className="text-center py-16 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200 p-12">
+                <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-orange-100 to-red-100 rounded-2xl flex items-center justify-center">
+                  <Sparkles className="w-8 h-8 text-orange-600" />
                 </div>
-                <div className="text-2xl sm:text-3xl font-black mb-4 text-gray-900">No Articles Yet</div>
-                <div className="text-base sm:text-lg text-gray-600 mb-8">
-                  Be the first to share your opinion!
-                </div>
-                <Link to="/write" className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black px-8 py-4 text-lg font-bold transition-all rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105">
+                <div className="text-2xl font-black mb-3 text-gray-900">No Articles Yet</div>
+                <div className="text-sm text-gray-600 mb-6">Be the first to share your opinion!</div>
+                <Link to="/write" className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-3 text-sm font-bold transition-all rounded-xl shadow-lg">
                   Start Writing
-                  <Zap className="h-5 w-5" strokeWidth={2.5} />
+                  <Zap className="h-4 w-4" />
                 </Link>
               </div>
             )}
 
-            {/* No Results for Search/Filter */}
+            {/* No Results */}
             {!loading && articles.length > 0 && filteredArticles.length === 0 && (
-              <div className="text-center py-16 sm:py-20 bg-white rounded-2xl shadow-lg border border-gray-200 p-8 sm:p-12">
-                <Search className="mx-auto mb-6 text-gray-400" size={64} strokeWidth={1.5} />
-                <div className="text-2xl sm:text-3xl font-black mb-4 text-gray-900">
+              <div className="text-center py-16 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200 p-12">
+                <Search className="mx-auto mb-6 text-gray-400" size={48} />
+                <div className="text-2xl font-black mb-3 text-gray-900">
                   {searchTerm ? 'No Results Found' : "Doesn't Exist Yet"}
                 </div>
-                <div className="text-base sm:text-lg text-gray-600 mb-8">
+                <div className="text-sm text-gray-600 mb-6">
                   {searchTerm 
                     ? 'Try different keywords or clear your search' 
-                    : `No articles found for "${getSelectedTopicName()}". Be the first to write about it!`}
+                    : `No articles found for "${getSelectedTopicName()}"`}
                 </div>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <div className="flex items-center justify-center gap-3">
                   {searchTerm ? (
                     <button 
                       onClick={() => setSearchTerm('')}
-                      className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 font-bold transition-all rounded-xl shadow-md"
+                      className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2.5 font-semibold transition-all rounded-lg text-sm"
                     >
                       Clear Search
                     </button>
@@ -484,14 +493,14 @@ function BrowseArticles() {
                     <>
                       <Link 
                         to="/write" 
-                        className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black px-8 py-3 font-bold transition-all rounded-xl shadow-md"
+                        className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-2.5 font-semibold transition-all rounded-lg text-sm"
                       >
-                        <Zap className="h-5 w-5" strokeWidth={2.5} />
+                        <Zap className="h-4 w-4" />
                         Write Article
                       </Link>
                       <button 
                         onClick={clearTopicFilter}
-                        className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 font-bold transition-all rounded-xl shadow-md"
+                        className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2.5 font-semibold transition-all rounded-lg text-sm"
                       >
                         Clear Filter
                       </button>
@@ -501,12 +510,12 @@ function BrowseArticles() {
               </div>
             )}
 
-            {/* Articles Grid/List */}
+            {/* Articles Feed */}
             {!loading && filteredArticles.length > 0 && (
               <>
                 <div className={viewMode === 'grid' 
-                  ? 'grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8' 
-                  : 'flex flex-col gap-4 sm:gap-6 mb-8'
+                  ? 'grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6' 
+                  : 'flex flex-col gap-4 mb-6'
                 }>
                   {filteredArticles.map((article) => (
                     <ArticleCard
@@ -519,17 +528,17 @@ function BrowseArticles() {
                   ))}
                 </div>
 
-                {/* Load More Button */}
+                {/* Load More */}
                 {!searchTerm && hasMore && (
-                  <div className="text-center mb-8">
+                  <div className="text-center mb-6">
                     <button
                       onClick={handleLoadMore}
                       disabled={loading}
-                      className="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-10 py-4 text-lg font-bold transition-all disabled:opacity-50 rounded-xl shadow-lg hover:shadow-xl"
+                      className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-900 px-8 py-3 font-semibold transition-all disabled:opacity-50 rounded-xl border border-gray-200 shadow-sm"
                     >
                       {loading ? (
                         <>
-                          <RefreshCw className="h-5 w-5 animate-spin" strokeWidth={2.5} />
+                          <RefreshCw className="h-4 w-4 animate-spin" />
                           Loading...
                         </>
                       ) : (
@@ -539,64 +548,40 @@ function BrowseArticles() {
                   </div>
                 )}
 
-                {/* End of Results */}
+                {/* End Message */}
                 {!searchTerm && !hasMore && articles.length > 0 && (
-                  <div className="text-center py-8 mb-8">
-                    <div className="inline-flex items-center gap-2 bg-gray-100 px-6 py-3 rounded-full">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                      <span className="text-sm font-bold text-gray-600">
-                        You've reached the end
-                      </span>
-                    </div>
+                  <div className="text-center py-6">
+                    <span className="inline-flex items-center gap-2 text-xs font-semibold text-gray-500 bg-gray-100 px-4 py-2 rounded-full">
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                      You've seen it all
+                    </span>
                   </div>
                 )}
               </>
             )}
 
-            {/* CTA Section */}
+            {/* CTA Banner */}
             {!loading && filteredArticles.length > 0 && (
-              <div className="bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white rounded-2xl p-8 sm:p-12 text-center mt-8 shadow-2xl relative overflow-hidden">
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl"></div>
-                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-orange-500 rounded-full mix-blend-multiply filter blur-3xl"></div>
-                </div>
-                
+              <div className="mt-8 bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 rounded-2xl p-8 text-center relative overflow-hidden shadow-xl">
+                <div className="absolute inset-0 bg-black/10"></div>
                 <div className="relative z-10">
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4">
-                    Have Your Say
+                  <h2 className="text-2xl sm:text-3xl font-black mb-2 text-white">
+                    Share Your Voice
                   </h2>
-                  <p className="text-base sm:text-lg md:text-xl mb-8 text-gray-300 max-w-2xl mx-auto">
-                    Join the conversation. Write your perspective and engage with others.
+                  <p className="text-sm text-orange-100 mb-6 max-w-md mx-auto">
+                    Join thousands of writers sharing their perspectives
                   </p>
                   <Link 
                     to="/write" 
-                    className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black px-8 sm:px-10 py-3 sm:py-4 text-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-2xl rounded-xl"
+                    className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-orange-600 px-6 py-3 font-bold transition-all rounded-xl shadow-lg"
                   >
                     Start Writing
-                    <Zap className="h-5 w-5" strokeWidth={2.5} />
+                    <Zap className="h-4 w-4" />
                   </Link>
                 </div>
               </div>
             )}
           </div>
-          
-          {/* Sidebar - 1 column */}
-          <aside className="lg:col-span-1">
-            <div className="sticky top-6">
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
-                <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <TrendingUp className="w-7 h-7 text-white" strokeWidth={2.5} />
-                    <h3 className="text-2xl font-black text-white">Trending Now</h3>
-                  </div>
-                  <p className="text-sm text-orange-100">Most debated topics today</p>
-                </div>
-                <div className="bg-white">
-                  <TrendingOpinions />
-                </div>
-              </div>
-            </div>
-          </aside>
         </div>
       </div>
     </div>
