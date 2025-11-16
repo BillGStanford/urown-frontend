@@ -1,3 +1,24 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+
+# Sitemap location
+Sitemap: https://urown-delta.vercel.app/sitemap.xml
+
+# Crawl delay to prevent server overload
+Crawl-delay: 1
+
+# Disallow specific directories if they exist
+Disallow: /admin/
+Disallow: /private/
+Disallow: /temp/
+Disallow: /*.json$ 
+# Allow specific bots with special rules
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
