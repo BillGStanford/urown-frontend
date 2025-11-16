@@ -40,6 +40,8 @@ const WriteCounterPage = () => {
   const [activeTab, setActiveTab] = useState('write');
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
+  const [selectedText, setSelectedText] = useState('');
+  const [showFormattingToolbar, setShowFormattingToolbar] = useState(false);
 
   useEffect(() => {
     const fetchOriginalArticle = async () => {
@@ -113,6 +115,53 @@ const WriteCounterPage = () => {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlContent;
     return tempDiv.textContent || tempDiv.innerText || '';
+  };
+
+  const handleTextSelection = () => {
+    const textarea = document.getElementById('content');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+    setSelectedText(selectedText);
+    setShowFormattingToolbar(selectedText.length > 0);
+  };
+
+  const applyFormatting = (format) => {
+    const textarea = document.getElementById('content');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+    
+    let formattedText = '';
+    switch(format) {
+      case 'bold':
+        formattedText = `**${selectedText}**`;
+        break;
+      case 'italic':
+        formattedText = `*${selectedText}*`;
+        break;
+      case 'quote':
+        formattedText = `> ${selectedText}`;
+        break;
+      case 'list':
+        formattedText = `\n- ${selectedText}`;
+        break;
+      case 'link':
+        formattedText = `[${selectedText}](url)`;
+        break;
+      default:
+        formattedText = selectedText;
+    }
+    
+    const newContent = content.substring(0, start) + formattedText + content.substring(end);
+    setContent(newContent);
+    setShowFormattingToolbar(false);
+    
+    // Set cursor position after formatted text
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + formattedText.length, start + formattedText.length);
+    }, 0);
   };
 
   if (!user) {
@@ -292,63 +341,163 @@ const WriteCounterPage = () => {
                   </div>
                 )}
                 
-                <form onSubmit={handleSubmit}>
-                  <div className="mb-6">
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                      Title
-                    </label>
-                    <input
-                      type="text"
-                      id="title"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="Enter your counter opinion title..."
-                      required
-                    />
-                  </div>
-                  
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <label htmlFor="content" className="block text-sm font-medium text-gray-700">
-                        Content
+                {activeTab === 'write' ? (
+                  <form onSubmit={handleSubmit}>
+                    <div className="mb-6">
+                      <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                        Title
                       </label>
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span>{wordCount} words</span>
-                        <span>{charCount} characters</span>
+                      <input
+                        type="text"
+                        id="title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        placeholder="Enter your counter opinion title..."
+                        required
+                      />
+                    </div>
+                    
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+                          Content
+                        </label>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span>{wordCount} words</span>
+                          <span>{charCount} characters</span>
+                        </div>
+                      </div>
+                      
+                      {/* Formatting Toolbar */}
+                      <div className="mb-2 p-2 bg-gray-50 rounded-t-lg border border-gray-300 border-b-0 flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => applyFormatting('bold')}
+                          className="p-2 rounded hover:bg-gray-200 transition-colors"
+                          title="Bold"
+                        >
+                          <Bold className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applyFormatting('italic')}
+                          className="p-2 rounded hover:bg-gray-200 transition-colors"
+                          title="Italic"
+                        >
+                          <Italic className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applyFormatting('quote')}
+                          className="p-2 rounded hover:bg-gray-200 transition-colors"
+                          title="Quote"
+                        >
+                          <Quote className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applyFormatting('list')}
+                          className="p-2 rounded hover:bg-gray-200 transition-colors"
+                          title="List"
+                        >
+                          <List className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applyFormatting('link')}
+                          className="p-2 rounded hover:bg-gray-200 transition-colors"
+                          title="Link"
+                        >
+                          <Link className="w-4 h-4" />
+                        </button>
+                      </div>
+                      
+                      <textarea
+                        id="content"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        onSelect={handleTextSelection}
+                        rows={12}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-b-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                        placeholder="Write your counter opinion..."
+                        required
+                      />
+                    </div>
+                    
+                    <div className="flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl hover:from-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        {loading ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-t-2 border-r-2 border-white rounded-full animate-spin mr-2"></div>
+                            PUBLISHING...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4" />
+                            PUBLISH COUNTER OPINION
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div>
+                    <div className="mb-6">
+                      <h2 className="text-2xl font-bold text-gray-900 mb-4">{title || "Untitled Counter Opinion"}</h2>
+                      <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                        <div className="flex items-center gap-1">
+                          <User className="w-4 h-4" />
+                          <span>{user.display_name}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          <span>{formatDate(new Date().toISOString())}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Hash className="w-4 h-4" />
+                          <span>{wordCount} words</span>
+                        </div>
                       </div>
                     </div>
-                    <textarea
-                      id="content"
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      rows={12}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
-                      placeholder="Write your counter opinion..."
-                      required
-                    />
+                    
+                    <div className="prose max-w-none">
+                      <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                        {content || "Your counter opinion will appear here..."}
+                      </div>
+                    </div>
+                    
+                    <div className="mt-8 flex justify-end gap-4">
+                      <button
+                        onClick={() => setActiveTab('write')}
+                        className="px-6 py-2 bg-gray-200 text-gray-800 font-medium rounded-xl hover:bg-gray-300 transition-all duration-200"
+                      >
+                        CONTINUE EDITING
+                      </button>
+                      <button
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        className="px-8 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl hover:from-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        {loading ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-t-2 border-r-2 border-white rounded-full animate-spin mr-2"></div>
+                            PUBLISHING...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4" />
+                            PUBLISH COUNTER OPINION
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                  
-                  <div className="flex justify-end">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl hover:from-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      {loading ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-t-2 border-r-2 border-white rounded-full animate-spin mr-2"></div>
-                          PUBLISHING...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4" />
-                          PUBLISH COUNTER OPINION
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
+                )}
               </div>
             </div>
           </div>
