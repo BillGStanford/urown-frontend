@@ -1,14 +1,13 @@
 // pages/SignupPage.js
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useUser } from '../context/UserContext';
-import { Mail, Phone, User, Calendar, Lock, CheckCircle, AlertCircle, ChevronRight, MessageCircle, Info, Gift } from 'lucide-react';
+import { Mail, Phone, User, Calendar, Lock, CheckCircle, AlertCircle, ChevronRight, MessageCircle, Info } from 'lucide-react';
 
 function SignupPage() {
   const { login } = useUser();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
@@ -18,74 +17,18 @@ function SignupPage() {
     date_of_birth: '',
     password: '',
     confirm_password: '',
-    invite_code: '',
     terms_agreed: false
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showDiscordTooltip, setShowDiscordTooltip] = useState(false);
-  const [inviteCodeFromUrl, setInviteCodeFromUrl] = useState(false);
-  const [inviteCodeValid, setInviteCodeValid] = useState(null);
-  const [inviteCodeName, setInviteCodeName] = useState('');
-
-  // Check for invite code in URL on mount
-  useEffect(() => {
-    const codeFromUrl = searchParams.get('invite') || searchParams.get('code');
-    if (codeFromUrl) {
-      const upperCode = codeFromUrl.toUpperCase();
-      setFormData(prev => ({ ...prev, invite_code: upperCode }));
-      setInviteCodeFromUrl(true);
-      // Validate the code
-      validateInviteCode(upperCode);
-    }
-  }, [searchParams]);
-
-  // Validate invite code when it changes
-  const validateInviteCode = async (code) => {
-    if (!code || code.length !== 6) {
-      setInviteCodeValid(null);
-      setInviteCodeName('');
-      return;
-    }
-
-    try {
-      const response = await axios.get(`/invite-codes/${code}/validate`);
-      if (response.data.valid) {
-        setInviteCodeValid(true);
-        setInviteCodeName(response.data.name);
-        setErrors(prev => ({ ...prev, invite_code: '' }));
-      } else {
-        setInviteCodeValid(false);
-        setInviteCodeName('');
-        setErrors(prev => ({ ...prev, invite_code: response.data.message }));
-      }
-    } catch (error) {
-      setInviteCodeValid(false);
-      setInviteCodeName('');
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
-    if (name === 'invite_code') {
-      const upperValue = value.toUpperCase();
-      setFormData(prev => ({ ...prev, [name]: upperValue }));
-      
-      // Validate invite code after user stops typing
-      if (upperValue.length === 6) {
-        validateInviteCode(upperValue);
-      } else {
-        setInviteCodeValid(null);
-        setInviteCodeName('');
-      }
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: type === 'checkbox' ? checked : value
-      }));
-    }
-    
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
@@ -123,15 +66,6 @@ function SignupPage() {
     if (formData.password !== formData.confirm_password)
       newErrors.confirm_password = 'Passwords do not match';
 
-    // Validate invite code if provided
-    if (formData.invite_code) {
-      if (!/^[A-Z0-9]{6}$/.test(formData.invite_code)) {
-        newErrors.invite_code = 'Invite code must be 6 alphanumeric characters';
-      } else if (inviteCodeValid === false) {
-        newErrors.invite_code = 'Invalid or inactive invite code';
-      }
-    }
-
     if (!formData.terms_agreed)
       newErrors.terms_agreed = 'You must agree to the terms';
 
@@ -156,7 +90,6 @@ function SignupPage() {
         discord_username: formData.discord_username || null,
         date_of_birth: formData.date_of_birth,
         password: formData.password,
-        invite_code: formData.invite_code || null,
         terms_agreed: formData.terms_agreed
       });
 
@@ -198,24 +131,6 @@ function SignupPage() {
                 <AlertCircle className="w-6 h-6" />
                 <span className="font-bold">{errors.general}</span>
               </div>
-            )}
-
-            {/* Invite Code Section (if from URL, show at top) */}
-            {inviteCodeFromUrl && (
-              <section className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <Gift className="w-6 h-6 text-purple-600" />
-                  <h3 className="text-xl font-black text-gray-900">
-                    You've been invited!
-                  </h3>
-                </div>
-                {inviteCodeValid && (
-                  <p className="text-gray-700 font-semibold">
-                    Joining with invite code: <span className="text-purple-600 font-black">{formData.invite_code}</span>
-                    {inviteCodeName && <span className="text-gray-600"> ({inviteCodeName})</span>}
-                  </p>
-                )}
-              </section>
             )}
 
             {/* Contact Info */}
@@ -376,59 +291,6 @@ function SignupPage() {
                 </div>
               </div>
             </section>
-
-            {/* Invite Code Section (if not from URL) */}
-            {!inviteCodeFromUrl && (
-              <section>
-                <h2 className="text-3xl font-black text-gray-900 mb-6 flex items-center gap-3">
-                  <Gift className="w-8 h-8 text-purple-600" />
-                  Invite Code (Optional)
-                </h2>
-                <div>
-                  <label className="block text-lg font-bold text-gray-900 mb-2">
-                    Have an invite code?
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="invite_code"
-                      value={formData.invite_code}
-                      onChange={handleChange}
-                      maxLength={6}
-                      className={`w-full px-5 py-4 rounded-xl border-2 ${
-                        errors.invite_code ? 'border-red-500' : 
-                        inviteCodeValid === true ? 'border-green-500' : 
-                        inviteCodeValid === false ? 'border-red-500' : 
-                        'border-gray-300'
-                      } focus:border-purple-600 focus:outline-none transition-all text-lg uppercase tracking-wider font-mono`}
-                      placeholder="ABC123"
-                    />
-                    {inviteCodeValid === true && (
-                      <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                        <CheckCircle className="w-6 h-6 text-green-600" />
-                      </div>
-                    )}
-                    {inviteCodeValid === false && (
-                      <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                        <AlertCircle className="w-6 h-6 text-red-600" />
-                      </div>
-                    )}
-                  </div>
-                  {inviteCodeValid === true && inviteCodeName && (
-                    <p className="mt-2 text-green-600 font-semibold flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5" />
-                      Valid code from: {inviteCodeName}
-                    </p>
-                  )}
-                  {errors.invite_code && (
-                    <p className="mt-2 text-red-600 font-semibold">{errors.invite_code}</p>
-                  )}
-                  <p className="mt-2 text-sm text-gray-600">
-                    Enter the 6-character code you received to join a specific community or group.
-                  </p>
-                </div>
-              </section>
-            )}
 
             {/* Terms */}
             <section>

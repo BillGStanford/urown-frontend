@@ -38,7 +38,6 @@ import About from './pages/AboutUsPage';
 import LibraryPage from './pages/LibraryPage';
 import CareerPage from './pages/important/CareersPage';
 import LeaderboardPage from './pages/LeaderboardPage';
-import InviteCodeManagement from './pages/InviteCodeManagement';
 
 import GlobalError from './components/GlobalError';
 
@@ -133,13 +132,6 @@ function AppRoutes() {
             path="/editorial/create-debate" 
             element={user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') ? <CreateDebateTopic /> : <Navigate to="/" />} 
           />
-          <Route 
-  path="/admin/invite-codes" 
-  element={user && (user.role === 'admin' || user.role === 'super-admin') 
-    ? <InviteCodeManagement /> 
-    : <Navigate to="/" />
-  } 
-/>
           <Route 
   path="/ideology-quiz" 
   element={user ? <IdeologyQuiz /> : <Navigate to="/login" />} 
