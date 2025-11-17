@@ -3,11 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import { useUser } from '../context/UserContext';
-import RedFlaggedBanner from '../components/RedFlaggedBanner';
 import BannerAd from '../components/ads/BannerAd';
 import SidebarAd from '../components/ads/SidebarAd';
 import InFeedAd from '../components/ads/InFeedAd';
-import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Sparkles, Medal } from 'lucide-react';
 
 function HomePage() {
   const [activeDebates, setActiveDebates] = useState([]);
@@ -155,7 +154,6 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section - Only for non-logged users */}
-      <RedFlaggedBanner />
       {!user && (
         <div className="relative overflow-hidden bg-white border-b border-gray-200">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-white"></div>
@@ -272,6 +270,55 @@ function HomePage() {
             <p className="text-lg sm:text-xl text-gray-600 font-medium">What will you debate today?</p>
           </div>
         )}
+
+        {/* NEW: Leaderboard and Ideology Quiz Promotional Banners */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-12 sm:mb-16">
+          {/* Leaderboard Promotion */}
+          <Link 
+            to="/leaderboard"
+            className="group relative overflow-hidden bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 rounded-2xl p-6 sm:p-8 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+          >
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                  <Trophy className="w-7 h-7 text-white" strokeWidth={2.5} />
+                </div>
+                <span className="text-white/90 font-bold text-sm uppercase tracking-wider">Community</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black mb-3">Leaderboard</h2>
+              <p className="text-white/90 mb-6 max-w-md">Discover top contributors and see who's making the biggest impact in our community.</p>
+              <div className="flex items-center gap-2 font-bold text-white group-hover:gap-3 transition-all">
+                View Rankings
+                <ChevronRight className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+            <div className="absolute bottom-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mb-12"></div>
+          </Link>
+
+          {/* Ideology Quiz Promotion */}
+          <Link 
+            to="/ideology-quiz"
+            className="group relative overflow-hidden bg-gradient-to-br from-purple-500 via-pink-500 to-indigo-600 rounded-2xl p-6 sm:p-8 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+          >
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                  <Sparkles className="w-7 h-7 text-white" strokeWidth={2.5} />
+                </div>
+                <span className="text-white/90 font-bold text-sm uppercase tracking-wider">Discover</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black mb-3">Ideology Quiz</h2>
+              <p className="text-white/90 mb-6 max-w-md">Find out where you stand on the political spectrum with our interactive quiz.</p>
+              <div className="flex items-center gap-2 font-bold text-white group-hover:gap-3 transition-all">
+                Take Quiz
+                <ChevronRight className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+            <div className="absolute bottom-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mb-12"></div>
+          </Link>
+        </div>
 
         {/* Active Debates Section */}
         {activeDebates.length > 0 && (
@@ -560,6 +607,7 @@ function HomePage() {
                   <li><Link to="/browse" className="text-orange-600 hover:underline">Browse Articles</Link></li>
                   <li><Link to="/write" className="text-orange-600 hover:underline">Write Article</Link></li>
                   <li><Link to="/leaderboard" className="text-orange-600 hover:underline">Leaderboard</Link></li>
+                  <li><Link to="/ideology-quiz" className="text-orange-600 hover:underline">Ideology Quiz</Link></li>
                 </ul>
               </div>
             </aside>

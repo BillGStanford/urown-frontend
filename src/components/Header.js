@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import axios from 'axios';
@@ -41,41 +41,44 @@ function Header({ user, onLogout }) {
   const dropdownRef = useRef(null);
   const sidebarRef = useRef(null);
 
-  const isAdmin = user && (user.role === 'admin' || user.role === 'super-admin');
-  const isEditorialOrAdmin = user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin');
+  const isAdmin = useMemo(() => 
+    user && (user.role === 'admin' || user.role === 'super-admin'), [user]);
+  
+  const isEditorialOrAdmin = useMemo(() => 
+    user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin'), [user]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     onLogout();
     setIsUserDropdownOpen(false);
     setIsSidebarOpen(false);
     setIsMobileMenuOpen(false);
-  };
+  }, [logout, onLogout]);
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarOpen(prev => !prev);
+  }, []);
 
-  const closeSidebar = () => {
+  const closeSidebar = useCallback(() => {
     setIsSidebarOpen(false);
-  };
+  }, []);
 
-  const toggleUserDropdown = () => {
-    setIsUserDropdownOpen(!isUserDropdownOpen);
-  };
+  const toggleUserDropdown = useCallback(() => {
+    setIsUserDropdownOpen(prev => !prev);
+  }, []);
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  const toggleMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen(prev => !prev);
+  }, []);
 
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = useCallback(async () => {
     try {
       const response = await axios.get('/notifications/unread-count');
       setUnreadCount(response.data.count);
     } catch (err) {
       console.error('Error fetching unread count:', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -105,10 +108,16 @@ function Header({ user, onLogout }) {
       const interval = setInterval(fetchUnreadCount, 30000);
       return () => clearInterval(interval);
     }
-  }, [user]);
+  }, [user, fetchUnreadCount]);
 
-  // Primary bottom navigation items (always visible)
-  const primaryBottomNavLoggedIn = [
+  const isActive = useCallback((path) => {
+    if (path === '/' && location.pathname === '/') return true;
+    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    return false;
+  }, [location.pathname]);
+
+  // Navigation items with memoization
+  const primaryBottomNavLoggedIn = useMemo(() => [
     {
       to: '/',
       icon: Home,
@@ -156,10 +165,9 @@ function Header({ user, onLogout }) {
       activeBg: 'bg-green-50',
       activeColor: 'text-green-600'
     }
-  ];
+  ], [unreadCount]);
 
-  // Secondary navigation items (in "More" menu)
-  const secondaryBottomNavLoggedIn = [
+  const secondaryBottomNavLoggedIn = useMemo(() => [
     {
       to: '/ideology-quiz',
       icon: Sparkles,
@@ -214,10 +222,9 @@ function Header({ user, onLogout }) {
       activeBg: 'bg-red-50',
       activeColor: 'text-red-600'
     }
-  ];
+  ], []);
 
-  // Primary bottom navigation for logged out users
-  const primaryBottomNavLoggedOut = [
+  const primaryBottomNavLoggedOut = useMemo(() => [
     {
       to: '/',
       icon: Home,
@@ -254,10 +261,9 @@ function Header({ user, onLogout }) {
       activeBg: 'bg-yellow-50',
       activeColor: 'text-yellow-600'
     }
-  ];
+  ], []);
 
-  // Secondary navigation for logged out users
-  const secondaryBottomNavLoggedOut = [
+  const secondaryBottomNavLoggedOut = useMemo(() => [
     {
       to: '/about',
       icon: Info,
@@ -294,13 +300,42 @@ function Header({ user, onLogout }) {
       activeBg: 'bg-red-50',
       activeColor: 'text-red-600'
     }
-  ];
+  ], []);
 
-  const isActive = (path) => {
-    if (path === '/' && location.pathname === '/') return true;
-    if (path !== '/' && location.pathname.startsWith(path)) return true;
-    return false;
-  };
+  // Memoized sidebar navigation items
+  const sidebarNavItems = useMemo(() => {
+    const items = [
+      { to: '/browse', icon: Search, label: 'Browse', color: 'orange' },
+      { to: '/ideology-quiz', icon: Sparkles, label: 'Ideology Quiz', color: 'purple', isNew: true },
+      { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', color: 'yellow' },
+      { to: '/about', icon: Info, label: 'About', color: 'blue' },
+      { to: '/partners', icon: Globe, label: 'Partners', color: 'green' },
+      { to: '/contact', icon: Mail, label: 'Contact', color: 'purple' },
+      { to: '/redflagged', icon: FlagIcon, label: 'RedFlagged', color: 'red' }
+    ];
+    
+    if (user) {
+      items.push(
+        { to: '/library', icon: BookOpen, label: 'Library', color: 'green' },
+        { to: `/user/${encodeURIComponent(user.display_name)}`, icon: User, label: 'Profile', color: 'orange' },
+        { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', color: 'indigo' },
+        { to: '/settings', icon: Settings, label: 'Settings', color: 'gray' }
+      );
+    }
+    
+    if (isEditorialOrAdmin) {
+      items.push({ to: '/editorial', icon: FileText, label: 'Editorial Board', color: 'blue' });
+    }
+    
+    if (isAdmin) {
+      items.push(
+        { to: '/admin', icon: Shield, label: 'Admin Panel', color: 'red' },
+        { to: '/admin/reported-articles', icon: FileText, label: 'View Reports', color: 'red' }
+      );
+    }
+    
+    return items;
+  }, [user, isEditorialOrAdmin, isAdmin]);
 
   return (
     <>
@@ -321,214 +356,54 @@ function Header({ user, onLogout }) {
         style={{ top: scrolled ? '64px' : '72px' }}
       >
         <div className="flex flex-col h-full overflow-y-auto pb-6">
-          {/* Top Navigation Section */}
+          {/* Navigation Section */}
           <nav className="py-6 px-4">
             <div className="space-y-2">
-              <Link 
-                to="/browse" 
-                className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-2xl transition-all duration-300 group"
-                onClick={closeSidebar}
-              >
-                <div className="w-12 h-12 bg-orange-100 group-hover:bg-orange-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                  <Search className="h-7 w-7" strokeWidth={2.5} />
-                </div>
-                <span className="text-lg font-bold">Browse</span>
-              </Link>
-
-              <Link 
-                to="/ideology-quiz" 
-                className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-purple-50 hover:text-purple-600 rounded-2xl transition-all duration-300 group"
-                onClick={closeSidebar}
-              >
-                <div className="w-12 h-12 bg-purple-100 group-hover:bg-purple-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                  <Sparkles className="h-7 w-7" strokeWidth={2.5} />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold">Ideology Quiz</span>
-                  <span className="px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">NEW</span>
-                </div>
-              </Link>
-
-              <Link 
-                to="/leaderboard" 
-                className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-yellow-50 hover:text-yellow-600 rounded-2xl transition-all duration-300 group"
-                onClick={closeSidebar}
-              >
-                <div className="w-12 h-12 bg-yellow-100 group-hover:bg-yellow-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                  <Trophy className="h-7 w-7" strokeWidth={2.5} />
-                </div>
-                <span className="text-lg font-bold">Leaderboard</span>
-              </Link>
-
-              <Link 
-                to="/about" 
-                className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-2xl transition-all duration-300 group"
-                onClick={closeSidebar}
-              >
-                <div className="w-12 h-12 bg-blue-100 group-hover:bg-blue-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                  <Info className="h-7 w-7" strokeWidth={2.5} />
-                </div>
-                <span className="text-lg font-bold">About</span>
-              </Link>
-
-              <Link 
-                to="/partners" 
-                className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-2xl transition-all duration-300 group"
-                onClick={closeSidebar}
-              >
-                <div className="w-12 h-12 bg-green-100 group-hover:bg-green-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                  <Globe className="h-7 w-7" strokeWidth={2.5} />
-                </div>
-                <span className="text-lg font-bold">Partners</span>
-              </Link>
-
-              <Link 
-                to="/contact" 
-                className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-purple-50 hover:text-purple-600 rounded-2xl transition-all duration-300 group"
-                onClick={closeSidebar}
-              >
-                <div className="w-12 h-12 bg-purple-100 group-hover:bg-purple-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                  <Mail className="h-7 w-7" strokeWidth={2.5} />
-                </div>
-                <span className="text-lg font-bold">Contact</span>
-              </Link>
-
-              <Link 
-                to="/redflagged" 
-                className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-2xl transition-all duration-300 group"
-                onClick={closeSidebar}
-              >
-                <div className="w-12 h-12 bg-red-100 group-hover:bg-red-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                  <FlagIcon className="h-7 w-7" strokeWidth={2.5} />
-                </div>
-                <span className="text-lg font-bold">RedFlagged</span>
-              </Link>
+              {sidebarNavItems.map((item, index) => {
+                const Icon = item.icon;
+                const colorClass = `${item.color}-100`;
+                const hoverColorClass = `hover:bg-${item.color}-50`;
+                const hoverTextClass = `hover:text-${item.color}-600`;
+                
+                return (
+                  <Link 
+                    key={item.to}
+                    to={item.to} 
+                    className={`flex items-center gap-4 px-5 py-4 text-gray-700 ${hoverColorClass} ${hoverTextClass} rounded-2xl transition-all duration-300 group`}
+                    onClick={closeSidebar}
+                  >
+                    <div className={`w-12 h-12 ${colorClass} group-hover:bg-${item.color}-200 rounded-xl flex items-center justify-center transition-colors duration-300`}>
+                      <Icon className="h-7 w-7" strokeWidth={2.5} />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-bold">{item.label}</span>
+                      {item.isNew && (
+                        <span className="px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">NEW</span>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </nav>
 
-          {/* Bottom Navigation Section */}
-          <div className="mt-auto">
-            {user && (
-              <>
-                <div className="my-4 h-px bg-gray-200" />
-                
-                <nav className="py-4 px-4">
-                  <div className="space-y-2">
-                    <Link 
-                      to="/library" 
-                      className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-2xl transition-all duration-300 group"
-                      onClick={closeSidebar}
-                    >
-                      <div className="w-12 h-12 bg-green-100 group-hover:bg-green-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                        <BookOpen className="h-7 w-7" strokeWidth={2.5} />
-                      </div>
-                      <span className="text-lg font-bold">Library</span>
-                    </Link>
-
-                    <Link
-                      to={`/user/${encodeURIComponent(user.display_name)}`}
-                      className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-2xl transition-all duration-300 group"
-                      onClick={closeSidebar}
-                    >
-                      <div className="w-12 h-12 bg-orange-100 group-hover:bg-orange-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                        <User className="h-7 w-7" strokeWidth={2.5} />
-                      </div>
-                      <span className="text-lg font-bold">Profile</span>
-                    </Link>
-
-                    <Link
-                      to="/dashboard"
-                      className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-2xl transition-all duration-300 group"
-                      onClick={closeSidebar}
-                    >
-                      <div className="w-12 h-12 bg-indigo-100 group-hover:bg-indigo-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                        <LayoutDashboard className="h-7 w-7" strokeWidth={2.5} />
-                      </div>
-                      <span className="text-lg font-bold">Dashboard</span>
-                    </Link>
-
-                    <Link
-                      to="/settings"
-                      className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-gray-100 hover:text-gray-800 rounded-2xl transition-all duration-300 group"
-                      onClick={closeSidebar}
-                    >
-                      <div className="w-12 h-12 bg-gray-100 group-hover:bg-gray-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                        <Settings className="h-7 w-7" strokeWidth={2.5} />
-                      </div>
-                      <span className="text-lg font-bold">Settings</span>
-                    </Link>
+          {/* Logout Section */}
+          {user && (
+            <>
+              <div className="my-4 h-px bg-gray-200" />
+              <div className="py-4 px-4">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-4 w-full px-5 py-4 text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-300 group"
+                >
+                  <div className="w-12 h-12 bg-red-100 group-hover:bg-red-200 rounded-xl flex items-center justify-center transition-colors duration-300">
+                    <LogOut className="h-7 w-7" strokeWidth={2.5} />
                   </div>
-                </nav>
-              </>
-            )}
-
-            {isEditorialOrAdmin && (
-              <>
-                <div className="my-4 h-px bg-gray-200" />
-                <nav className="py-4 px-4">
-                  <div className="space-y-2">
-                    <Link
-                      to="/editorial"
-                      className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-2xl transition-all duration-300 group"
-                      onClick={closeSidebar}
-                    >
-                      <div className="w-12 h-12 bg-blue-100 group-hover:bg-blue-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                        <FileText className="h-7 w-7" strokeWidth={2.5} />
-                      </div>
-                      <span className="text-lg font-bold">Editorial Board</span>
-                    </Link>
-                  </div>
-                </nav>
-              </>
-            )}
-
-            {isAdmin && (
-              <>
-                <div className="my-4 h-px bg-gray-200" />
-                <nav className="py-4 px-4">
-                  <div className="space-y-2">
-                    <Link
-                      to="/admin"
-                      className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-2xl transition-all duration-300 group"
-                      onClick={closeSidebar}
-                    >
-                      <div className="w-12 h-12 bg-red-100 group-hover:bg-red-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                        <Shield className="h-7 w-7" strokeWidth={2.5} />
-                      </div>
-                      <span className="text-lg font-bold">Admin Panel</span>
-                    </Link>
-                    <Link
-                      to="/admin/reported-articles"
-                      className="flex items-center gap-4 px-5 py-4 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-2xl transition-all duration-300 group"
-                      onClick={closeSidebar}
-                    >
-                      <div className="w-12 h-12 bg-red-100 group-hover:bg-red-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                        <FileText className="h-7 w-7" strokeWidth={2.5} />
-                      </div>
-                      <span className="text-lg font-bold">View Reports</span>
-                    </Link>
-                  </div>
-                </nav>
-              </>
-            )}
-
-            {user && (
-              <>
-                <div className="my-4 h-px bg-gray-200" />
-                <div className="py-4 px-4">
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-4 w-full px-5 py-4 text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-300 group"
-                  >
-                    <div className="w-12 h-12 bg-red-100 group-hover:bg-red-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                      <LogOut className="h-7 w-7" strokeWidth={2.5} />
-                    </div>
-                    <span className="text-lg font-bold">Log out</span>
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+                  <span className="text-lg font-bold">Log out</span>
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </aside>
 
@@ -581,7 +456,7 @@ function Header({ user, onLogout }) {
                     >
                       <Bell className="h-5 w-5 lg:h-6 lg:w-6 text-gray-700" strokeWidth={2.5} />
                       {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-md">
                           {unreadCount > 9 ? '9+' : unreadCount}
                         </span>
                       )}
@@ -732,7 +607,7 @@ function Header({ user, onLogout }) {
       <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-200/50 shadow-2xl pb-safe">
         <div className="flex items-center justify-around h-16">
           {/* Primary Navigation Items */}
-          {(user ? primaryBottomNavLoggedIn : primaryBottomNavLoggedOut).map((item, index) => {
+          {(user ? primaryBottomNavLoggedIn : primaryBottomNavLoggedOut).map((item) => {
             const Icon = item.icon;
             const active = isActive(item.to);
             
@@ -770,7 +645,7 @@ function Header({ user, onLogout }) {
                         active ? item.activeColor : 'text-gray-600'
                       }`} strokeWidth={active ? 3 : 2.5} />
                       {item.badge && item.badge > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold shadow-sm">
                           {item.badge > 9 ? '9+' : item.badge}
                         </span>
                       )}
@@ -808,7 +683,7 @@ function Header({ user, onLogout }) {
             <div className="p-4">
               <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4" />
               <div className="grid grid-cols-3 gap-4">
-                {(user ? secondaryBottomNavLoggedIn : secondaryBottomNavLoggedOut).map((item, index) => {
+                {(user ? secondaryBottomNavLoggedIn : secondaryBottomNavLoggedOut).map((item) => {
                   const Icon = item.icon;
                   const active = isActive(item.to);
                   
