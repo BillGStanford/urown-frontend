@@ -9,6 +9,8 @@ import {
   EXPERIENCE_TYPES,
   SORT_OPTIONS
 } from '../utils/redFlaggedApi';
+import SidebarAd from '../components/ads/SidebarAd';
+import InFeedAd from '../components/ads/InFeedAd';
 
 const BrowseRedFlaggedPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -240,7 +242,7 @@ const BrowseRedFlaggedPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar - Compact Filters */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-md p-5 sticky top-4">
+            <div className="bg-white rounded-xl shadow-md p-5 sticky top-4 space-y-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold">Filters</h3>
                 {(filters.company || filters.experienceType || filters.topicId || filters.minRating || filters.maxRating) && (
@@ -342,6 +344,11 @@ const BrowseRedFlaggedPage = () => {
                 </div>
               )}
             </div>
+            
+            {/* NEW: Add Advertisement Below Filters */}
+            <div className="mt-4">
+              <SidebarAd />
+            </div>
           </div>
           
           {/* Main Content */}
@@ -396,8 +403,15 @@ const BrowseRedFlaggedPage = () => {
                   </div>
                 ) : (
                   <div className="space-y-5">
-                    {posts.map(post => (
-                      <PostCard key={post.id} post={post} />
+                    {posts.map((post, index) => (
+                      <React.Fragment key={post.id}>
+                        <PostCard post={post} />
+                        
+                        {/* NEW: Add In-Feed Ad every 5 posts */}
+                        {(index + 1) % 5 === 0 && index !== posts.length - 1 && (
+                          <InFeedAd />
+                        )}
+                      </React.Fragment>
                     ))}
                   </div>
                 )}
