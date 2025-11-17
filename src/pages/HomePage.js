@@ -4,6 +4,9 @@ import axios from 'axios';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import { useUser } from '../context/UserContext';
 import RedFlaggedBanner from '../components/RedFlaggedBanner';
+import BannerAd from '../components/ads/BannerAd';
+import SidebarAd from '../components/ads/SidebarAd';
+import InFeedAd from '../components/ads/InFeedAd';
 import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe } from 'lucide-react';
 
 function HomePage() {
@@ -256,6 +259,9 @@ function HomePage() {
         </div>
       )}
 
+      {/* NEW: Top Banner Ad */}
+      <BannerAd position="top" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         {/* Welcome message for logged-in users */}
         {user && (
@@ -447,93 +453,121 @@ function HomePage() {
 
         {/* Articles by Topic Sections with Horizontal Scroll */}
         {Object.keys(articlesByTopic).length > 0 && (
-          <div className="space-y-12 sm:space-y-16">
-            {Object.entries(articlesByTopic)
-              .sort(([, articlesA], [, articlesB]) => {
-                const totalViewsA = articlesA.reduce((sum, a) => sum + a.views, 0);
-                const totalViewsB = articlesB.reduce((sum, b) => sum + b.views, 0);
-                return totalViewsB - totalViewsA;
-              })
-              .map(([topic, articles]) => (
-                <section key={topic}>
-                  <div className="flex items-center justify-between mb-4 sm:mb-6">
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-2 sm:gap-3">
-                      <span className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-xl sm:rounded-2xl flex items-center justify-center">
-                        {getTopicIcon(topic)}
-                      </span>
-                      <span className="hidden sm:inline">{topic}</span>
-                      <span className="sm:hidden text-xl">{topic}</span>
-                    </h2>
-                    <div className="flex items-center gap-2">
-                      <div className="hidden sm:flex items-center gap-2">
-                        <button
-                          onClick={() => scroll(topicScrollRefs.current[topic], 'left')}
-                          className="p-2 bg-white border-2 border-gray-900 rounded-lg hover:bg-gray-900 hover:text-white transition-all"
-                          aria-label="Scroll left"
-                        >
-                          <ChevronLeft className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => scroll(topicScrollRefs.current[topic], 'right')}
-                          className="p-2 bg-white border-2 border-gray-900 rounded-lg hover:bg-gray-900 hover:text-white transition-all"
-                          aria-label="Scroll right"
-                        >
-                          <ChevronRight className="w-5 h-5" />
-                        </button>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Main Content */}
+            <div className="lg:col-span-3 space-y-12 sm:space-y-16">
+              {Object.entries(articlesByTopic)
+                .sort(([, articlesA], [, articlesB]) => {
+                  const totalViewsA = articlesA.reduce((sum, a) => sum + a.views, 0);
+                  const totalViewsB = articlesB.reduce((sum, b) => sum + b.views, 0);
+                  return totalViewsB - totalViewsA;
+                })
+                .map(([topic, articles], topicIndex) => (
+                  <React.Fragment key={topic}>
+                    <section>
+                      <div className="flex items-center justify-between mb-4 sm:mb-6">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-2 sm:gap-3">
+                          <span className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                            {getTopicIcon(topic)}
+                          </span>
+                          <span className="hidden sm:inline">{topic}</span>
+                          <span className="sm:hidden text-xl">{topic}</span>
+                        </h2>
+                        <div className="flex items-center gap-2">
+                          <div className="hidden sm:flex items-center gap-2">
+                            <button
+                              onClick={() => scroll(topicScrollRefs.current[topic], 'left')}
+                              className="p-2 bg-white border-2 border-gray-900 rounded-lg hover:bg-gray-900 hover:text-white transition-all"
+                              aria-label="Scroll left"
+                            >
+                              <ChevronLeft className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => scroll(topicScrollRefs.current[topic], 'right')}
+                              className="p-2 bg-white border-2 border-gray-900 rounded-lg hover:bg-gray-900 hover:text-white transition-all"
+                              aria-label="Scroll right"
+                            >
+                              <ChevronRight className="w-5 h-5" />
+                            </button>
+                          </div>
+                          <Link to={`/browse?topic=${topic}`} className="hidden md:flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-900 text-white font-bold text-xs sm:text-sm rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
+                            Browse <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                          </Link>
+                        </div>
                       </div>
-                      <Link to={`/browse?topic=${topic}`} className="hidden md:flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-900 text-white font-bold text-xs sm:text-sm rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
-                        Browse <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <div 
-                      ref={el => topicScrollRefs.current[topic] = el}
-                      className="overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide scroll-smooth"
-                    >
-                      <div className="flex gap-4 sm:gap-6" style={{ minWidth: 'min-content' }}>
-                        {articles.slice(0, 8).map((article, index) => (
-                          <button
-                            key={article.id}
-                            onClick={() => handleArticleClick(article.id)}
-                            className="group bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-orange-500 flex-shrink-0 transform hover:scale-105 animate-fade-in-up text-left"
-                            style={{ width: '280px', animationDelay: `${index * 50}ms` }}
-                          >
-                            <div className="flex items-center gap-2 mb-3 flex-wrap">
-                              {article.certified && (
-                                <div className="flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-600 text-xs font-black rounded-md">
-                                  <Award className="w-3 h-3" strokeWidth={2.5} />
-                                  Certified
+                      <div className="relative">
+                        <div 
+                          ref={el => topicScrollRefs.current[topic] = el}
+                          className="overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide scroll-smooth"
+                        >
+                          <div className="flex gap-4 sm:gap-6" style={{ minWidth: 'min-content' }}>
+                            {articles.slice(0, 8).map((article, index) => (
+                              <button
+                                key={article.id}
+                                onClick={() => handleArticleClick(article.id)}
+                                className="group bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-orange-500 flex-shrink-0 transform hover:scale-105 animate-fade-in-up text-left"
+                                style={{ width: '280px', animationDelay: `${index * 50}ms` }}
+                              >
+                                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                                  {article.certified && (
+                                    <div className="flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-600 text-xs font-black rounded-md">
+                                      <Award className="w-3 h-3" strokeWidth={2.5} />
+                                      Certified
+                                    </div>
+                                  )}
+                                  {article.topics && article.topics.slice(0, 2).map(t => (
+                                    <span key={t} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-bold rounded-md">
+                                      {t}
+                                    </span>
+                                  ))}
                                 </div>
-                              )}
-                              {article.topics && article.topics.slice(0, 2).map(t => (
-                                <span key={t} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-bold rounded-md">
-                                  {t}
-                                </span>
-                              ))}
-                            </div>
-                            <h3 className="text-base sm:text-lg font-black text-gray-900 mb-3 group-hover:text-orange-600 transition-colors line-clamp-2">
-                              {article.title}
-                            </h3>
-                            <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-3 font-semibold">
-                              <span className="flex items-center gap-1">
-                                <Eye className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2.5} />
-                                {formatNumber(article.views)}
-                              </span>
-                              <span className="truncate">by {article.display_name}</span>
-                            </div>
-                            <p className="text-xs sm:text-sm text-gray-600 line-clamp-3">
-                              {truncateText(article.content.replace(/<[^>]*>/g, ''), 120)}
-                            </p>
-                          </button>
-                        ))}
+                                <h3 className="text-base sm:text-lg font-black text-gray-900 mb-3 group-hover:text-orange-600 transition-colors line-clamp-2">
+                                  {article.title}
+                                </h3>
+                                <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-3 font-semibold">
+                                  <span className="flex items-center gap-1">
+                                    <Eye className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2.5} />
+                                    {formatNumber(article.views)}
+                                  </span>
+                                  <span className="truncate">by {article.display_name}</span>
+                                </div>
+                                <p className="text-xs sm:text-sm text-gray-600 line-clamp-3">
+                                  {truncateText(article.content.replace(/<[^>]*>/g, ''), 120)}
+                                </p>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </section>
-              ))}
+                    </section>
+                    
+                    {/* NEW: Add InFeedAd after every 2 topics */}
+                    {(topicIndex + 1) % 2 === 0 && topicIndex !== Object.keys(articlesByTopic).length - 1 && (
+                      <InFeedAd />
+                    )}
+                  </React.Fragment>
+                ))}
+            </div>
+            
+            {/* NEW: Sidebar with Ad */}
+            <aside className="lg:col-span-1 space-y-6">
+              <SidebarAd />
+              
+              {/* You can add more sidebar content here if needed */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <h3 className="font-bold text-gray-900 mb-3">Quick Links</h3>
+                <ul className="space-y-2 text-sm">
+                  <li><Link to="/browse" className="text-orange-600 hover:underline">Browse Articles</Link></li>
+                  <li><Link to="/write" className="text-orange-600 hover:underline">Write Article</Link></li>
+                  <li><Link to="/leaderboard" className="text-orange-600 hover:underline">Leaderboard</Link></li>
+                </ul>
+              </div>
+            </aside>
           </div>
         )}
+
+        {/* Bottom Banner Ad */}
+        <BannerAd position="bottom" />
 
         {/* Bottom CTA for non-logged users */}
         {!user && (

@@ -4,6 +4,8 @@ import { axios } from '../utils/apiUtils';
 import ArticleCard from '../components/ArticleCard';
 import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
 import TrendingOpinions from '../components/TrendingOpinions';
+import SidebarAd from '../components/ads/SidebarAd';
+import InFeedAd from '../components/ads/InFeedAd';
 import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown, Sparkles, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Flame, Eye, MessageCircle } from 'lucide-react';
 
 function BrowseArticles() {
@@ -411,6 +413,9 @@ function BrowseArticles() {
               </div>
               <TrendingOpinions />
             </div>
+
+            {/* NEW: Add Advertisement Here */}
+            <SidebarAd />
           </aside>
 
           {/* Main Content */}
@@ -517,14 +522,19 @@ function BrowseArticles() {
                   ? 'grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6' 
                   : 'flex flex-col gap-4 mb-6'
                 }>
-                  {filteredArticles.map((article) => (
-                    <ArticleCard
-                      key={article.id}
-                      article={article}
-                      counterCount={showCounters ? counterCounts[article.id] || 0 : null}
-                      onClick={handleArticleClick}
-                      viewMode={viewMode}
-                    />
+                  {filteredArticles.map((article, index) => (
+                    <React.Fragment key={article.id}>
+                      <ArticleCard
+                        article={article}
+                        counterCount={showCounters ? counterCounts[article.id] || 0 : null}
+                        onClick={handleArticleClick}
+                        viewMode={viewMode}
+                      />
+                      {/* NEW: Add In-Feed Ad every 6 articles */}
+                      {(index + 1) % 6 === 0 && index !== filteredArticles.length - 1 && (
+                        <InFeedAd className={viewMode === 'grid' ? 'sm:col-span-2' : ''} />
+                      )}
+                    </React.Fragment>
                   ))}
                 </div>
 
