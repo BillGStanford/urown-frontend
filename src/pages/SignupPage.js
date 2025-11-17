@@ -1,16 +1,13 @@
 // pages/SignupPage.js
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useUser } from '../context/UserContext';
-import { Mail, Phone, User, Calendar, Lock, CheckCircle, AlertCircle, ChevronRight, MessageCircle, Info, Gift } from 'lucide-react';
+import { Mail, Phone, User, Calendar, Lock, CheckCircle, AlertCircle, ChevronRight, MessageCircle, Info } from 'lucide-react';
 
 function SignupPage() {
   const { login } = useUser();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const inviteCodeFromUrl = searchParams.get('invite') || '';
-  
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
@@ -20,82 +17,18 @@ function SignupPage() {
     date_of_birth: '',
     password: '',
     confirm_password: '',
-    invite_code: inviteCodeFromUrl.toUpperCase(),
     terms_agreed: false
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showDiscordTooltip, setShowDiscordTooltip] = useState(false);
-  const [inviteCodeValidation, setInviteCodeValidation] = useState({
-    validated: false,
-    valid: false,
-    name: '',
-    description: ''
-  });
-  const [isValidatingInvite, setIsValidatingInvite] = useState(false);
-
-  // Validate invite code on mount if present in URL
-  useEffect(() => {
-    if (inviteCodeFromUrl) {
-      validateInviteCode(inviteCodeFromUrl.toUpperCase());
-    }
-  }, [inviteCodeFromUrl]);
-
-  // Validate invite code
-  const validateInviteCode = async (code) => {
-    if (!code || code.length !== 5) {
-      setInviteCodeValidation({ validated: false, valid: false, name: '', description: '' });
-      return;
-    }
-
-    setIsValidatingInvite(true);
-    try {
-      const response = await axios.get(`/invite-codes/validate/${code}`);
-      setInviteCodeValidation({
-        validated: true,
-        valid: true,
-        name: response.data.name,
-        description: response.data.description
-      });
-      setErrors(prev => ({ ...prev, invite_code: '' }));
-    } catch (error) {
-      setInviteCodeValidation({
-        validated: true,
-        valid: false,
-        name: '',
-        description: ''
-      });
-      if (error.response?.status === 404) {
-        setErrors(prev => ({ ...prev, invite_code: 'Invalid or inactive invite code' }));
-      }
-    } finally {
-      setIsValidatingInvite(false);
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
-    if (name === 'invite_code') {
-      const upperValue = value.toUpperCase();
-      setFormData(prev => ({
-        ...prev,
-        [name]: upperValue
-      }));
-      
-      // Validate invite code when it reaches 5 characters
-      if (upperValue.length === 5) {
-        validateInviteCode(upperValue);
-      } else {
-        setInviteCodeValidation({ validated: false, valid: false, name: '', description: '' });
-      }
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: type === 'checkbox' ? checked : value
-      }));
-    }
-    
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
@@ -117,14 +50,6 @@ function SignupPage() {
 
     if (formData.discord_username && formData.discord_username.trim().length < 2)
       newErrors.discord_username = 'Discord username too short';
-
-    if (formData.invite_code && formData.invite_code.trim().length > 0) {
-      if (formData.invite_code.length !== 5) {
-        newErrors.invite_code = 'Invite code must be exactly 5 characters';
-      } else if (!inviteCodeValidation.valid && inviteCodeValidation.validated) {
-        newErrors.invite_code = 'Invalid or inactive invite code';
-      }
-    }
 
     if (!formData.date_of_birth) {
       newErrors.date_of_birth = 'Date of birth required';
@@ -165,7 +90,6 @@ function SignupPage() {
         discord_username: formData.discord_username || null,
         date_of_birth: formData.date_of_birth,
         password: formData.password,
-        invite_code: formData.invite_code || null,
         terms_agreed: formData.terms_agreed
       });
 
@@ -329,69 +253,6 @@ function SignupPage() {
                   />
                   {errors.date_of_birth && <p className="mt-2 text-red-600 font-semibold">{errors.date_of_birth}</p>}
                 </div>
-              </div>
-            </section>
-
-            {/* Invite Code Section */}
-            <section>
-              <h2 className="text-3xl font-black text-gray-900 mb-6 flex items-center gap-3">
-                <Gift className="w-8 h-8 text-orange-600" />
-                Invite Code (Optional)
-              </h2>
-              <div>
-                <label className="block text-lg font-bold text-gray-900 mb-2">
-                  Have an invite code?
-                </label>
-                <input
-                  type="text"
-                  name="invite_code"
-                  value={formData.invite_code}
-                  onChange={handleChange}
-                  disabled={!!inviteCodeFromUrl}
-                  maxLength={5}
-                  className={`w-full px-5 py-4 rounded-xl border-2 ${
-                    errors.invite_code 
-                      ? 'border-red-500' 
-                      : inviteCodeValidation.valid 
-                      ? 'border-green-500' 
-                      : 'border-gray-300'
-                  } focus:border-orange-600 focus:outline-none transition-all text-lg uppercase ${
-                    inviteCodeFromUrl ? 'bg-gray-100 cursor-not-allowed' : ''
-                  }`}
-                  placeholder="Enter 5-character code"
-                />
-                
-                {isValidatingInvite && (
-                  <p className="mt-2 text-blue-600 font-semibold flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
-                    Validating code...
-                  </p>
-                )}
-                
-                {inviteCodeValidation.validated && inviteCodeValidation.valid && (
-                  <div className="mt-3 p-4 bg-green-50 border-2 border-green-300 rounded-xl">
-                    <p className="text-green-700 font-bold flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5" />
-                      Valid code: {inviteCodeValidation.name}
-                    </p>
-                    {inviteCodeValidation.description && (
-                      <p className="text-green-600 mt-1">{inviteCodeValidation.description}</p>
-                    )}
-                  </div>
-                )}
-                
-                {errors.invite_code && (
-                  <p className="mt-2 text-red-600 font-semibold flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5" />
-                    {errors.invite_code}
-                  </p>
-                )}
-                
-                {inviteCodeFromUrl && (
-                  <p className="mt-2 text-gray-600 text-sm">
-                    This code was provided in your invite link and cannot be changed.
-                  </p>
-                )}
               </div>
             </section>
 
