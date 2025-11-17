@@ -38,6 +38,7 @@ import About from './pages/AboutUsPage';
 import LibraryPage from './pages/LibraryPage';
 import CareerPage from './pages/important/CareersPage';
 import LeaderboardPage from './pages/LeaderboardPage';
+import AdminInviteCodeManagement from './pages/AdminInviteCodeManagement';
 
 import GlobalError from './components/GlobalError';
 
@@ -123,6 +124,10 @@ function AppRoutes() {
   <Route 
   path="/admin/write-article" 
   element={user && (user.role === 'admin' || user.role === 'super-admin') ? <AdminWriteArticle /> : <Navigate to="/" />} 
+/>
+<Route 
+  path="/admin/invite-codes" 
+  element={user && (user.role === 'admin' || user.role === 'super-admin') ? <AdminInviteCodeManagement /> : <Navigate to="/" />} 
 />
           <Route 
             path="/editorial" 
