@@ -20,13 +20,11 @@ import {
   Bell,
   BookOpen,
   Sparkles,
-  FlagIcon,
+  Flag,
   Trophy,
   Home,
   Compass,
   Library,
-  X,
-  MoreHorizontal,
   Grid3X3
 } from 'lucide-react';
 
@@ -116,221 +114,65 @@ function Header({ user, onLogout }) {
     return false;
   }, [location.pathname]);
 
-  // Navigation items with memoization
   const primaryBottomNavLoggedIn = useMemo(() => [
-    {
-      to: '/',
-      icon: Home,
-      label: 'Home',
-      gradient: 'from-blue-500 to-cyan-500',
-      hoverBg: 'hover:bg-blue-50',
-      activeBg: 'bg-blue-50',
-      activeColor: 'text-blue-600'
-    },
-    {
-      to: '/browse',
-      icon: Compass,
-      label: 'Explore',
-      gradient: 'from-purple-500 to-pink-500',
-      hoverBg: 'hover:bg-purple-50',
-      activeBg: 'bg-purple-50',
-      activeColor: 'text-purple-600'
-    },
-    {
-      to: '/write',
-      icon: PenTool,
-      label: 'Write',
-      gradient: 'from-orange-500 via-red-500 to-pink-500',
-      hoverBg: 'hover:bg-orange-50',
-      activeBg: 'bg-orange-50',
-      activeColor: 'text-orange-600',
-      isPrimary: true
-    },
-    {
-      to: '/notifications',
-      icon: Bell,
-      label: 'Alerts',
-      gradient: 'from-amber-500 to-orange-500',
-      hoverBg: 'hover:bg-amber-50',
-      activeBg: 'bg-amber-50',
-      activeColor: 'text-amber-600',
-      badge: unreadCount
-    },
-    {
-      to: '/library',
-      icon: Library,
-      label: 'Library',
-      gradient: 'from-green-500 to-emerald-500',
-      hoverBg: 'hover:bg-green-50',
-      activeBg: 'bg-green-50',
-      activeColor: 'text-green-600'
-    }
+    { to: '/', icon: Home, label: 'Home' },
+    { to: '/browse', icon: Compass, label: 'Explore' },
+    { to: '/write', icon: PenTool, label: 'Write', isPrimary: true },
+    { to: '/notifications', icon: Bell, label: 'Alerts', badge: unreadCount },
+    { to: '/library', icon: Library, label: 'Library' }
   ], [unreadCount]);
 
   const secondaryBottomNavLoggedIn = useMemo(() => [
-    {
-      to: '/ideology-quiz',
-      icon: Sparkles,
-      label: 'Quiz',
-      gradient: 'from-indigo-500 to-purple-500',
-      hoverBg: 'hover:bg-indigo-50',
-      activeBg: 'bg-indigo-50',
-      activeColor: 'text-indigo-600'
-    },
-    {
-      to: '/leaderboard',
-      icon: Trophy,
-      label: 'Ranks',
-      gradient: 'from-yellow-500 to-amber-500',
-      hoverBg: 'hover:bg-yellow-50',
-      activeBg: 'bg-yellow-50',
-      activeColor: 'text-yellow-600'
-    },
-    {
-      to: '/about',
-      icon: Info,
-      label: 'About',
-      gradient: 'from-blue-500 to-cyan-500',
-      hoverBg: 'hover:bg-blue-50',
-      activeBg: 'bg-blue-50',
-      activeColor: 'text-blue-600'
-    },
-    {
-      to: '/contact',
-      icon: Mail,
-      label: 'Contact',
-      gradient: 'from-purple-500 to-pink-500',
-      hoverBg: 'hover:bg-purple-50',
-      activeBg: 'bg-purple-50',
-      activeColor: 'text-purple-600'
-    },
-    {
-      to: '/partners',
-      icon: Globe,
-      label: 'Partners',
-      gradient: 'from-green-500 to-emerald-500',
-      hoverBg: 'hover:bg-green-50',
-      activeBg: 'bg-green-50',
-      activeColor: 'text-green-600'
-    },
-    {
-      to: '/redflagged',
-      icon: FlagIcon,
-      label: 'RedFlagged',
-      gradient: 'from-red-500 to-rose-500',
-      hoverBg: 'hover:bg-red-50',
-      activeBg: 'bg-red-50',
-      activeColor: 'text-red-600'
-    }
+    { to: '/ideology-quiz', icon: Sparkles, label: 'Quiz' },
+    { to: '/leaderboard', icon: Trophy, label: 'Ranks' },
+    { to: '/about', icon: Info, label: 'About' },
+    { to: '/contact', icon: Mail, label: 'Contact' },
+    { to: '/partners', icon: Globe, label: 'Partners' },
+    { to: '/redflagged', icon: Flag, label: 'RedFlagged' }
   ], []);
 
   const primaryBottomNavLoggedOut = useMemo(() => [
-    {
-      to: '/',
-      icon: Home,
-      label: 'Home',
-      gradient: 'from-blue-500 to-cyan-500',
-      hoverBg: 'hover:bg-blue-50',
-      activeBg: 'bg-blue-50',
-      activeColor: 'text-blue-600'
-    },
-    {
-      to: '/browse',
-      icon: Compass,
-      label: 'Explore',
-      gradient: 'from-purple-500 to-pink-500',
-      hoverBg: 'hover:bg-purple-50',
-      activeBg: 'bg-purple-50',
-      activeColor: 'text-purple-600'
-    },
-    {
-      to: '/ideology-quiz',
-      icon: Sparkles,
-      label: 'Quiz',
-      gradient: 'from-indigo-500 to-purple-500',
-      hoverBg: 'hover:bg-indigo-50',
-      activeBg: 'bg-indigo-50',
-      activeColor: 'text-indigo-600'
-    },
-    {
-      to: '/leaderboard',
-      icon: Trophy,
-      label: 'Ranks',
-      gradient: 'from-yellow-500 to-amber-500',
-      hoverBg: 'hover:bg-yellow-50',
-      activeBg: 'bg-yellow-50',
-      activeColor: 'text-yellow-600'
-    }
+    { to: '/', icon: Home, label: 'Home' },
+    { to: '/browse', icon: Compass, label: 'Explore' },
+    { to: '/ideology-quiz', icon: Sparkles, label: 'Quiz' },
+    { to: '/leaderboard', icon: Trophy, label: 'Ranks' }
   ], []);
 
   const secondaryBottomNavLoggedOut = useMemo(() => [
-    {
-      to: '/about',
-      icon: Info,
-      label: 'About',
-      gradient: 'from-blue-500 to-cyan-500',
-      hoverBg: 'hover:bg-blue-50',
-      activeBg: 'bg-blue-50',
-      activeColor: 'text-blue-600'
-    },
-    {
-      to: '/contact',
-      icon: Mail,
-      label: 'Contact',
-      gradient: 'from-purple-500 to-pink-500',
-      hoverBg: 'hover:bg-purple-50',
-      activeBg: 'bg-purple-50',
-      activeColor: 'text-purple-600'
-    },
-    {
-      to: '/partners',
-      icon: Globe,
-      label: 'Partners',
-      gradient: 'from-green-500 to-emerald-500',
-      hoverBg: 'hover:bg-green-50',
-      activeBg: 'bg-green-50',
-      activeColor: 'text-green-600'
-    },
-    {
-      to: '/redflagged',
-      icon: FlagIcon,
-      label: 'RedFlagged',
-      gradient: 'from-red-500 to-rose-500',
-      hoverBg: 'hover:bg-red-50',
-      activeBg: 'bg-red-50',
-      activeColor: 'text-red-600'
-    }
+    { to: '/about', icon: Info, label: 'About' },
+    { to: '/contact', icon: Mail, label: 'Contact' },
+    { to: '/partners', icon: Globe, label: 'Partners' },
+    { to: '/redflagged', icon: Flag, label: 'RedFlagged' }
   ], []);
 
-  // Memoized sidebar navigation items
   const sidebarNavItems = useMemo(() => {
     const items = [
-      { to: '/browse', icon: Search, label: 'Browse', color: 'orange' },
-      { to: '/ideology-quiz', icon: Sparkles, label: 'Ideology Quiz', color: 'purple', isNew: true },
-      { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', color: 'yellow' },
-      { to: '/about', icon: Info, label: 'About', color: 'blue' },
-      { to: '/partners', icon: Globe, label: 'Partners', color: 'green' },
-      { to: '/contact', icon: Mail, label: 'Contact', color: 'purple' },
-      { to: '/redflagged', icon: FlagIcon, label: 'RedFlagged', color: 'red' }
+      { to: '/browse', icon: Search, label: 'Browse' },
+      { to: '/ideology-quiz', icon: Sparkles, label: 'Ideology Quiz', isNew: true },
+      { to: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
+      { to: '/about', icon: Info, label: 'About' },
+      { to: '/partners', icon: Globe, label: 'Partners' },
+      { to: '/contact', icon: Mail, label: 'Contact' },
+      { to: '/redflagged', icon: Flag, label: 'RedFlagged' }
     ];
     
     if (user) {
       items.push(
-        { to: '/library', icon: BookOpen, label: 'Library', color: 'green' },
-        { to: `/user/${encodeURIComponent(user.display_name)}`, icon: User, label: 'Profile', color: 'orange' },
-        { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', color: 'indigo' },
-        { to: '/settings', icon: Settings, label: 'Settings', color: 'gray' }
+        { to: '/library', icon: BookOpen, label: 'Library' },
+        { to: `/user/${encodeURIComponent(user.display_name)}`, icon: User, label: 'Profile' },
+        { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { to: '/settings', icon: Settings, label: 'Settings' }
       );
     }
     
     if (isEditorialOrAdmin) {
-      items.push({ to: '/editorial', icon: FileText, label: 'Editorial Board', color: 'blue' });
+      items.push({ to: '/editorial', icon: FileText, label: 'Editorial Board' });
     }
     
     if (isAdmin) {
       items.push(
-        { to: '/admin', icon: Shield, label: 'Admin Panel', color: 'red' },
-        { to: '/admin/reported-articles', icon: FileText, label: 'View Reports', color: 'red' }
+        { to: '/admin', icon: Shield, label: 'Admin Panel' },
+        { to: '/admin/reported-articles', icon: FileText, label: 'View Reports' }
       );
     }
     
@@ -339,67 +181,63 @@ function Header({ user, onLogout }) {
 
   return (
     <>
-      {/* Sidebar Overlay - Desktop Only */}
+      {/* Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 hidden md:block"
+          className="fixed inset-0 bg-black/20 z-40 hidden md:block"
           onClick={closeSidebar}
         />
       )}
 
-      {/* Sidebar - Desktop Only */}
+      {/* Sidebar */}
       <aside 
         ref={sidebarRef}
-        className={`fixed left-0 h-screen bg-white/95 backdrop-blur-xl border-r border-gray-200/50 transition-all duration-500 ease-out z-50 w-80 hidden md:block ${
+        className={`fixed left-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 ease-in-out z-50 w-72 hidden md:block ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
-        style={{ top: scrolled ? '64px' : '72px' }}
+        style={{ top: '64px' }}
       >
-        <div className="flex flex-col h-full overflow-y-auto pb-6">
-          {/* Navigation Section */}
-          <nav className="py-6 px-4">
-            <div className="space-y-2">
-              {sidebarNavItems.map((item, index) => {
+        <div className="flex flex-col h-full overflow-y-auto">
+          <nav className="py-4 px-3">
+            <div className="space-y-1">
+              {sidebarNavItems.map((item) => {
                 const Icon = item.icon;
-                const colorClass = `${item.color}-100`;
-                const hoverColorClass = `hover:bg-${item.color}-50`;
-                const hoverTextClass = `hover:text-${item.color}-600`;
+                const active = isActive(item.to);
                 
                 return (
                   <Link 
                     key={item.to}
                     to={item.to} 
-                    className={`flex items-center gap-4 px-5 py-4 text-gray-700 ${hoverColorClass} ${hoverTextClass} rounded-2xl transition-all duration-300 group`}
+                    className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors font-bold ${
+                      active 
+                        ? 'bg-orange-50 text-orange-600' 
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
                     onClick={closeSidebar}
                   >
-                    <div className={`w-12 h-12 ${colorClass} group-hover:bg-${item.color}-200 rounded-xl flex items-center justify-center transition-colors duration-300`}>
-                      <Icon className="h-7 w-7" strokeWidth={2.5} />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold">{item.label}</span>
-                      {item.isNew && (
-                        <span className="px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">NEW</span>
-                      )}
-                    </div>
+                    <Icon className="h-5 w-5" strokeWidth={2} />
+                    <span className="text-sm">{item.label}</span>
+                    {item.isNew && (
+                      <span className="ml-auto px-2 py-0.5 text-xs font-bold bg-orange-100 text-orange-600 rounded">
+                        NEW
+                      </span>
+                    )}
                   </Link>
                 );
               })}
             </div>
           </nav>
 
-          {/* Logout Section */}
           {user && (
             <>
-              <div className="my-4 h-px bg-gray-200" />
-              <div className="py-4 px-4">
+              <div className="my-2 h-px bg-gray-200 mx-3" />
+              <div className="py-2 px-3">
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-4 w-full px-5 py-4 text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-300 group"
+                  className="flex items-center gap-3 w-full px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-bold"
                 >
-                  <div className="w-12 h-12 bg-red-100 group-hover:bg-red-200 rounded-xl flex items-center justify-center transition-colors duration-300">
-                    <LogOut className="h-7 w-7" strokeWidth={2.5} />
-                  </div>
-                  <span className="text-lg font-bold">Log out</span>
+                  <LogOut className="h-5 w-5" strokeWidth={2} />
+                  <span className="text-sm">Log out</span>
                 </button>
               </div>
             </>
@@ -408,173 +246,154 @@ function Header({ user, onLogout }) {
       </aside>
 
       {/* Top Header */}
-      <header className={`sticky top-0 z-40 transition-all duration-300 ${
+      <header className={`sticky top-0 z-40 transition-all duration-200 ${
         scrolled 
-          ? 'bg-white/80 backdrop-blur-xl shadow-lg border-b border-gray-200/50' 
-          : 'bg-white/90 backdrop-blur-lg border-b border-gray-100/50'
+          ? 'bg-white shadow-sm border-b border-gray-200' 
+          : 'bg-white border-b border-gray-200'
       }`}>
-        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-18 lg:h-20">
-            {/* Left - Menu Button (Desktop Only) + Logo */}
-            <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
-              {/* Menu Button - Desktop Only */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Left Section */}
+            <div className="flex items-center gap-3">
               <button
                 onClick={toggleSidebar}
                 data-sidebar-toggle
-                className="hidden md:block p-2.5 lg:p-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-600 focus:outline-none transition-all duration-300"
+                className="hidden md:flex p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
                 aria-label="Toggle menu"
                 aria-expanded={isSidebarOpen}
               >
-                <Menu className="h-6 w-6 lg:h-7 lg:w-7" strokeWidth={2.5} />
+                <Menu className="h-5 w-5" strokeWidth={2} />
               </button>
 
-              <Link to="/" className="flex items-center gap-2 lg:gap-3">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-lg">
-                  <Flame className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-white" />
+              <Link to="/" className="flex items-center gap-2.5">
+                <div className="w-9 h-9 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                  <Flame className="h-5 w-5 text-white" />
                 </div>
-                <div className="hidden sm:flex flex-col">
-                  <span className="text-xl sm:text-2xl lg:text-3xl font-black bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent tracking-tight">
-                    UROWN
-                  </span>
-                  <span className="text-[8px] sm:text-[9px] lg:text-xs text-gray-600 font-bold tracking-wider uppercase -mt-0.5 lg:-mt-1">
-                    Your Voice Matters
-                  </span>
+                <div className="hidden sm:block">
+                  <div className="text-xl font-black text-gray-900">UROWN</div>
+                  <div className="text-xs text-gray-500 font-bold -mt-0.5">Your Voice Matters</div>
                 </div>
               </Link>
             </div>
 
-            {/* Right - Actions */}
-            <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+            {/* Right Section */}
+            <div className="flex items-center gap-2">
               {user ? (
                 <>
-                  {/* Notifications - Desktop Only */}
-                  <div className="hidden sm:block relative">
-                    <Link 
-                      to="/notifications" 
-                      className="relative p-2.5 lg:p-3 hover:bg-amber-50 rounded-xl transition-all duration-300"
-                      title="Notifications"
-                    >
-                      <Bell className="h-5 w-5 lg:h-6 lg:w-6 text-gray-700" strokeWidth={2.5} />
-                      {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-md">
-                          {unreadCount > 9 ? '9+' : unreadCount}
-                        </span>
-                      )}
-                    </Link>
-                  </div>
+                  {/* Notifications */}
+                  <Link 
+                    to="/notifications" 
+                    className="hidden sm:flex relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    title="Notifications"
+                  >
+                    <Bell className="h-5 w-5 text-gray-600" strokeWidth={2} />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </Link>
 
-                  {/* Write Button - Desktop Only */}
+                  {/* Write Button */}
                   <Link 
                     to="/write" 
-                    className="hidden sm:flex items-center gap-2 px-4 sm:px-5 lg:px-6 py-2.5 lg:py-3 text-sm lg:text-base font-black text-white bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 rounded-xl lg:rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                    className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-black text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
                   >
-                    <PenTool className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={3} />
-                    <span className="hidden md:inline">Write</span>
+                    <PenTool className="h-4 w-4" strokeWidth={2} />
+                    <span>Write</span>
                   </Link>
 
-                  {/* Browse Button - Desktop Only */}
+                  {/* Browse Button */}
                   <Link 
                     to="/browse" 
-                    className="hidden sm:flex items-center gap-2 px-4 sm:px-5 lg:px-6 py-2.5 lg:py-3 text-sm lg:text-base font-black text-white bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 rounded-xl lg:rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                    className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-black text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
-                    <Compass className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={3} />
-                    <span className="hidden md:inline">Browse</span>
+                    <Compass className="h-4 w-4" strokeWidth={2} />
+                    <span>Browse</span>
                   </Link>
 
-                  {/* User Dropdown */}
+                  {/* User Menu */}
                   <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={toggleUserDropdown}
-                      className="flex items-center gap-2 sm:gap-3 lg:gap-4 px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 hover:bg-gray-50 rounded-xl lg:rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 rounded-lg transition-colors"
                       aria-expanded={isUserDropdownOpen}
                       aria-haspopup="true"
                       aria-label="User menu"
                     >
-                      <div className="h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-white text-sm sm:text-base lg:text-base font-black shadow-md">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white text-sm font-black">
                         {user.display_name.charAt(0).toUpperCase()}
                       </div>
-                      <span className="hidden lg:block max-w-[100px] xl:max-w-[120px] truncate font-bold text-gray-800 text-sm lg:text-base">
+                      <span className="hidden lg:block max-w-[100px] truncate font-bold text-gray-900 text-sm">
                         {user.display_name}
                       </span>
-                      <ChevronDown className={`hidden lg:block h-4 w-4 lg:h-5 lg:w-5 text-gray-600 transition-transform duration-300 ${isUserDropdownOpen ? 'rotate-180' : ''}`} strokeWidth={2.5} />
+                      <ChevronDown className={`hidden lg:block h-4 w-4 text-gray-500 transition-transform ${
+                        isUserDropdownOpen ? 'rotate-180' : ''
+                      }`} strokeWidth={2} />
                     </button>
 
                     {isUserDropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-56 lg:w-64 bg-white/95 backdrop-blur-xl rounded-xl lg:rounded-2xl shadow-2xl border border-gray-100/50 overflow-hidden">
-                        <div className="py-2">
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                        <div className="py-1">
                           <Link
                             to={`/user/${encodeURIComponent(user.display_name)}`}
-                            className="flex items-center gap-3 px-4 lg:px-5 py-3 text-sm font-bold text-gray-800 hover:bg-orange-50 transition-all duration-150"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50"
                             onClick={() => setIsUserDropdownOpen(false)}
                           >
-                            <div className="w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-r from-orange-100 to-red-100 rounded-xl flex items-center justify-center">
-                              <User className="h-5 w-5 text-orange-600" strokeWidth={2.5} />
-                            </div>
+                            <User className="h-4 w-4" strokeWidth={2} />
                             <span>Profile</span>
                           </Link>
 
                           <Link
                             to="/dashboard"
-                            className="flex items-center gap-3 px-4 lg:px-5 py-3 text-sm font-bold text-gray-800 hover:bg-indigo-50 transition-all duration-150"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50"
                             onClick={() => setIsUserDropdownOpen(false)}
                           >
-                            <div className="w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-r from-indigo-100 to-blue-100 rounded-xl flex items-center justify-center">
-                              <LayoutDashboard className="h-5 w-5 text-indigo-600" strokeWidth={2.5} />
-                            </div>
+                            <LayoutDashboard className="h-4 w-4" strokeWidth={2} />
                             <span>Dashboard</span>
                           </Link>
 
                           <Link
                             to="/settings"
-                            className="flex items-center gap-3 px-4 lg:px-5 py-3 text-sm font-bold text-gray-800 hover:bg-gray-100 transition-all duration-150"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50"
                             onClick={() => setIsUserDropdownOpen(false)}
                           >
-                            <div className="w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-r from-gray-100 to-slate-100 rounded-xl flex items-center justify-center">
-                              <Settings className="h-5 w-5 text-gray-600" strokeWidth={2.5} />
-                            </div>
+                            <Settings className="h-4 w-4" strokeWidth={2} />
                             <span>Settings</span>
                           </Link>
 
                           {isEditorialOrAdmin && (
                             <>
-                              <div className="my-2 h-px bg-gray-200" />
+                              <div className="my-1 h-px bg-gray-200" />
                               <Link
                                 to="/editorial"
-                                className="flex items-center gap-3 px-4 lg:px-5 py-3 text-sm font-bold text-gray-800 hover:bg-blue-50 transition-all duration-150"
+                                className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50"
                                 onClick={() => setIsUserDropdownOpen(false)}
                               >
-                                <div className="w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-xl flex items-center justify-center">
-                                  <FileText className="h-5 w-5 text-blue-600" strokeWidth={2.5} />
-                                </div>
+                                <FileText className="h-4 w-4" strokeWidth={2} />
                                 <span>Editorial Board</span>
                               </Link>
                             </>
                           )}
 
                           {isAdmin && (
-                            <>
-                              <Link
-                                to="/admin"
-                                className="flex items-center gap-3 px-4 lg:px-5 py-3 text-sm font-bold text-gray-800 hover:bg-red-50 transition-all duration-150"
-                                onClick={() => setIsUserDropdownOpen(false)}
-                              >
-                                <div className="w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-r from-red-100 to-pink-100 rounded-xl flex items-center justify-center">
-                                  <Shield className="h-5 w-5 text-red-600" strokeWidth={2.5} />
-                                </div>
-                                <span>Admin Panel</span>
-                              </Link>
-                            </>
+                            <Link
+                              to="/admin"
+                              className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50"
+                              onClick={() => setIsUserDropdownOpen(false)}
+                            >
+                              <Shield className="h-4 w-4" strokeWidth={2} />
+                              <span>Admin Panel</span>
+                            </Link>
                           )}
 
-                          <div className="my-2 h-px bg-gray-200" />
+                          <div className="my-1 h-px bg-gray-200" />
 
                           <button
                             onClick={handleLogout}
-                            className="flex items-center gap-3 w-full px-4 lg:px-5 py-3 text-sm font-bold text-red-600 hover:bg-red-50 transition-all duration-150"
+                            className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 text-left"
                           >
-                            <div className="w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-r from-red-100 to-rose-100 rounded-xl flex items-center justify-center">
-                              <LogOut className="h-5 w-5 text-red-600" strokeWidth={2.5} />
-                            </div>
+                            <LogOut className="h-4 w-4" strokeWidth={2} />
                             <span>Log out</span>
                           </button>
                         </div>
@@ -586,13 +405,13 @@ function Header({ user, onLogout }) {
                 <>
                   <Link 
                     to="/login" 
-                    className="px-4 sm:px-5 lg:px-6 py-2.5 lg:py-3 text-sm lg:text-base font-black text-gray-800 hover:bg-gray-100 rounded-xl lg:rounded-2xl transition-all duration-300"
+                    className="px-4 py-2 text-sm font-black text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                   >
                     Log in
                   </Link>
                   <Link 
                     to="/signup" 
-                    className="px-4 sm:px-5 lg:px-6 py-2.5 lg:py-3 text-sm lg:text-base font-black text-white bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 rounded-xl lg:rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                    className="px-4 py-2 text-sm font-black text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
                   >
                     Sign up
                   </Link>
@@ -603,10 +422,9 @@ function Header({ user, onLogout }) {
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation - Primary Items Only */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-200/50 shadow-2xl pb-safe">
-        <div className="flex items-center justify-around h-16">
-          {/* Primary Navigation Items */}
+      {/* Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-gray-200">
+        <div className="flex items-center justify-around h-16 px-2">
           {(user ? primaryBottomNavLoggedIn : primaryBottomNavLoggedOut).map((item) => {
             const Icon = item.icon;
             const active = isActive(item.to);
@@ -615,58 +433,39 @@ function Header({ user, onLogout }) {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`relative flex flex-col items-center justify-center flex-1 h-full transition-all duration-300 ${
-                  active ? item.activeBg : item.hoverBg
-                }`}
+                className="flex flex-col items-center justify-center flex-1 h-full"
               >
                 {item.isPrimary ? (
-                  <div className={`relative flex flex-col items-center justify-center transition-all duration-300 transform active:scale-95 ${
-                    active ? 'scale-110' : 'hover:scale-105'
-                  }`}>
-                    <div className={`absolute inset-0 bg-gradient-to-r ${item.gradient} rounded-2xl blur-xl opacity-50 ${
-                      active ? 'opacity-75' : ''
-                    }`} />
-                    <div className={`relative bg-gradient-to-r ${item.gradient} p-3 rounded-2xl shadow-lg ${
-                      active ? 'shadow-xl ring-4 ring-white/50' : ''
-                    }`}>
-                      <Icon className="h-6 w-6 text-white" strokeWidth={3} />
+                  <div className="flex flex-col items-center">
+                    <div className="bg-orange-500 p-2.5 rounded-xl">
+                      <Icon className="h-5 w-5 text-white" strokeWidth={2.5} />
                     </div>
                     <span className="text-xs font-black mt-1 text-gray-700">Write</span>
                   </div>
                 ) : (
                   <>
-                    <div className={`relative transition-all duration-300 transform active:scale-95 ${
-                      active ? 'scale-110' : 'hover:scale-105'
-                    }`}>
-                      {active && (
-                        <div className={`absolute inset-0 bg-gradient-to-r ${item.gradient} rounded-xl blur-md opacity-30`} />
-                      )}
-                      <Icon className={`h-6 w-6 relative transition-colors duration-300 ${
-                        active ? item.activeColor : 'text-gray-600'
-                      }`} strokeWidth={active ? 3 : 2.5} />
+                    <div className="relative">
+                      <Icon className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} strokeWidth={2} />
                       {item.badge && item.badge > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold shadow-sm">
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold">
                           {item.badge > 9 ? '9+' : item.badge}
                         </span>
                       )}
                     </div>
-                    <span className={`text-xs font-bold mt-1 transition-colors duration-300 ${
-                      active ? item.activeColor : 'text-gray-600'
-                    }`}>{item.label}</span>
+                    <span className={`text-xs font-bold mt-1 ${active ? 'text-orange-500' : 'text-gray-600'}`}>
+                      {item.label}
+                    </span>
                   </>
                 )}
               </Link>
             );
           })}
 
-          {/* More Button */}
           <button
             onClick={toggleMobileMenu}
-            className="relative flex flex-col items-center justify-center flex-1 h-full transition-all duration-300 hover:bg-gray-50"
+            className="flex flex-col items-center justify-center flex-1 h-full"
           >
-            <div className={`relative transition-all duration-300 transform active:scale-95 hover:scale-105`}>
-              <Grid3X3 className="h-6 w-6 text-gray-600" strokeWidth={2.5} />
-            </div>
+            <Grid3X3 className="h-6 w-6 text-gray-500" strokeWidth={2} />
             <span className="text-xs font-bold mt-1 text-gray-600">More</span>
           </button>
         </div>
@@ -676,13 +475,13 @@ function Header({ user, onLogout }) {
       {isMobileMenuOpen && (
         <>
           <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+            className="fixed inset-0 bg-black/20 z-40 md:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           />
-          <div className="fixed bottom-16 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-200/50 shadow-2xl z-50 md:hidden rounded-t-3xl">
+          <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden rounded-t-2xl">
             <div className="p-4">
               <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4" />
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-3">
                 {(user ? secondaryBottomNavLoggedIn : secondaryBottomNavLoggedOut).map((item) => {
                   const Icon = item.icon;
                   const active = isActive(item.to);
@@ -692,23 +491,14 @@ function Header({ user, onLogout }) {
                       key={item.to}
                       to={item.to}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`flex flex-col items-center justify-center p-4 rounded-2xl transition-all duration-300 ${
-                        active ? item.activeBg : item.hoverBg
+                      className={`flex flex-col items-center justify-center p-4 rounded-lg ${
+                        active ? 'bg-orange-50' : 'hover:bg-gray-50'
                       }`}
                     >
-                      <div className={`relative transition-all duration-300 transform active:scale-95 ${
-                        active ? 'scale-110' : 'hover:scale-105'
-                      }`}>
-                        {active && (
-                          <div className={`absolute inset-0 bg-gradient-to-r ${item.gradient} rounded-xl blur-md opacity-30`} />
-                        )}
-                        <Icon className={`h-8 w-8 relative transition-colors duration-300 ${
-                          active ? item.activeColor : 'text-gray-600'
-                        }`} strokeWidth={active ? 3 : 2.5} />
-                      </div>
-                      <span className={`text-xs font-bold mt-2 transition-colors duration-300 ${
-                        active ? item.activeColor : 'text-gray-600'
-                      }`}>{item.label}</span>
+                      <Icon className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-600'}`} strokeWidth={2} />
+                      <span className={`text-xs font-bold mt-2 ${active ? 'text-orange-500' : 'text-gray-700'}`}>
+                        {item.label}
+                      </span>
                     </Link>
                   );
                 })}
@@ -718,7 +508,6 @@ function Header({ user, onLogout }) {
         </>
       )}
 
-      {/* Add padding to content to account for fixed bottom nav on mobile */}
       <div className="md:hidden h-16" />
     </>
   );
