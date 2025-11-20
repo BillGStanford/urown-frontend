@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useUser } from '../context/UserContext';
+import { useUser } from '../../context/UserContext';
 import { ArrowLeft, Save, AlertCircle, Clock, MessageSquare } from 'lucide-react';
 
 function CreateDebateTopic() {

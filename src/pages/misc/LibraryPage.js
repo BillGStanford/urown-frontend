@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useUser } from '../context/UserContext';
+import { useUser } from '../../context/UserContext';
 import { 
   BookmarkPlus, 
   Clock, 

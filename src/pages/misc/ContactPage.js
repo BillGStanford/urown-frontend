@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useUser } from '../context/UserContext';
+import { useUser } from '../../context/UserContext';
 import { Mail, Phone, User, Send, Lock } from 'lucide-react';
 
 function ContactPage() {

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { axios } from '../utils/apiUtils';
-import ArticleCard from '../components/ArticleCard';
-import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
-import TrendingOpinions from '../components/TrendingOpinions';
-import SidebarAd from '../components/ads/SidebarAd';
-import InFeedAd from '../components/ads/InFeedAd';
+import { axios } from '../../utils/apiUtils';
+import ArticleCard from '../../components/ArticleCard';
+import { fetchWithRetry, getCachedData, setCachedData } from '../../utils/apiUtils';
+import TrendingOpinions from '../../components/TrendingOpinions';
+import SidebarAd from '../../components/ads/SidebarAd';
+import InFeedAd from '../../components/ads/InFeedAd';
 import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown, Sparkles, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Flame, Eye, MessageCircle } from 'lucide-react';
 
 function BrowseArticles() {

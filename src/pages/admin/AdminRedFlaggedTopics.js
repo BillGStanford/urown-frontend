@@ -5,7 +5,7 @@ import {
   updateTopic, 
   deleteTopic, 
   toggleTopicActive 
-} from '../utils/redFlaggedApi';
+} from '../../utils/redFlaggedApi';
 
 const AdminRedFlaggedTopics = () => {
   const [topics, setTopics] = useState([]);

@@ -1,8 +1,8 @@
 // pages/AdminDashboard.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useUser } from '../context/UserContext';
-import { fetchWithDeduplication, createApiRequest } from '../utils/apiUtils';
+import { useUser } from '../../context/UserContext';
+import { fetchWithDeduplication, createApiRequest } from '../../utils/apiUtils';
 import { 
   Chart as ChartJS,
   CategoryScale,

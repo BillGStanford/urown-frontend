@@ -8,9 +8,9 @@ import {
   getRatingColor,
   EXPERIENCE_TYPES,
   SORT_OPTIONS
-} from '../utils/redFlaggedApi';
-import SidebarAd from '../components/ads/SidebarAd';
-import InFeedAd from '../components/ads/InFeedAd';
+} from '../../utils/redFlaggedApi';
+import SidebarAd from '../../components/ads/SidebarAd';
+import InFeedAd from '../../components/ads/InFeedAd';
 
 const BrowseRedFlaggedPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();

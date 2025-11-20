@@ -1,8 +1,8 @@
 // src/pages/WriteRedFlaggedPage.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useUser } from '../context/UserContext';
-import { createRedFlaggedPost, fetchActiveTopics } from '../utils/redFlaggedApi';
+import { useUser } from '../../context/UserContext';
+import { createRedFlaggedPost, fetchActiveTopics } from '../../utils/redFlaggedApi';
 
 const WriteRedFlaggedPage = () => {
   const navigate = useNavigate();

@@ -1,7 +1,7 @@
 // ContactDashboard.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useUser } from '../context/UserContext';
+import { useUser } from '../../context/UserContext';
 import { Mail, Phone, User, Filter, Trash2, CheckCircle, Clock, AlertCircle, MessageSquare, Eye, X } from 'lucide-react';
 
 function ContactDashboard() {

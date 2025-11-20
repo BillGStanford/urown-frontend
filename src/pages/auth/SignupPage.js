@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useUser } from '../context/UserContext';
+import { useUser } from '../../context/UserContext';
 import { Mail, Phone, User, Calendar, Lock, CheckCircle, AlertCircle, ChevronRight, MessageCircle, Info } from 'lucide-react';
 
 function SignupPage() {

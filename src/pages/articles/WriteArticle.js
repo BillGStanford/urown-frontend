@@ -1,9 +1,9 @@
 // pages/WriteArticle.js (Updated)
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { axios } from '../utils/apiUtils';
-import { useUser } from '../context/UserContext';
-import RichTextEditor from '../components/RichTextEditor';
+import { axios } from '../../utils/apiUtils';
+import { useUser } from '../../context/UserContext';
+import RichTextEditor from '../../components/RichTextEditor';
 import { Moon, Sun, Save, FileText, Send, Trash2, Lightbulb, CheckCircle, AlertCircle } from 'lucide-react';
 
 function WriteArticle() {

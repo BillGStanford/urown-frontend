@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { fetchWithRetry, getCachedData, setCachedData } from '../utils/apiUtils';
-import { useUser } from '../context/UserContext';
-import BannerAd from '../components/ads/BannerAd';
-import SidebarAd from '../components/ads/SidebarAd';
-import InFeedAd from '../components/ads/InFeedAd';
+import { fetchWithRetry, getCachedData, setCachedData } from '../../utils/apiUtils';
+import { useUser } from '../../context/UserContext';
+import BannerAd from '../../components/ads/BannerAd';
+import SidebarAd from '../../components/ads/SidebarAd';
+import InFeedAd from '../../components/ads/InFeedAd';
 import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Sparkles, Medal } from 'lucide-react';
 
 function HomePage() {

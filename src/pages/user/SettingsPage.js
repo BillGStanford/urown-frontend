@@ -1,7 +1,7 @@
 // pages/SettingsPage.js
 import React, { useState, useEffect, useCallback } from 'react';
-import { useUser } from '../context/UserContext';
-import { createApiRequest } from '../utils/apiUtils';
+import { useUser } from '../../context/UserContext';
+import { createApiRequest } from '../../utils/apiUtils';
 
 function SettingsPage() {
   const { user, updateUser } = useUser();

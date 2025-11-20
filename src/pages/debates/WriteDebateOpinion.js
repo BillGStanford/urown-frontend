@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { useUser } from '../context/UserContext';
+import { useUser } from '../../context/UserContext';
 import { ArrowLeft, Save, AlertCircle, Shield, User, Clock, Edit, Flame } from 'lucide-react';
 
 function WriteDebateOpinion() {

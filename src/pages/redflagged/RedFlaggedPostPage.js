@@ -1,14 +1,14 @@
 // src/pages/RedFlaggedPostPage.js
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useUser } from '../context/UserContext';
+import { useUser } from '../../context/UserContext';
 import { 
   fetchRedFlaggedPost, 
   addReaction, 
   getMyReactions, 
   addComment, 
   fetchRelatedPosts 
-} from '../utils/redFlaggedApi';
+} from '../../utils/redFlaggedApi';
 
 const RedFlaggedPostPage = () => {
   const { id } = useParams();

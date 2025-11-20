@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PenTool, AlertCircle, CheckCircle, X, ArrowLeft } from 'lucide-react';
-import { fetchWithDeduplication, createApiRequest, validateUserSession } from '../utils/apiUtils';
+import { fetchWithDeduplication, createApiRequest, validateUserSession } from '../../utils/apiUtils';
 
 function AdminWriteArticle() {
   const navigate = useNavigate();

@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import ArticleCard from '../components/ArticleCard';
-import { useUser } from '../context/UserContext';
+import ArticleCard from '../../components/ArticleCard';
+import { useUser } from '../../context/UserContext';
 import { ArrowLeft, Clock, Users, Edit, Trophy, MessageSquare, Flame, Award, AlertCircle, Shield } from 'lucide-react';
 
 function DebateCategoryPage() {
