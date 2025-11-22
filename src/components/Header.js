@@ -145,39 +145,40 @@ function Header({ user, onLogout }) {
     { to: '/redflagged', icon: Flag, label: 'RedFlagged' }
   ], []);
 
-  const sidebarNavItems = useMemo(() => {
-    const items = [
-      { to: '/browse', icon: Search, label: 'Browse' },
-      { to: '/ideology-quiz', icon: Sparkles, label: 'Ideology Quiz', isNew: true },
-      { to: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
-      { to: '/about', icon: Info, label: 'About' },
-      { to: '/partners', icon: Globe, label: 'Partners' },
-      { to: '/contact', icon: Mail, label: 'Contact' },
-      { to: '/redflagged', icon: Flag, label: 'RedFlagged' }
-    ];
+const sidebarNavItems = useMemo(() => {
+  const items = [
+    { to: '/browse', icon: Search, label: 'Browse' },
+    { to: '/ebooks', icon: BookOpen, label: 'E-Books', isNew: true }, // ADD THIS LINE
+    { to: '/ideology-quiz', icon: Sparkles, label: 'Ideology Quiz', isNew: true },
+    { to: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
+    { to: '/about', icon: Info, label: 'About' },
+    { to: '/partners', icon: Globe, label: 'Partners' },
+    { to: '/contact', icon: Mail, label: 'Contact' },
+    { to: '/redflagged', icon: Flag, label: 'RedFlagged' }
+  ];
     
-    if (user) {
-      items.push(
-        { to: '/library', icon: BookOpen, label: 'Library' },
-        { to: `/user/${encodeURIComponent(user.display_name)}`, icon: User, label: 'Profile' },
-        { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-        { to: '/settings', icon: Settings, label: 'Settings' }
-      );
-    }
+  if (user) {
+    items.push(
+      { to: '/library', icon: BookOpen, label: 'Library' },
+      { to: `/user/${encodeURIComponent(user.display_name)}`, icon: User, label: 'Profile' },
+      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { to: '/settings', icon: Settings, label: 'Settings' }
+    );
+  }
     
-    if (isEditorialOrAdmin) {
-      items.push({ to: '/editorial', icon: FileText, label: 'Editorial Board' });
-    }
+  if (isEditorialOrAdmin) {
+    items.push({ to: '/editorial', icon: FileText, label: 'Editorial Board' });
+  }
     
-    if (isAdmin) {
-      items.push(
-        { to: '/admin', icon: Shield, label: 'Admin Panel' },
-        { to: '/admin/reported-articles', icon: FileText, label: 'View Reports' }
-      );
-    }
+  if (isAdmin) {
+    items.push(
+      { to: '/admin', icon: Shield, label: 'Admin Panel' },
+      { to: '/admin/reported-articles', icon: FileText, label: 'View Reports' }
+    );
+  }
     
     return items;
-  }, [user, isEditorialOrAdmin, isAdmin]);
+}, [user, isEditorialOrAdmin, isAdmin]);
 
   return (
     <>
