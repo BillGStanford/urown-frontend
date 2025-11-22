@@ -38,6 +38,13 @@ import About from './pages/misc/AboutUsPage';
 import LibraryPage from './pages/misc/LibraryPage';
 import CareerPage from './pages/info/CareersPage';
 import LeaderboardPage from './pages/misc/LeaderboardPage';
+import BrowseEbooksPage from './pages/ebooks/BrowseEbooksPage';
+import WriteEbookPage from './pages/ebooks/WriteEbookPage';
+import WriteEbookChapterPage from './pages/ebooks/WriteEbookChapterPage';
+import EbookPage from './pages/ebooks/EbookPage';
+import ReadEbookChapterPage from './pages/ebooks/ReadEbookChapterPage';
+import UserEbooksPage from './pages/ebooks/UserEbooksPage';
+import EditEbookPage from './pages/ebooks/EditEbookPage';
 
 import GlobalError from './components/GlobalError';
 
@@ -84,6 +91,14 @@ function AppRoutes() {
           <Route path="/debate/:id" element={<DebateCategoryPage />} />
           <Route path="/debate/:id/write" element={<WriteDebateOpinion />} />
             <Route path="/user/:display_name" element={<UserProfile />} />
+            <Route path="/ebooks" element={<BrowseEbooksPage />} />
+<Route path="/ebooks/write" element={user ? <WriteEbookPage /> : <Navigate to="/login" />} />
+<Route path="/ebooks/write/:ebookId/chapter" element={user ? <WriteEbookChapterPage /> : <Navigate to="/login" />} />
+<Route path="/ebooks/:id" element={<EbookPage />} />
+<Route path="/ebooks/:id/read" element={<ReadEbookChapterPage />} />
+<Route path="/ebooks/:id/read/:chapterId" element={<ReadEbookChapterPage />} />
+<Route path="/user/:username/ebooks" element={<UserEbooksPage />} />
+<Route path="/ebooks/edit/:id" element={user ? <EditEbookPage /> : <Navigate to="/login" />} />
           <Route 
             path="/signup" 
             element={user ? <Navigate to="/dashboard" /> : <SignupPage />} 
