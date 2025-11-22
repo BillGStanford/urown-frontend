@@ -13,6 +13,7 @@ const EbookPage = () => {
   const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [readingProgress, setReadingProgress] = useState(null);
+  const [expandedChapter, setExpandedChapter] = useState(null);
 
   useEffect(() => {
     fetchEbookDetails();
@@ -61,6 +62,10 @@ const EbookPage = () => {
 
   const handleEdit = () => {
     navigate(`/ebooks/edit/${id}`);
+  };
+
+  const toggleChapterPreview = (chapterId) => {
+    setExpandedChapter(expandedChapter === chapterId ? null : chapterId);
   };
 
   if (loading) {
@@ -233,21 +238,51 @@ const EbookPage = () => {
                   {chapters.map((chapter, index) => (
                     <div
                       key={chapter.id}
-                      onClick={handleStartReading}
-                      className="p-4 hover:bg-gray-50 rounded-lg cursor-pointer transition border border-transparent hover:border-gray-200"
+                      className="border border-gray-200 rounded-lg overflow-hidden"
                     >
-                      <div className="flex items-start gap-4">
-                        <span className="text-gray-400 font-mono text-sm mt-1">
-                          {String(index + 1).padStart(2, '0')}
-                        </span>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">
-                            {chapter.title}
-                          </h4>
-                          <p className="text-sm text-gray-500 mt-1">
-                            {chapter.word_count?.toLocaleString() || 0} words
-                          </p>
+                      <div
+                        onClick={handleStartReading}
+                        className="p-4 hover:bg-gray-50 cursor-pointer transition border-b border-gray-200"
+                      >
+                        <div className="flex items-start gap-4">
+                          <span className="text-gray-400 font-mono text-sm mt-1">
+                            {String(index + 1).padStart(2, '0')}
+                          </span>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900">
+                              {chapter.title}
+                            </h4>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {chapter.word_count?.toLocaleString() || 0} words
+                            </p>
+                          </div>
                         </div>
+                      </div>
+                      
+                      {/* Chapter Preview (Expandable) */}
+                      <div className="bg-gray-50">
+                        <button
+                          onClick={() => toggleChapterPreview(chapter.id)}
+                          className="w-full px-4 py-2 text-left text-sm text-blue-600 hover:text-blue-800 flex items-center justify-between"
+                        >
+                          Preview
+                          <span className="text-xs">
+                            {expandedChapter === chapter.id ? '▲' : '▼'}
+                          </span>
+                        </button>
+                        {expandedChapter === chapter.id && (
+                          <div className="px-4 pb-4 text-sm text-gray-700 max-h-40 overflow-y-auto">
+                            <div 
+                              dangerouslySetInnerHTML={{ 
+                                __html: chapter.content ? 
+                                  chapter.content.length > 300 ? 
+                                    `${chapter.content.substring(0, 300)}...` : 
+                                    chapter.content
+                                  : 'No content available' 
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

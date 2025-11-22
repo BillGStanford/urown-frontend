@@ -88,6 +88,12 @@ const WriteEbookPage = () => {
     }
   };
 
+  // Generate a random color from presets
+  const generateRandomColor = () => {
+    const randomIndex = Math.floor(Math.random() * colorPresets.length);
+    setFormData(prev => ({ ...prev, cover_color: colorPresets[randomIndex] }));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
@@ -198,9 +204,18 @@ const WriteEbookPage = () => {
 
           {/* Cover Color */}
           <div className="mb-8">
-            <label className="block font-semibold mb-2">
-              Cover Color
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block font-semibold">
+                Cover Color
+              </label>
+              <button
+                type="button"
+                onClick={generateRandomColor}
+                className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                Random Color
+              </button>
+            </div>
             <p className="text-sm text-gray-600 mb-3">
               Choose a color for your book cover (no images allowed)
             </p>
