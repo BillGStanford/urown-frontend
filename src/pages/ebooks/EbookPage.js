@@ -5,7 +5,8 @@ import axios from 'axios';
 import { useUser } from '../../context/UserContext';
 
 const EbookPage = () => {
-  const { id } = useParams();
+  // identifier can be either ID or slug
+  const { identifier } = useParams();
   const navigate = useNavigate();
   const { user } = useUser();
   
@@ -20,13 +21,21 @@ const EbookPage = () => {
     if (user) {
       fetchReadingProgress();
     }
-  }, [id, user]);
+  }, [identifier, user]);
+
+  // Update URL to use slug if we loaded by ID
+  useEffect(() => {
+    if (ebook && ebook.slug && identifier !== ebook.slug) {
+      // Replace URL with slug version without page reload
+      window.history.replaceState(null, '', `/ebooks/${ebook.slug}`);
+    }
+  }, [ebook, identifier]);
 
   const fetchEbookDetails = async () => {
     try {
       const [ebookRes, chaptersRes] = await Promise.all([
-        axios.get(`/ebooks/${id}`),
-        axios.get(`/ebooks/${id}/chapters`)
+        axios.get(`/api/ebooks/${identifier}`),
+        axios.get(`/api/ebooks/${identifier}/chapters`)
       ]);
       
       setEbook(ebookRes.data.ebook);
@@ -42,7 +51,7 @@ const EbookPage = () => {
 
   const fetchReadingProgress = async () => {
     try {
-      const response = await axios.get(`/ebooks/${id}/reading-progress`);
+      const response = await axios.get(`/api/ebooks/${identifier}/reading-progress`);
       setReadingProgress(response.data.progress);
     } catch (error) {
       // No progress yet, that's fine
@@ -55,17 +64,25 @@ const EbookPage = () => {
       return;
     }
 
-    // Start from last read chapter or first chapter
+    // Use slug in URL
+    const ebookSlug = ebook.slug || ebook.id;
     const startChapter = readingProgress?.current_chapter_id || chapters[0].id;
-    navigate(`/ebooks/${id}/read/${startChapter}`);
+    navigate(`/ebooks/${ebookSlug}/read/${startChapter}`);
   };
 
   const handleEdit = () => {
-    navigate(`/ebooks/edit/${id}`);
+    const ebookSlug = ebook.slug || ebook.id;
+    navigate(`/ebooks/edit/${ebookSlug}`);
   };
 
   const toggleChapterPreview = (chapterId) => {
     setExpandedChapter(expandedChapter === chapterId ? null : chapterId);
+  };
+
+  const handleShareBook = () => {
+    const url = `${window.location.origin}/ebooks/${ebook.slug}`;
+    navigator.clipboard.writeText(url);
+    alert('Link copied to clipboard!');
   };
 
   if (loading) {
@@ -188,6 +205,14 @@ const EbookPage = () => {
                     Edit Book
                   </button>
                 )}
+
+                <button
+                  onClick={handleShareBook}
+                  className="px-8 py-4 bg-white bg-opacity-20 text-white rounded-lg hover:bg-opacity-30 font-semibold text-lg"
+                  title="Copy link to book"
+                >
+                  Share 🔗
+                </button>
               </div>
 
               {/* Stats */}

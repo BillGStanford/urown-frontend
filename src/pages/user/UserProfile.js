@@ -104,7 +104,12 @@ const UserProfile = () => {
   const { display_name } = useParams();
   const [user, setUser] = useState(null);
   const [articles, setArticles] = useState([]);
-  const [stats, setStats] = useState({ totalArticles: 0, totalViews: 0 });
+  const [ebooks, setEbooks] = useState([]);
+  const [stats, setStats] = useState({ 
+    totalArticles: 0, 
+    totalViews: 0,
+    totalEbookViews: 0
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -133,8 +138,19 @@ const UserProfile = () => {
         console.log('========================');
         
         setUser(response.data.user);
-        setArticles(response.data.articles);
-        setStats(response.data.stats);
+        setArticles(response.data.articles || []);
+        setEbooks(response.data.ebooks || []);
+        
+        // Calculate total views for articles and ebooks
+        const articleViews = (response.data.articles || []).reduce((sum, article) => sum + (article.views || 0), 0);
+        const ebookViews = (response.data.ebooks || []).reduce((sum, ebook) => sum + (ebook.views || 0), 0);
+        
+        setStats({
+          totalArticles: response.data.articles?.length || 0,
+          totalViews: articleViews,
+          totalEbookViews: ebookViews
+        });
+        
         setIsFollowing(response.data.user.isFollowing || false);
         setError(null);
       } catch (err) {
@@ -407,13 +423,13 @@ const UserProfile = () => {
                   </div>
                   <div className="w-px h-6 bg-white/30"></div>
                   <div>
-                    <span className="text-2xl font-bold">{user.followers || 0}</span>
-                    <span className="text-sm text-white/80 ml-2">Followers</span>
+                    <span className="text-2xl font-bold">{ebooks.length}</span>
+                    <span className="text-sm text-white/80 ml-2">EBooks</span>
                   </div>
                   <div className="w-px h-6 bg-white/30"></div>
                   <div>
-                    <span className="text-2xl font-bold">{stats.totalViews}</span>
-                    <span className="text-sm text-white/80 ml-2">Views</span>
+                    <span className="text-2xl font-bold">{user.followers || 0}</span>
+                    <span className="text-sm text-white/80 ml-2">Followers</span>
                   </div>
                 </div>
               </div>
@@ -444,6 +460,40 @@ const UserProfile = () => {
           <div className="lg:col-span-1 space-y-6">
             {/* UROWN Score Card */}
             <URownScoreCard user={user} userRank={userRank} stats={stats} />
+
+            {/* Views Stats Card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Eye className="h-5 w-5 text-orange-600" />
+                View Statistics
+              </h3>
+              
+              <div className="space-y-4">
+                <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-4 border border-orange-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-gray-700">OPINION VIEWS</span>
+                    <span className="text-2xl font-bold text-orange-600">{stats.totalViews.toLocaleString()}</span>
+                  </div>
+                  <div className="text-xs text-gray-500">Total views on all articles</div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-gray-700">EBOOK VIEWS</span>
+                    <span className="text-2xl font-bold text-blue-600">{stats.totalEbookViews.toLocaleString()}</span>
+                  </div>
+                  <div className="text-xs text-gray-500">Total views on all ebooks</div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-gray-700">TOTAL VIEWS</span>
+                    <span className="text-2xl font-bold text-purple-600">{(stats.totalViews + stats.totalEbookViews).toLocaleString()}</span>
+                  </div>
+                  <div className="text-xs text-gray-500">Combined views on all content</div>
+                </div>
+              </div>
+            </div>
 
             {/* Achievements Card */}
             {certifiedCount > 0 && (
@@ -617,31 +667,42 @@ const UserProfile = () => {
             )}
           </div>
 
-          {/* Right Column - Articles Feed */}
+          {/* Right Column - Articles & Ebooks Feed */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <BookOpen className="h-6 w-6 text-orange-600" />
-                    Published Articles
-                  </h2>
-                  <p className="text-sm text-gray-500 mt-1">{articles.length} {articles.length === 1 ? 'article' : 'articles'}</p>
-                </div>
+            {/* Tab Navigation */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-2 mb-6">
+              <div className="flex space-x-1">
+                <button
+                  className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                    true ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <FileText className="h-5 w-5" />
+                  Articles ({articles.length})
+                </button>
+                <button
+                  className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                    false ? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <BookOpen className="h-5 w-5" />
+                  EBooks ({ebooks.length})
+                </button>
               </div>
             </div>
 
-            {articles.length === 0 ? (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-16 text-center">
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <BookOpen className="h-10 w-10 text-gray-400" />
+            {/* Articles Tab Content */}
+            <div className="space-y-4">
+              {articles.length === 0 ? (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-16 text-center">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <FileText className="h-10 w-10 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">No articles yet</h3>
+                  <p className="text-gray-500">This user hasn't published any articles yet.</p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">No articles yet</h3>
-                <p className="text-gray-500">This user hasn't published any articles yet.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {articles.map((article) => (
+              ) : (
+                articles.map((article) => (
                   <div key={article.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
                     <div className="p-6">
                       {/* Author Info */}
@@ -709,9 +770,88 @@ const UserProfile = () => {
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
+
+            {/* EBooks Tab Content - Hidden by default */}
+            <div className="space-y-4" style={{ display: 'none' }}>
+              {ebooks.length === 0 ? (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-16 text-center">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <BookOpen className="h-10 w-10 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">No ebooks yet</h3>
+                  <p className="text-gray-500">This user hasn't published any ebooks yet.</p>
+                </div>
+              ) : (
+                ebooks.map((ebook) => (
+                  <div key={ebook.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+                    <div className="p-6">
+                      {/* Author Info */}
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-lg font-bold text-white">
+                            {user.display_name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex-grow min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-bold text-gray-900">{user.display_name}</span>
+                            {isCertifiedByFollowers && (
+                              <CheckCircle className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {formatDistanceToNow(new Date(ebook.created_at), { addSuffix: true })}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Ebook Title & Preview */}
+                      <Link to={`/ebook/${ebook.id}`} className="block group">
+                        <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                          {ebook.title}
+                        </h3>
+                        <p className="text-gray-600 mb-4 line-clamp-2">
+                          {ebook.description || ebook.content?.substring(0, 200)}...
+                        </p>
+                      </Link>
+
+                      {/* Badges */}
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 flex items-center gap-1.5">
+                          <BookOpen className="h-3.5 w-3.5" />
+                          EBook
+                        </span>
+                        {ebook.topics && ebook.topics.slice(0, 3).map((topic, idx) => (
+                          <span key={idx} className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-full border border-gray-200">
+                            {topic}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-2">
+                            <Eye className="h-4 w-4" />
+                            <span className="font-medium">{ebook.views || 0} views</span>
+                          </div>
+                        </div>
+                        <Link 
+                          to={`/ebook/${ebook.id}`} 
+                          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm transition-colors group"
+                        >
+                          Read ebook
+                          <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>

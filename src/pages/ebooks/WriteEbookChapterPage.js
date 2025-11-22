@@ -8,6 +8,7 @@ const Editor = ({ content, onChange, placeholder = "Start writing your chapter..
   const editorRef = useRef(null);
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
+  const [showToolbar, setShowToolbar] = useState(true);
 
   useEffect(() => {
     if (editorRef.current && content !== editorRef.current.innerHTML) {

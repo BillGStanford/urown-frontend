@@ -1,7 +1,8 @@
+// src/pages/LeaderboardPage.js
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Trophy, TrendingUp, Award, Star, Flame, Crown, Medal, Zap, Users, ChevronRight } from 'lucide-react';
+import { Trophy, TrendingUp, Award, Star, Flame, Crown, Medal, Zap, Users, ChevronRight, BookOpen } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 const API_URL = process.env.NODE_ENV === 'production' 
@@ -305,6 +306,20 @@ const LeaderboardPage = () => {
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm text-gray-700">Reaction</span>
                   <span className="font-bold text-green-600">+1</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <span className="text-sm text-gray-700 font-semibold flex items-center gap-1">
+                    <BookOpen className="h-4 w-4 text-blue-600" />
+                    Posted First Book
+                  </span>
+                  <span className="font-bold text-blue-600">+20</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <span className="text-sm text-gray-700 font-semibold flex items-center gap-1">
+                    <BookOpen className="h-4 w-4 text-blue-600" />
+                    Posted an EBook
+                  </span>
+                  <span className="font-bold text-blue-600">+50</span>
                 </div>
               </div>
             </div>
