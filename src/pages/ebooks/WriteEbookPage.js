@@ -63,7 +63,7 @@ const WriteEbookPage = () => {
 
     try {
       setLoading(true);
-      const response = await axios.post('/api/ebooks', formData);
+      const response = await axios.post('/ebooks', formData);
       
       // Navigate to chapter creation
       navigate(`/ebooks/write/${response.data.ebook.id}/chapter`);

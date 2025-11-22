@@ -27,7 +27,7 @@ const BrowseEbooksPage = () => {
       if (filters.sort) params.append('sort', filters.sort);
       if (filters.search) params.append('search', filters.search);
 
-      const response = await axios.get(`/api/ebooks?${params}`);
+      const response = await axios.get(`/ebooks?${params}`);
       setEbooks(response.data.ebooks);
     } catch (error) {
       console.error('Error fetching ebooks:', error);

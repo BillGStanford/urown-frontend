@@ -24,8 +24,8 @@ const EbookPage = () => {
   const fetchEbookDetails = async () => {
     try {
       const [ebookRes, chaptersRes] = await Promise.all([
-        axios.get(`/api/ebooks/${id}`),
-        axios.get(`/api/ebooks/${id}/chapters`)
+        axios.get(`/ebooks/${id}`),
+        axios.get(`/ebooks/${id}/chapters`)
       ]);
       
       setEbook(ebookRes.data.ebook);
@@ -41,7 +41,7 @@ const EbookPage = () => {
 
   const fetchReadingProgress = async () => {
     try {
-      const response = await axios.get(`/api/ebooks/${id}/reading-progress`);
+      const response = await axios.get(`/ebooks/${id}/reading-progress`);
       setReadingProgress(response.data.progress);
     } catch (error) {
       // No progress yet, that's fine

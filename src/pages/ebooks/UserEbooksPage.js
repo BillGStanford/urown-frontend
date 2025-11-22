@@ -22,7 +22,7 @@ const UserEbooksPage = () => {
     try {
       // If viewing own profile, use authenticated endpoint
       if (user && user.display_name === username) {
-        const response = await axios.get('/api/user/ebooks');
+        const response = await axios.get('/user/ebooks');
         setEbooks(response.data.ebooks);
         setProfile({
           display_name: user.display_name,
@@ -31,7 +31,7 @@ const UserEbooksPage = () => {
         });
       } else {
         // Public view
-        const response = await axios.get(`/api/users/${username}/ebooks`);
+        const response = await axios.get(`/users/${username}/ebooks`);
         setEbooks(response.data.ebooks);
         setProfile({
           display_name: response.data.user.display_name,
@@ -54,7 +54,7 @@ const UserEbooksPage = () => {
     }
 
     try {
-      await axios.delete(`/api/ebooks/${ebookId}`);
+      await axios.delete(`/ebooks/${ebookId}`);
       setEbooks(ebooks.filter(e => e.id !== ebookId));
     } catch (error) {
       console.error('Error deleting ebook:', error);

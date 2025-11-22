@@ -31,8 +31,8 @@ const EditEbookPage = () => {
   const fetchEbookDetails = async () => {
     try {
       const [ebookRes, chaptersRes] = await Promise.all([
-        axios.get(`/api/ebooks/${id}`),
-        axios.get(`/api/ebooks/${id}/chapters`)
+        axios.get(`/ebooks/${id}`),
+        axios.get(`/ebooks/${id}/chapters`)
       ]);
       
       const ebookData = ebookRes.data.ebook;
@@ -55,7 +55,7 @@ const EditEbookPage = () => {
 
   const fetchWeeklyCount = async () => {
     try {
-      const response = await axios.get('/api/user/profile');
+      const response = await axios.get('/user/profile');
       setWeeklyPublishedCount(response.data.user.weekly_ebooks_count || 0);
     } catch (error) {
       console.error('Error fetching weekly count:', error);
@@ -96,7 +96,7 @@ const EditEbookPage = () => {
 
     try {
       setSaving(true);
-      await axios.put(`/api/ebooks/${id}`, formData);
+      await axios.put(`/ebooks/${id}`, formData);
       alert('Book details saved successfully');
       await fetchEbookDetails();
     } catch (error) {
@@ -115,7 +115,7 @@ const EditEbookPage = () => {
 
     try {
       setSaving(true);
-      await axios.post(`/api/ebooks/${id}/publish`, publishData);
+      await axios.post(`/ebooks/${id}/publish`, publishData);
       alert('Book published successfully!');
       setShowPublishModal(false);
       await fetchEbookDetails();
@@ -131,7 +131,7 @@ const EditEbookPage = () => {
   const handleReorderChapters = async (reorderedChapters) => {
     try {
       setChapters(reorderedChapters);
-      await axios.put(`/api/ebooks/${id}/chapters/reorder`, {
+      await axios.put(`/ebooks/${id}/chapters/reorder`, {
         chapter_ids: reorderedChapters.map(ch => ch.id)
       });
     } catch (error) {
@@ -146,7 +146,7 @@ const EditEbookPage = () => {
     }
 
     try {
-      await axios.delete(`/api/ebooks/${id}/chapters/${chapterId}`);
+      await axios.delete(`/ebooks/${id}/chapters/${chapterId}`);
       await fetchEbookDetails();
     } catch (error) {
       console.error('Error deleting chapter:', error);
@@ -165,7 +165,7 @@ const EditEbookPage = () => {
     }
 
     try {
-      await axios.delete(`/api/ebooks/${id}`);
+      await axios.delete(`/ebooks/${id}`);
       alert('Book deleted successfully');
       navigate('/dashboard');
     } catch (error) {

@@ -29,8 +29,8 @@ const ReadEbookChapterPage = () => {
   const fetchEbookAndChapters = async () => {
     try {
       const [ebookRes, chaptersRes] = await Promise.all([
-        axios.get(`/api/ebooks/${id}`),
-        axios.get(`/api/ebooks/${id}/chapters`)
+        axios.get(`/ebooks/${id}`),
+        axios.get(`/ebooks/${id}/chapters`)
       ]);
       
       const ebookData = ebookRes.data.ebook;
@@ -46,7 +46,7 @@ const ReadEbookChapterPage = () => {
       } else if (user) {
         // Try to load last read position
         try {
-          const progressRes = await axios.get(`/api/ebooks/${id}/reading-progress`);
+          const progressRes = await axios.get(`/ebooks/${id}/reading-progress`);
           if (progressRes.data.progress?.current_chapter_id) {
             const lastChapterIndex = chaptersData.findIndex(
               ch => ch.id === progressRes.data.progress.current_chapter_id
@@ -77,7 +77,7 @@ const ReadEbookChapterPage = () => {
         ((currentChapterIndex + 1) / chapters.length) * 100
       );
 
-      await axios.post(`/api/ebooks/${id}/reading-progress`, {
+      await axios.post(`/ebooks/${id}/reading-progress`, {
         current_chapter_id: currentChapter.id,
         progress_percent: progressPercent
       });

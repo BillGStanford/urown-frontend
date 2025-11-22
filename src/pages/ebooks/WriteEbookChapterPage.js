@@ -65,8 +65,8 @@ const WriteEbookChapterPage = () => {
   const fetchEbookAndChapters = async () => {
     try {
       const [ebookRes, chaptersRes] = await Promise.all([
-        axios.get(`/api/ebooks/${ebookId}`),
-        axios.get(`/api/ebooks/${ebookId}/chapters`)
+        axios.get(`/ebooks/${ebookId}`),
+        axios.get(`/ebooks/${ebookId}/chapters`)
       ]);
       
       setEbook(ebookRes.data.ebook);
@@ -82,7 +82,7 @@ const WriteEbookChapterPage = () => {
 
   const fetchChapter = async () => {
     try {
-      const response = await axios.get(`/api/ebooks/${ebookId}/chapters/${chapterId}`);
+      const response = await axios.get(`/ebooks/${ebookId}/chapters/${chapterId}`);
       setCurrentChapter(response.data.chapter);
       setHasUnsavedChanges(false);
     } catch (error) {
@@ -102,7 +102,7 @@ const WriteEbookChapterPage = () => {
         return;
       }
       
-      await axios.put(`/api/ebooks/${ebookId}/chapters/${chapterId}`, {
+      await axios.put(`/ebooks/${ebookId}/chapters/${chapterId}`, {
         title: currentChapter.title,
         content: currentChapter.content,
         status: currentChapter.status
@@ -133,7 +133,7 @@ const WriteEbookChapterPage = () => {
       
       if (isNewChapter) {
         // Create new chapter
-        const response = await axios.post(`/api/ebooks/${ebookId}/chapters`, {
+        const response = await axios.post(`/ebooks/${ebookId}/chapters`, {
           title: currentChapter.title,
           content: currentChapter.content,
           status: currentChapter.status
@@ -143,7 +143,7 @@ const WriteEbookChapterPage = () => {
         navigate(`/ebooks/edit/${ebookId}/chapter/${response.data.chapter.id}`);
       } else {
         // Update existing chapter
-        await axios.put(`/api/ebooks/${ebookId}/chapters/${chapterId}`, {
+        await axios.put(`/ebooks/${ebookId}/chapters/${chapterId}`, {
           title: currentChapter.title,
           content: currentChapter.content,
           status: currentChapter.status
@@ -165,7 +165,7 @@ const WriteEbookChapterPage = () => {
 
   const handleDeleteChapter = async (chapterIdToDelete) => {
     try {
-      await axios.delete(`/api/ebooks/${ebookId}/chapters/${chapterIdToDelete}`);
+      await axios.delete(`/ebooks/${ebookId}/chapters/${chapterIdToDelete}`);
       
       // If we're deleting the current chapter, navigate away
       if (chapterIdToDelete === parseInt(chapterId)) {
@@ -183,7 +183,7 @@ const WriteEbookChapterPage = () => {
     try {
       setChapters(reorderedChapters);
       
-      await axios.put(`/api/ebooks/${ebookId}/chapters/reorder`, {
+      await axios.put(`/ebooks/${ebookId}/chapters/reorder`, {
         chapter_ids: reorderedChapters.map(ch => ch.id)
       });
     } catch (error) {
