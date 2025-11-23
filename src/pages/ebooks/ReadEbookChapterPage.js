@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useUser } from '../../context/UserContext';
 
-// FontSettingsPanel component
+// FontSettingsPanel component (moved from components)
 const FontSettingsPanel = ({ onSettingsChange, initialSettings = {} }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [settings, setSettings] = useState({
@@ -17,6 +17,7 @@ const FontSettingsPanel = ({ onSettingsChange, initialSettings = {} }) => {
   });
 
   useEffect(() => {
+    // Load settings from localStorage
     const saved = localStorage.getItem('ebookReaderSettings');
     if (saved) {
       try {
@@ -31,7 +32,11 @@ const FontSettingsPanel = ({ onSettingsChange, initialSettings = {} }) => {
   const updateSetting = (key, value) => {
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
+    
+    // Save to localStorage
     localStorage.setItem('ebookReaderSettings', JSON.stringify(newSettings));
+    
+    // Notify parent
     if (onSettingsChange) {
       onSettingsChange(newSettings);
     }
@@ -39,69 +44,72 @@ const FontSettingsPanel = ({ onSettingsChange, initialSettings = {} }) => {
 
   const fonts = [
     { name: 'Georgia', value: 'Georgia, serif' },
-    { name: 'Merriweather', value: '"Merriweather", serif' },
+    { name: 'Times New Roman', value: '"Times New Roman", serif' },
     { name: 'Palatino', value: 'Palatino, serif' },
     { name: 'Garamond', value: 'Garamond, serif' },
-    { name: 'Inter', value: 'Inter, sans-serif' },
-    { name: 'Open Sans', value: '"Open Sans", sans-serif' }
+    { name: 'Arial', value: 'Arial, sans-serif' },
+    { name: 'Helvetica', value: 'Helvetica, sans-serif' },
+    { name: 'Verdana', value: 'Verdana, sans-serif' }
   ];
 
   const themes = [
-    { name: 'Light', value: 'light', bg: '#fefefe', text: '#1a1a1a', icon: '☀️' },
-    { name: 'Sepia', value: 'sepia', bg: '#f4ecd8', text: '#5c4633', icon: '📜' },
-    { name: 'Dark', value: 'dark', bg: '#1a1a1a', text: '#e8e8e8', icon: '🌙' },
-    { name: 'Night', value: 'night', bg: '#0d1117', text: '#c9d1d9', icon: '🌃' }
+    { name: 'Light', value: 'light', bg: '#ffffff', text: '#000000' },
+    { name: 'Sepia', value: 'sepia', bg: '#f4ecd8', text: '#5c4a34' },
+    { name: 'Dark', value: 'dark', bg: '#1a1a1a', text: '#e0e0e0' }
   ];
 
   const widths = [
     { name: 'Narrow', value: 'narrow', max: '600px' },
-    { name: 'Normal', value: 'normal', max: '750px' },
-    { name: 'Wide', value: 'wide', max: '900px' }
+    { name: 'Normal', value: 'normal', max: '800px' },
+    { name: 'Wide', value: 'wide', max: '1000px' }
   ];
 
   return (
     <div className="relative">
+      {/* Settings Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg flex items-center gap-2 text-sm transition-all"
+        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-2 text-sm"
         title="Reader Settings"
       >
         <span>⚙️</span>
         <span className="hidden sm:inline">Settings</span>
       </button>
 
+      {/* Settings Panel */}
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 top-12 z-50 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl p-6 w-80 max-h-[80vh] overflow-y-auto">
-            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-              <span>📖</span> Reading Settings
-            </h3>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="absolute right-0 top-12 z-50 bg-white border border-gray-300 rounded-lg shadow-xl p-6 w-80">
+            <h3 className="font-bold text-lg mb-4">Reading Settings</h3>
 
             {/* Font Size */}
             <div className="mb-6">
-              <label className="block text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">
-                Font Size: <span className="text-blue-600">{settings.fontSize}px</span>
+              <label className="block text-sm font-semibold mb-2">
+                Font Size: {settings.fontSize}px
               </label>
               <input
                 type="range"
                 min="14"
-                max="32"
+                max="28"
                 step="2"
                 value={settings.fontSize}
                 onChange={(e) => updateSetting('fontSize', parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                className="w-full"
               />
-              <div className="flex justify-between text-xs text-gray-500 mt-2">
-                <span className="text-sm">Aa</span>
-                <span className="text-2xl">Aa</span>
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>A</span>
+                <span className="text-lg">A</span>
               </div>
             </div>
 
             {/* Line Height */}
             <div className="mb-6">
-              <label className="block text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">
-                Line Spacing: <span className="text-blue-600">{settings.lineHeight}</span>
+              <label className="block text-sm font-semibold mb-2">
+                Line Height: {settings.lineHeight}
               </label>
               <input
                 type="range"
@@ -110,9 +118,9 @@ const FontSettingsPanel = ({ onSettingsChange, initialSettings = {} }) => {
                 step="0.2"
                 value={settings.lineHeight}
                 onChange={(e) => updateSetting('lineHeight', parseFloat(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                className="w-full"
               />
-              <div className="flex justify-between text-xs text-gray-500 mt-2">
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
                 <span>Compact</span>
                 <span>Spacious</span>
               </div>
@@ -120,18 +128,18 @@ const FontSettingsPanel = ({ onSettingsChange, initialSettings = {} }) => {
 
             {/* Font Family */}
             <div className="mb-6">
-              <label className="block text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">
-                Font Family
+              <label className="block text-sm font-semibold mb-2">
+                Font
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {fonts.map(font => (
                   <button
                     key={font.name}
                     onClick={() => updateSetting('fontFamily', font.value)}
-                    className={`px-3 py-2.5 rounded-lg text-sm border transition-all ${
+                    className={`px-3 py-2 rounded text-sm border ${
                       settings.fontFamily === font.value
-                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 shadow-sm'
-                        : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
+                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 hover:bg-gray-50'
                     }`}
                     style={{ fontFamily: font.value }}
                   >
@@ -143,25 +151,24 @@ const FontSettingsPanel = ({ onSettingsChange, initialSettings = {} }) => {
 
             {/* Theme */}
             <div className="mb-6">
-              <label className="block text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">
-                Color Theme
+              <label className="block text-sm font-semibold mb-2">
+                Theme
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex gap-2">
                 {themes.map(theme => (
                   <button
                     key={theme.value}
                     onClick={() => updateSetting('theme', theme.value)}
-                    className={`px-3 py-3 rounded-lg text-sm border transition-all ${
+                    className={`flex-1 px-3 py-2 rounded text-sm border ${
                       settings.theme === theme.value
-                        ? 'border-blue-600 ring-2 ring-blue-200 dark:ring-blue-800 shadow-sm'
-                        : 'border-gray-300 dark:border-gray-600 hover:shadow-md'
+                        ? 'border-blue-600 ring-2 ring-blue-200'
+                        : 'border-gray-300'
                     }`}
                     style={{
                       backgroundColor: theme.bg,
                       color: theme.text
                     }}
                   >
-                    <span className="mr-1">{theme.icon}</span>
                     {theme.name}
                   </button>
                 ))}
@@ -169,8 +176,8 @@ const FontSettingsPanel = ({ onSettingsChange, initialSettings = {} }) => {
             </div>
 
             {/* Width */}
-            <div className="mb-6">
-              <label className="block text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">
+            <div className="mb-4">
+              <label className="block text-sm font-semibold mb-2">
                 Content Width
               </label>
               <div className="flex gap-2">
@@ -178,10 +185,10 @@ const FontSettingsPanel = ({ onSettingsChange, initialSettings = {} }) => {
                   <button
                     key={width.value}
                     onClick={() => updateSetting('width', width.value)}
-                    className={`flex-1 px-3 py-2.5 rounded-lg text-sm border transition-all ${
+                    className={`flex-1 px-3 py-2 rounded text-sm border ${
                       settings.width === width.value
-                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 shadow-sm'
-                        : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
+                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 hover:bg-gray-50'
                     }`}
                   >
                     {width.name}
@@ -206,7 +213,7 @@ const FontSettingsPanel = ({ onSettingsChange, initialSettings = {} }) => {
                   onSettingsChange(defaultSettings);
                 }
               }}
-              className="w-full px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 transition-all"
+              className="w-full px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded"
             >
               Reset to Defaults
             </button>
@@ -217,8 +224,9 @@ const FontSettingsPanel = ({ onSettingsChange, initialSettings = {} }) => {
   );
 };
 
-// TableOfContents component
-const TableOfContents = ({ chapters, currentChapterId, onChapterSelect, onClose }) => {
+// TableOfContents component (moved from components)
+const TableOfContents = ({ chapters, currentChapterId, onChapterSelect, position = 'fixed' }) => {
+  const [isOpen, setIsOpen] = useState(true);
   const [activeChapter, setActiveChapter] = useState(currentChapterId);
 
   useEffect(() => {
@@ -228,124 +236,132 @@ const TableOfContents = ({ chapters, currentChapterId, onChapterSelect, onClose 
   const handleChapterClick = (chapterId) => {
     setActiveChapter(chapterId);
     onChapterSelect(chapterId);
-    if (onClose) onClose();
   };
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-gray-900">
-      {/* Header */}
-      <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-bold text-lg flex items-center gap-2">
-            <span>📚</span> Table of Contents
-          </h3>
-          {onClose && (
+    <>
+      {/* Mobile Toggle Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="lg:hidden fixed bottom-4 right-4 z-50 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700"
+      >
+        {isOpen ? '×' : '☰'}
+      </button>
+
+      {/* TOC Panel */}
+      <div
+        className={`
+          ${position === 'fixed' ? 'fixed' : 'sticky'} 
+          top-0 left-0 h-screen bg-white border-r border-gray-300 
+          transition-transform duration-300 z-40
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0 w-80 flex flex-col
+        `}
+      >
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-lg">Table of Contents</h3>
             <button
-              onClick={onClose}
-              className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/50 dark:hover:bg-gray-700/50"
+              onClick={() => setIsOpen(false)}
+              className="lg:hidden text-gray-500 hover:text-gray-700"
             >
-              ✕
+              ×
             </button>
+          </div>
+          <p className="text-sm text-gray-500 mt-1">
+            {chapters.length} {chapters.length === 1 ? 'chapter' : 'chapters'}
+          </p>
+        </div>
+
+        {/* Chapter List */}
+        <div className="flex-1 overflow-y-auto">
+          {chapters.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              <p>No chapters available</p>
+            </div>
+          ) : (
+            <nav className="p-2">
+              {chapters.map((chapter, index) => (
+                <button
+                  key={chapter.id}
+                  onClick={() => handleChapterClick(chapter.id)}
+                  className={`
+                    w-full text-left px-4 py-3 rounded-lg mb-1
+                    transition-colors duration-150
+                    ${
+                      activeChapter === chapter.id
+                        ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-600'
+                        : 'hover:bg-gray-50 text-gray-700'
+                    }
+                  `}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-sm font-mono text-gray-400 mt-0.5">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate">
+                        {chapter.title || 'Untitled Chapter'}
+                      </p>
+                      {chapter.word_count > 0 && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          {chapter.word_count.toLocaleString()} words
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </nav>
           )}
         </div>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          {chapters.length} {chapters.length === 1 ? 'chapter' : 'chapters'}
-        </p>
-      </div>
 
-      {/* Chapter List */}
-      <div className="flex-1 overflow-y-auto">
-        {chapters.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            <p>No chapters available</p>
-          </div>
-        ) : (
-          <nav className="p-3">
-            {chapters.map((chapter, index) => (
-              <button
-                key={chapter.id}
-                onClick={() => handleChapterClick(chapter.id)}
-                className={`
-                  w-full text-left px-4 py-3 rounded-xl mb-2
-                  transition-all duration-200 group
-                  ${
-                    activeChapter === chapter.id
-                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg scale-[1.02]'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 hover:shadow-md'
-                  }
-                `}
-              >
-                <div className="flex items-start gap-3">
-                  <span className={`text-xs font-mono mt-1 ${
-                    activeChapter === chapter.id ? 'text-white/80' : 'text-gray-400'
-                  }`}>
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className={`font-semibold truncate ${
-                      activeChapter === chapter.id ? 'text-white' : 'group-hover:text-blue-600 dark:group-hover:text-blue-400'
-                    }`}>
-                      {chapter.title || 'Untitled Chapter'}
-                    </p>
-                    {chapter.word_count > 0 && (
-                      <p className={`text-xs mt-1 ${
-                        activeChapter === chapter.id ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'
-                      }`}>
-                        {chapter.word_count.toLocaleString()} words · {Math.ceil(chapter.word_count / 200)} min read
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </button>
-            ))}
-          </nav>
-        )}
-      </div>
-
-      {/* Footer Stats */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-        <div className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="flex items-center gap-2">
-              <span>📖</span> Total Chapters
-            </span>
-            <span className="font-semibold text-gray-900 dark:text-gray-100">{chapters.length}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="flex items-center gap-2">
-              <span>📝</span> Total Words
-            </span>
-            <span className="font-semibold text-gray-900 dark:text-gray-100">
-              {chapters.reduce((sum, ch) => sum + (ch.word_count || 0), 0).toLocaleString()}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="flex items-center gap-2">
-              <span>⏱️</span> Reading Time
-            </span>
-            <span className="font-semibold text-gray-900 dark:text-gray-100">
-              {Math.ceil(chapters.reduce((sum, ch) => sum + (ch.word_count || 0), 0) / 200)} min
-            </span>
+        {/* Footer Stats */}
+        <div className="p-4 border-t border-gray-200 bg-gray-50">
+          <div className="text-sm text-gray-600 space-y-1">
+            <div className="flex justify-between">
+              <span>Total Chapters:</span>
+              <span className="font-semibold">{chapters.length}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Total Words:</span>
+              <span className="font-semibold">
+                {chapters.reduce((sum, ch) => sum + (ch.word_count || 0), 0).toLocaleString()}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>Est. Reading Time:</span>
+              <span className="font-semibold">
+                {Math.ceil(chapters.reduce((sum, ch) => sum + (ch.word_count || 0), 0) / 200)} min
+              </span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Backdrop for mobile */}
+      {isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+        />
+      )}
+    </>
   );
 };
 
-// EbookReader component
+// EbookReader component (moved from components)
 const EbookReader = ({ ebook, chapters, currentChapterIndex = 0, onChapterChange }) => {
   const [settings, setSettings] = useState({});
   const [progress, setProgress] = useState(0);
   const [showTOC, setShowTOC] = useState(false);
-  const [focusMode, setFocusMode] = useState(false);
-  const [showControls, setShowControls] = useState(true);
   const contentRef = useRef(null);
-  const hideControlsTimeout = useRef(null);
 
   const currentChapter = chapters[currentChapterIndex];
 
   useEffect(() => {
+    // Load reader settings from localStorage
     const saved = localStorage.getItem('ebookReaderSettings');
     if (saved) {
       try {
@@ -357,6 +373,7 @@ const EbookReader = ({ ebook, chapters, currentChapterIndex = 0, onChapterChange
   }, []);
 
   useEffect(() => {
+    // Track scroll progress
     const handleScroll = () => {
       if (!contentRef.current) return;
       
@@ -373,62 +390,6 @@ const EbookReader = ({ ebook, chapters, currentChapterIndex = 0, onChapterChange
       return () => element.removeEventListener('scroll', handleScroll);
     }
   }, [currentChapterIndex]);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      
-      switch(e.key) {
-        case 'ArrowLeft':
-          handlePreviousChapter();
-          break;
-        case 'ArrowRight':
-          handleNextChapter();
-          break;
-        case 'f':
-        case 'F':
-          setFocusMode(!focusMode);
-          break;
-        case 't':
-        case 'T':
-          setShowTOC(!showTOC);
-          break;
-        case 'Escape':
-          if (focusMode) setFocusMode(false);
-          if (showTOC) setShowTOC(false);
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [focusMode, showTOC, currentChapterIndex]);
-
-  // Auto-hide controls in focus mode
-  useEffect(() => {
-    if (!focusMode) return;
-
-    const handleMouseMove = () => {
-      setShowControls(true);
-      
-      if (hideControlsTimeout.current) {
-        clearTimeout(hideControlsTimeout.current);
-      }
-      
-      hideControlsTimeout.current = setTimeout(() => {
-        setShowControls(false);
-      }, 3000);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      if (hideControlsTimeout.current) {
-        clearTimeout(hideControlsTimeout.current);
-      }
-    };
-  }, [focusMode]);
 
   const handlePreviousChapter = () => {
     if (currentChapterIndex > 0) {
@@ -449,471 +410,174 @@ const EbookReader = ({ ebook, chapters, currentChapterIndex = 0, onChapterChange
   };
 
   const themeStyles = {
-    light: { backgroundColor: '#fefefe', color: '#1a1a1a' },
-    sepia: { backgroundColor: '#f4ecd8', color: '#5c4633' },
-    dark: { backgroundColor: '#1a1a1a', color: '#e8e8e8' },
-    night: { backgroundColor: '#0d1117', color: '#c9d1d9' }
+    light: { backgroundColor: '#ffffff', color: '#000000' },
+    sepia: { backgroundColor: '#f4ecd8', color: '#5c4a34' },
+    dark: { backgroundColor: '#1a1a1a', color: '#e0e0e0' }
   };
 
   const widthStyles = {
     narrow: '600px',
-    normal: '750px',
-    wide: '900px'
+    normal: '800px',
+    wide: '1000px'
   };
 
   const theme = themeStyles[settings.theme] || themeStyles.light;
   const maxWidth = widthStyles[settings.width] || widthStyles.normal;
 
   return (
-    <div className="ebook-reader-container flex flex-col h-screen overflow-hidden" style={theme}>
+    <div className="ebook-reader flex flex-col h-screen" style={theme}>
       {/* Header */}
-      <div 
-        className={`border-b border-gray-200/50 dark:border-gray-700/50 backdrop-blur-lg bg-white/80 dark:bg-gray-900/80 transition-all duration-300 ${
-          focusMode && !showControls ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'
-        }`}
-        style={{ 
-          borderBottomColor: settings.theme === 'dark' || settings.theme === 'night' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-        }}
-      >
-        <div className="px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-            <button
-              onClick={() => setShowTOC(!showTOC)}
-              className="px-3 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-sm transition-all flex items-center gap-2"
-              title="Table of Contents (T)"
-            >
-              <span className="text-lg">☰</span>
-              <span className="hidden sm:inline">Chapters</span>
-            </button>
-            
-            <div className="hidden md:block flex-1 min-w-0">
-              <h2 className="font-bold text-base sm:text-lg truncate">{ebook.title}</h2>
-              <p className="text-xs sm:text-sm opacity-70 truncate">
-                Chapter {currentChapterIndex + 1} of {chapters.length}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setFocusMode(!focusMode)}
-              className={`px-3 sm:px-4 py-2 rounded-lg text-sm transition-all flex items-center gap-2 ${
-                focusMode 
-                  ? 'bg-blue-600 text-white shadow-lg' 
-                  : 'bg-white/10 hover:bg-white/20 backdrop-blur-sm'
-              }`}
-              title="Focus Mode (F)"
-            >
-              <span>{focusMode ? '👁️' : '🎯'}</span>
-              <span className="hidden sm:inline">{focusMode ? 'Exit Focus' : 'Focus'}</span>
-            </button>
-            
-            <FontSettingsPanel
-              initialSettings={settings}
-              onSettingsChange={setSettings}
-            />
+      <div className="border-b border-gray-300 p-4 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setShowTOC(!showTOC)}
+            className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm"
+            style={{ backgroundColor: settings.theme === 'dark' ? '#333' : undefined }}
+          >
+            ☰ Chapters
+          </button>
+          <div className="hidden md:block">
+            <h2 className="font-bold text-lg">{ebook.title}</h2>
+            <p className="text-sm opacity-70">
+              Chapter {currentChapterIndex + 1} of {chapters.length}
+            </p>
           </div>
         </div>
+
+        <FontSettingsPanel
+          initialSettings={settings}
+          onSettingsChange={setSettings}
+        />
       </div>
 
       {/* Progress Bar */}
-      <div 
-        className={`h-1 bg-gray-200/50 dark:bg-gray-700/50 transition-all duration-300 ${
-          focusMode && !showControls ? 'opacity-0' : 'opacity-100'
-        }`}
-      >
+      <div className="h-1 bg-gray-200">
         <div
-          className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-300"
+          className="h-full bg-blue-600 transition-all duration-300"
           style={{ width: `${progress}%` }}
         />
       </div>
 
-      {/* Content Area */}
-      <div className="flex-1 overflow-hidden flex relative">
-        {/* Table of Contents Sidebar */}
-        <div
-          className={`
-            fixed lg:relative inset-y-0 left-0 z-50 w-80 
-            transform transition-transform duration-300 ease-in-out
-            ${showTOC ? 'translate-x-0' : '-translate-x-full lg:hidden'}
-            border-r border-gray-200/50 dark:border-gray-700/50
-          `}
-          style={{
-            backgroundColor: theme.backgroundColor,
-            borderRightColor: settings.theme === 'dark' || settings.theme === 'night' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-          }}
-        >
-          <TableOfContents
-            chapters={chapters}
-            currentChapterId={currentChapter?.id}
-            onChapterSelect={(chapterId) => {
-              const index = chapters.findIndex(ch => ch.id === chapterId);
-              if (index >= 0) onChapterChange(index);
-            }}
-            onClose={() => setShowTOC(false)}
-          />
-        </div>
-
-        {/* Backdrop for mobile TOC */}
+      {/* Content */}
+      <div className="flex-1 overflow-hidden flex">
+        {/* Table of Contents (Desktop) */}
         {showTOC && (
-          <div
-            onClick={() => setShowTOC(false)}
-            className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-          />
+          <div className="w-80 border-r border-gray-300 overflow-y-auto" style={theme}>
+            <TableOfContents
+              chapters={chapters}
+              currentChapterId={currentChapter?.id}
+              onChapterSelect={(index) => {
+                onChapterChange(chapters.findIndex(ch => ch.id === index));
+                setShowTOC(false);
+              }}
+              position="relative"
+            />
+          </div>
         )}
 
         {/* Main Reading Area */}
         <div
           ref={contentRef}
-          className="flex-1 overflow-y-auto scroll-smooth"
+          className="flex-1 overflow-y-auto px-6 py-8"
           style={theme}
         >
-          <div className="min-h-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-            <article
-              className="mx-auto book-page"
-              style={{
-                maxWidth,
-                fontSize: `${settings.fontSize || 18}px`,
-                lineHeight: settings.lineHeight || 1.8,
-                fontFamily: settings.fontFamily || 'Georgia, serif'
-              }}
-            >
-              {/* Chapter Title */}
-              <header className="mb-8 sm:mb-12">
-                <div className="text-xs sm:text-sm uppercase tracking-wider opacity-50 mb-2 sm:mb-4 font-semibold">
-                  Chapter {currentChapterIndex + 1}
-                </div>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 leading-tight">
-                  {currentChapter?.title || 'Untitled Chapter'}
-                </h1>
-                {currentChapter?.word_count > 0 && (
-                  <div className="text-xs sm:text-sm opacity-60">
-                    {currentChapter.word_count.toLocaleString()} words · {Math.ceil(currentChapter.word_count / 200)} min read
-                  </div>
-                )}
-              </header>
+          <div
+            className="mx-auto"
+            style={{
+              maxWidth,
+              fontSize: `${settings.fontSize || 18}px`,
+              lineHeight: settings.lineHeight || 1.8,
+              fontFamily: settings.fontFamily || 'Georgia, serif'
+            }}
+          >
+            {/* Chapter Title */}
+            <h1 className="text-3xl font-bold mb-8">
+              {currentChapter?.title || 'Untitled Chapter'}
+            </h1>
 
-              {/* Chapter Content */}
-              <div
-                className="chapter-content prose prose-lg max-w-none"
-                dangerouslySetInnerHTML={{ __html: currentChapter?.content || '' }}
-              />
+            {/* Chapter Content */}
+            <div
+              className="chapter-content prose max-w-none"
+              dangerouslySetInnerHTML={{ __html: currentChapter?.content || '' }}
+            />
 
-              {/* Chapter Navigation */}
-              <nav className="mt-12 sm:mt-16 pt-8 border-t border-gray-300/50 dark:border-gray-700/50">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <button
-                    onClick={handlePreviousChapter}
-                    disabled={currentChapterIndex === 0}
-                    className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-lg disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all transform hover:scale-105 disabled:hover:scale-100 flex items-center justify-center gap-2"
-                  >
-                    <span>←</span>
-                    <span>Previous Chapter</span>
-                  </button>
-
-                  <div className="text-sm opacity-70 font-mono">
-                    {currentChapterIndex + 1} / {chapters.length}
-                  </div>
-
-                  <button
-                    onClick={handleNextChapter}
-                    disabled={currentChapterIndex === chapters.length - 1}
-                    className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-lg disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all transform hover:scale-105 disabled:hover:scale-100 flex items-center justify-center gap-2"
-                  >
-                    <span>Next Chapter</span>
-                    <span>→</span>
-                  </button>
-                </div>
-              </nav>
-            </article>
-          </div>
-        </div>
-
-        {/* Floating Navigation (Focus Mode) */}
-        {focusMode && (
-          <div className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 z-30 transition-all duration-300 ${
-            showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
-          }`}>
-            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg rounded-full shadow-2xl px-4 py-3 flex items-center gap-3">
+            {/* Chapter Navigation */}
+            <div className="mt-12 pt-8 border-t border-gray-300 flex justify-between items-center">
               <button
                 onClick={handlePreviousChapter}
                 disabled={currentChapterIndex === 0}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                title="Previous Chapter (←)"
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
-                ←
+                ← Previous Chapter
               </button>
-              
-              <div className="text-xs font-mono px-4 border-x border-gray-300 dark:border-gray-700">
+
+              <span className="text-sm opacity-70">
                 {currentChapterIndex + 1} / {chapters.length}
-              </div>
-              
+              </span>
+
               <button
                 onClick={handleNextChapter}
                 disabled={currentChapterIndex === chapters.length - 1}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                title="Next Chapter (→)"
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
-                →
-              </button>
-              
-              <button
-                onClick={() => setFocusMode(false)}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-                title="Exit Focus Mode (F)"
-              >
-                ✕
+                Next Chapter →
               </button>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Footer */}
-      <div 
-        className={`border-t border-gray-200/50 dark:border-gray-700/50 backdrop-blur-lg bg-white/80 dark:bg-gray-900/80 px-4 py-3 text-center text-xs sm:text-sm opacity-70 transition-all duration-300 ${
-          focusMode && !showControls ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'
-        }`}
-        style={{ 
-          borderTopColor: settings.theme === 'dark' || settings.theme === 'night' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-        }}
-      >
-        <p className="flex items-center justify-center gap-2 flex-wrap">
-          <span>{ebook.author_name}</span>
-          <span className="hidden sm:inline">•</span>
-          <span>{progress}% complete</span>
-          <span className="hidden sm:inline">•</span>
-          <span className="hidden sm:inline">Press F for focus mode</span>
-        </p>
+      <div className="border-t border-gray-300 p-3 text-center text-sm opacity-70">
+        <p>{ebook.author_name} • {progress}% complete</p>
       </div>
 
-      {/* Custom Styles */}
       <style jsx>{`
-        .book-page {
-          animation: fadeIn 0.5s ease-in;
-        }
-        
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .chapter-content {
-          text-align: justify;
-          hyphens: auto;
-        }
-        
         .chapter-content h1 {
           font-size: 2em;
           font-weight: bold;
-          margin: 1.5em 0 0.75em;
-          line-height: 1.2;
+          margin: 1em 0 0.5em;
         }
         
         .chapter-content h2 {
-          font-size: 1.6em;
+          font-size: 1.5em;
           font-weight: bold;
-          margin: 1.5em 0 0.75em;
-          line-height: 1.3;
+          margin: 1em 0 0.5em;
         }
         
         .chapter-content h3 {
-          font-size: 1.3em;
+          font-size: 1.17em;
           font-weight: bold;
-          margin: 1.5em 0 0.75em;
-          line-height: 1.4;
+          margin: 1em 0 0.5em;
         }
         
         .chapter-content p {
-          margin: 1.2em 0;
-          text-indent: 2em;
-        }
-        
-        .chapter-content p:first-of-type,
-        .chapter-content h1 + p,
-        .chapter-content h2 + p,
-        .chapter-content h3 + p {
-          text-indent: 0;
-        }
-        
-        .chapter-content p:first-of-type::first-letter {
-          font-size: 3.5em;
-          font-weight: bold;
-          float: left;
-          line-height: 0.85;
-          margin: 0.1em 0.1em 0 0;
+          margin: 1em 0;
         }
         
         .chapter-content blockquote {
           border-left: 4px solid currentColor;
           padding-left: 1.5em;
           margin: 1.5em 0;
-          opacity: 0.85;
+          opacity: 0.8;
           font-style: italic;
-          text-indent: 0;
-        }
-        
-        .chapter-content blockquote p {
-          text-indent: 0;
         }
         
         .chapter-content pre {
           background: rgba(0, 0, 0, 0.05);
           padding: 1em;
-          border-radius: 0.5rem;
+          border-radius: 0.375rem;
           overflow-x: auto;
           font-family: 'Courier New', monospace;
-          margin: 1.5em 0;
-        }
-        
-        .chapter-content code {
-          background: rgba(0, 0, 0, 0.05);
-          padding: 0.2em 0.4em;
-          border-radius: 0.25rem;
-          font-family: 'Courier New', monospace;
-          font-size: 0.9em;
-        }
-        
-        .chapter-content pre code {
-          background: none;
-          padding: 0;
         }
         
         .chapter-content ul, .chapter-content ol {
           padding-left: 2em;
-          margin: 1.2em 0;
+          margin: 1em 0;
         }
         
         .chapter-content li {
           margin: 0.5em 0;
-        }
-        
-        .chapter-content li p {
-          text-indent: 0;
-        }
-        
-        .chapter-content a {
-          color: #3b82f6;
-          text-decoration: underline;
-          text-decoration-color: rgba(59, 130, 246, 0.3);
-          text-underline-offset: 2px;
-          transition: all 0.2s;
-        }
-        
-        .chapter-content a:hover {
-          text-decoration-color: rgba(59, 130, 246, 1);
-        }
-        
-        .chapter-content hr {
-          margin: 2em auto;
-          border: none;
-          text-align: center;
-        }
-        
-        .chapter-content hr::before {
-          content: "***";
-          letter-spacing: 1em;
-          opacity: 0.5;
-        }
-        
-        .chapter-content img {
-          max-width: 100%;
-          height: auto;
-          margin: 2em auto;
-          display: block;
-          border-radius: 0.5rem;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        
-        .chapter-content table {
-          width: 100%;
-          margin: 1.5em 0;
-          border-collapse: collapse;
-        }
-        
-        .chapter-content th,
-        .chapter-content td {
-          padding: 0.75em;
-          border: 1px solid rgba(0, 0, 0, 0.1);
-          text-align: left;
-        }
-        
-        .chapter-content th {
-          background: rgba(0, 0, 0, 0.05);
-          font-weight: bold;
-        }
-        
-        /* Smooth scrolling */
-        .overflow-y-auto {
-          scroll-behavior: smooth;
-        }
-        
-        /* Custom scrollbar */
-        .overflow-y-auto::-webkit-scrollbar {
-          width: 10px;
-        }
-        
-        .overflow-y-auto::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.05);
-        }
-        
-        .overflow-y-auto::-webkit-scrollbar-thumb {
-          background: rgba(0, 0, 0, 0.2);
-          border-radius: 5px;
-        }
-        
-        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-          background: rgba(0, 0, 0, 0.3);
-        }
-        
-        /* Dark mode scrollbar */
-        .dark .overflow-y-auto::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.05);
-        }
-        
-        .dark .overflow-y-auto::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.3);
-        }
-        
-        /* Selection color based on theme */
-        ::selection {
-          background: rgba(59, 130, 246, 0.3);
-        }
-        
-        /* Responsive typography */
-        @media (max-width: 640px) {
-          .chapter-content p:first-of-type::first-letter {
-            font-size: 2.5em;
-          }
-          
-          .chapter-content p {
-            text-indent: 1.5em;
-          }
-        }
-        
-        /* Print styles */
-        @media print {
-          .ebook-reader-container > *:not(.flex-1) {
-            display: none !important;
-          }
-          
-          .chapter-content {
-            text-align: left;
-          }
-          
-          .chapter-content p {
-            text-indent: 1.5em;
-          }
         }
       `}</style>
     </div>
@@ -936,6 +600,7 @@ const ReadEbookChapterPage = () => {
   }, [id]);
 
   useEffect(() => {
+    // Update reading progress when chapter changes
     if (user && ebook && chapters.length > 0) {
       saveReadingProgress();
     }
@@ -954,10 +619,12 @@ const ReadEbookChapterPage = () => {
       setEbook(ebookData);
       setChapters(chaptersData);
 
+      // Determine starting chapter
       if (chapterId) {
         const chapterIndex = chaptersData.findIndex(ch => ch.id === parseInt(chapterId));
         setCurrentChapterIndex(chapterIndex >= 0 ? chapterIndex : 0);
       } else if (user) {
+        // Try to load last read position
         try {
           const progressRes = await axios.get(`/ebooks/${id}/reading-progress`);
           if (progressRes.data.progress?.current_chapter_id) {
@@ -969,7 +636,7 @@ const ReadEbookChapterPage = () => {
             }
           }
         } catch (error) {
-          // No saved progress
+          // No saved progress, start from beginning
         }
       }
     } catch (error) {
@@ -1003,6 +670,7 @@ const ReadEbookChapterPage = () => {
     if (newIndex >= 0 && newIndex < chapters.length) {
       setCurrentChapterIndex(newIndex);
       
+      // Update URL without page reload
       const newChapterId = chapters[newIndex].id;
       window.history.pushState(
         null,
@@ -1014,27 +682,22 @@ const ReadEbookChapterPage = () => {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 font-semibold">Loading your book...</p>
-        </div>
+      <div className="h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   if (!ebook || chapters.length === 0) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
-        <div className="text-center max-w-md mx-auto p-8">
-          <div className="text-6xl mb-4">📚</div>
-          <h2 className="text-2xl font-bold mb-4 text-gray-800">No Content Available</h2>
-          <p className="text-gray-600 mb-6">This book doesn't have any chapters yet.</p>
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">No Content Available</h2>
           <button
             onClick={() => navigate(`/ebooks/${id}`)}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:scale-105"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Back to Book Details
+            Back to Book
           </button>
         </div>
       </div>
