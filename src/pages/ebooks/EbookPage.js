@@ -5,10 +5,9 @@ import axios from 'axios';
 import { useUser } from '../../context/UserContext';
 
 const EbookPage = () => {
-  // identifier can be either ID or slug
-  const { identifier } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useUser(); 
+  const { user } = useUser();
   
   const [ebook, setEbook] = useState(null);
   const [chapters, setChapters] = useState([]);
@@ -16,49 +15,34 @@ const EbookPage = () => {
   const [readingProgress, setReadingProgress] = useState(null);
   const [expandedChapter, setExpandedChapter] = useState(null);
 
-// In EbookPage.js
-useEffect(() => {
-  if (!identifier) {
-    console.error('No identifier provided for ebook');
-    navigate('/ebooks');
-    return;
-  }
-  
-  fetchEbookDetails();
-  if (user) {
-    fetchReadingProgress();
-  }
-}, [identifier, user]);
-
-  // Update URL to use slug if we loaded by ID
   useEffect(() => {
-    if (ebook && ebook.slug && identifier !== ebook.slug) {
-      // Replace URL with slug version without page reload
-      window.history.replaceState(null, '', `/ebooks/${ebook.slug}`);
+    fetchEbookDetails();
+    if (user) {
+      fetchReadingProgress();
     }
-  }, [ebook, identifier]);
+  }, [id, user]);
 
-const fetchEbookDetails = async () => {
-  try {
-    const [ebookRes, chaptersRes] = await Promise.all([
-      axios.get(`/api/ebooks/${identifier}`),  // Remove the extra /api
-      axios.get(`/api/ebooks/${identifier}/chapters`)  // Remove the extra /api
-    ]);
-    
-    setEbook(ebookRes.data.ebook);
-    setChapters(chaptersRes.data.chapters);
-  } catch (error) {
-    console.error('Error fetching ebook:', error);
-    alert('Book not found');
-    navigate('/ebooks');
-  } finally {
-    setLoading(false);
-  }
-};
+  const fetchEbookDetails = async () => {
+    try {
+      const [ebookRes, chaptersRes] = await Promise.all([
+        axios.get(`/ebooks/${id}`),
+        axios.get(`/ebooks/${id}/chapters`)
+      ]);
+      
+      setEbook(ebookRes.data.ebook);
+      setChapters(chaptersRes.data.chapters);
+    } catch (error) {
+      console.error('Error fetching ebook:', error);
+      alert('Book not found');
+      navigate('/ebooks');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchReadingProgress = async () => {
     try {
-      const response = await axios.get(`/api/ebooks/${identifier}/reading-progress`);
+      const response = await axios.get(`/ebooks/${id}/reading-progress`);
       setReadingProgress(response.data.progress);
     } catch (error) {
       // No progress yet, that's fine
@@ -71,34 +55,23 @@ const fetchEbookDetails = async () => {
       return;
     }
 
-    // Use slug in URL
-    const ebookSlug = ebook.slug || ebook.id;
+    // Start from last read chapter or first chapter
     const startChapter = readingProgress?.current_chapter_id || chapters[0].id;
-    navigate(`/ebooks/${ebookSlug}/read/${startChapter}`);
+    navigate(`/ebooks/${id}/read/${startChapter}`);
   };
 
   const handleEdit = () => {
-    const ebookSlug = ebook.slug || ebook.id;
-    navigate(`/ebooks/edit/${ebookSlug}`);
+    navigate(`/ebooks/edit/${id}`);
   };
 
   const toggleChapterPreview = (chapterId) => {
     setExpandedChapter(expandedChapter === chapterId ? null : chapterId);
   };
 
-  const handleShareBook = () => {
-    const url = `${window.location.origin}/ebooks/${ebook.slug || ebook.id}`;
-    navigator.clipboard.writeText(url);
-    alert('Link copied to clipboard!');
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Loading book...</p>
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -215,14 +188,6 @@ const fetchEbookDetails = async () => {
                     Edit Book
                   </button>
                 )}
-
-                <button
-                  onClick={handleShareBook}
-                  className="px-8 py-4 bg-white bg-opacity-20 text-white rounded-lg hover:bg-opacity-30 font-semibold text-lg"
-                  title="Copy link to book"
-                >
-                  Share 🔗
-                </button>
               </div>
 
               {/* Stats */}
@@ -255,10 +220,10 @@ const fetchEbookDetails = async () => {
             {/* Description */}
             {ebook.description && (
               <div className="bg-white rounded-lg p-6 mb-6 shadow-sm border border-gray-200">
-                  <h3 className="font-bold text-xl mb-4">About This Book</h3>
-                  <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                    {ebook.description}
-                  </p>
+                <h3 className="font-bold text-xl mb-4">About This Book</h3>
+                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                  {ebook.description}
+                </p>
               </div>
             )}
 
