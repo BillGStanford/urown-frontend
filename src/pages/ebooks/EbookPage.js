@@ -16,12 +16,19 @@ const EbookPage = () => {
   const [readingProgress, setReadingProgress] = useState(null);
   const [expandedChapter, setExpandedChapter] = useState(null);
 
-  useEffect(() => {
-    fetchEbookDetails();
-    if (user) {
-      fetchReadingProgress();
-    }
-  }, [identifier, user]);
+// In EbookPage.js
+useEffect(() => {
+  if (!identifier) {
+    console.error('No identifier provided for ebook');
+    navigate('/ebooks');
+    return;
+  }
+  
+  fetchEbookDetails();
+  if (user) {
+    fetchReadingProgress();
+  }
+}, [identifier, user]);
 
   // Update URL to use slug if we loaded by ID
   useEffect(() => {
@@ -31,23 +38,23 @@ const EbookPage = () => {
     }
   }, [ebook, identifier]);
 
-  const fetchEbookDetails = async () => {
-    try {
-      const [ebookRes, chaptersRes] = await Promise.all([
-        axios.get(`/api/ebooks/${identifier}`),
-        axios.get(`/api/ebooks/${identifier}/chapters`)
-      ]);
-      
-      setEbook(ebookRes.data.ebook);
-      setChapters(chaptersRes.data.chapters);
-    } catch (error) {
-      console.error('Error fetching ebook:', error);
-      alert('Book not found');
-      navigate('/ebooks');
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchEbookDetails = async () => {
+  try {
+    const [ebookRes, chaptersRes] = await Promise.all([
+      axios.get(`/api/ebooks/${identifier}`),  // Remove the extra /api
+      axios.get(`/api/ebooks/${identifier}/chapters`)  // Remove the extra /api
+    ]);
+    
+    setEbook(ebookRes.data.ebook);
+    setChapters(chaptersRes.data.chapters);
+  } catch (error) {
+    console.error('Error fetching ebook:', error);
+    alert('Book not found');
+    navigate('/ebooks');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchReadingProgress = async () => {
     try {
