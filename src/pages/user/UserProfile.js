@@ -121,6 +121,8 @@ const UserProfile = () => {
   const [discordLoading, setDiscordLoading] = useState(false);
   const [suggestedUsers, setSuggestedUsers] = useState([]);
   const [userRank, setUserRank] = useState(null);
+  // Add state for active tab
+  const [activeTab, setActiveTab] = useState('articles');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -673,16 +675,18 @@ const UserProfile = () => {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-2 mb-6">
               <div className="flex space-x-1">
                 <button
+                  onClick={() => setActiveTab('articles')}
                   className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                    true ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'
+                    activeTab === 'articles' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
                   <FileText className="h-5 w-5" />
                   Articles ({articles.length})
                 </button>
                 <button
+                  onClick={() => setActiveTab('ebooks')}
                   className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                    false ? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-gray-100'
+                    activeTab === 'ebooks' ? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
                   <BookOpen className="h-5 w-5" />
@@ -691,167 +695,168 @@ const UserProfile = () => {
               </div>
             </div>
 
-            {/* Articles Tab Content */}
-            <div className="space-y-4">
-              {articles.length === 0 ? (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-16 text-center">
-                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <FileText className="h-10 w-10 text-gray-400" />
+            {/* Content based on active tab */}
+            {activeTab === 'articles' ? (
+              <div className="space-y-4">
+                {articles.length === 0 ? (
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-16 text-center">
+                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <FileText className="h-10 w-10 text-gray-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">No articles yet</h3>
+                    <p className="text-gray-500">This user hasn't published any articles yet.</p>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">No articles yet</h3>
-                  <p className="text-gray-500">This user hasn't published any articles yet.</p>
-                </div>
-              ) : (
-                articles.map((article) => (
-                  <div key={article.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
-                    <div className="p-6">
-                      {/* Author Info */}
-                      <div className="flex items-start gap-4 mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-lg font-bold text-white">
-                            {user.display_name.charAt(0).toUpperCase()}
-                          </span>
+                ) : (
+                  articles.map((article) => (
+                    <div key={article.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+                      <div className="p-6">
+                        {/* Author Info */}
+                        <div className="flex items-start gap-4 mb-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-lg font-bold text-white">
+                              {user.display_name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="flex-grow min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-bold text-gray-900">{user.display_name}</span>
+                              {isCertifiedByFollowers && (
+                                <CheckCircle className="h-5 w-5 text-orange-500 flex-shrink-0" />
+                              )}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {formatDistanceToNow(new Date(article.created_at), { addSuffix: true })}
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex-grow min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-bold text-gray-900">{user.display_name}</span>
-                            {isCertifiedByFollowers && (
-                              <CheckCircle className="h-5 w-5 text-orange-500 flex-shrink-0" />
+
+                        {/* Article Title & Preview */}
+                        <Link to={`/article/${article.id}`} className="block group">
+                          <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
+                            {article.title}
+                          </h3>
+                          <p className="text-gray-600 mb-4 line-clamp-2">
+                            {article.content.substring(0, 200)}...
+                          </p>
+                        </Link>
+
+                        {/* Badges */}
+                        {(article.certified || article.topics?.length > 0) && (
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {article.certified && (
+                              <span className="bg-green-50 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-200 flex items-center gap-1.5">
+                                <Award className="h-3.5 w-3.5" />
+                                Certified
+                              </span>
                             )}
+                            {article.topics && article.topics.slice(0, 3).map((topic, idx) => (
+                              <span key={idx} className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-full border border-gray-200">
+                                {topic}
+                              </span>
+                            ))}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {formatDistanceToNow(new Date(article.created_at), { addSuffix: true })}
+                        )}
+
+                        {/* Footer */}
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <div className="flex items-center gap-2">
+                              <Eye className="h-4 w-4" />
+                              <span className="font-medium">{article.views || 0} views</span>
+                            </div>
                           </div>
+                          <Link 
+                            to={`/article/${article.id}`} 
+                            className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold text-sm transition-colors group"
+                          >
+                            Read article
+                            <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                          </Link>
                         </div>
                       </div>
-
-                      {/* Article Title & Preview */}
-                      <Link to={`/article/${article.id}`} className="block group">
-                        <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
-                          {article.title}
-                        </h3>
-                        <p className="text-gray-600 mb-4 line-clamp-2">
-                          {article.content.substring(0, 200)}...
-                        </p>
-                      </Link>
-
-                      {/* Badges */}
-                      {(article.certified || article.topics?.length > 0) && (
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {article.certified && (
-                            <span className="bg-green-50 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-200 flex items-center gap-1.5">
-                              <Award className="h-3.5 w-3.5" />
-                              Certified
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {ebooks.length === 0 ? (
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-16 text-center">
+                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <BookOpen className="h-10 w-10 text-gray-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">No ebooks yet</h3>
+                    <p className="text-gray-500">This user hasn't published any ebooks yet.</p>
+                  </div>
+                ) : (
+                  ebooks.map((ebook) => (
+                    <div key={ebook.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+                      <div className="p-6">
+                        {/* Author Info */}
+                        <div className="flex items-start gap-4 mb-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-lg font-bold text-white">
+                              {user.display_name.charAt(0).toUpperCase()}
                             </span>
-                          )}
-                          {article.topics && article.topics.slice(0, 3).map((topic, idx) => (
+                          </div>
+                          <div className="flex-grow min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-bold text-gray-900">{user.display_name}</span>
+                              {isCertifiedByFollowers && (
+                                <CheckCircle className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                              )}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {formatDistanceToNow(new Date(ebook.created_at), { addSuffix: true })}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Ebook Title & Preview */}
+                        <Link to={`/ebook/${ebook.id}`} className="block group">
+                          <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                            {ebook.title}
+                          </h3>
+                          <p className="text-gray-600 mb-4 line-clamp-2">
+                            {ebook.description || ebook.content?.substring(0, 200)}...
+                          </p>
+                        </Link>
+
+                        {/* Badges */}
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 flex items-center gap-1.5">
+                            <BookOpen className="h-3.5 w-3.5" />
+                            EBook
+                          </span>
+                          {ebook.topics && ebook.topics.slice(0, 3).map((topic, idx) => (
                             <span key={idx} className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-full border border-gray-200">
                               {topic}
                             </span>
                           ))}
                         </div>
-                      )}
 
-                      {/* Footer */}
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <div className="flex items-center gap-2">
-                            <Eye className="h-4 w-4" />
-                            <span className="font-medium">{article.views || 0} views</span>
+                        {/* Footer */}
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <div className="flex items-center gap-2">
+                              <Eye className="h-4 w-4" />
+                              <span className="font-medium">{ebook.views || 0} views</span>
+                            </div>
                           </div>
+                          <Link 
+                            to={`/ebook/${ebook.id}`} 
+                            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm transition-colors group"
+                          >
+                            Read ebook
+                            <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                          </Link>
                         </div>
-                        <Link 
-                          to={`/article/${article.id}`} 
-                          className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold text-sm transition-colors group"
-                        >
-                          Read article
-                          <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                        </Link>
                       </div>
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            {/* EBooks Tab Content - Hidden by default */}
-            <div className="space-y-4" style={{ display: 'none' }}>
-              {ebooks.length === 0 ? (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-16 text-center">
-                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <BookOpen className="h-10 w-10 text-gray-400" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">No ebooks yet</h3>
-                  <p className="text-gray-500">This user hasn't published any ebooks yet.</p>
-                </div>
-              ) : (
-                ebooks.map((ebook) => (
-                  <div key={ebook.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
-                    <div className="p-6">
-                      {/* Author Info */}
-                      <div className="flex items-start gap-4 mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-lg font-bold text-white">
-                            {user.display_name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="flex-grow min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-bold text-gray-900">{user.display_name}</span>
-                            {isCertifiedByFollowers && (
-                              <CheckCircle className="h-5 w-5 text-blue-500 flex-shrink-0" />
-                            )}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {formatDistanceToNow(new Date(ebook.created_at), { addSuffix: true })}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Ebook Title & Preview */}
-                      <Link to={`/ebook/${ebook.id}`} className="block group">
-                        <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
-                          {ebook.title}
-                        </h3>
-                        <p className="text-gray-600 mb-4 line-clamp-2">
-                          {ebook.description || ebook.content?.substring(0, 200)}...
-                        </p>
-                      </Link>
-
-                      {/* Badges */}
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 flex items-center gap-1.5">
-                          <BookOpen className="h-3.5 w-3.5" />
-                          EBook
-                        </span>
-                        {ebook.topics && ebook.topics.slice(0, 3).map((topic, idx) => (
-                          <span key={idx} className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-full border border-gray-200">
-                            {topic}
-                          </span>
-                        ))}
-                      </div>
-
-                      {/* Footer */}
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <div className="flex items-center gap-2">
-                            <Eye className="h-4 w-4" />
-                            <span className="font-medium">{ebook.views || 0} views</span>
-                          </div>
-                        </div>
-                        <Link 
-                          to={`/ebook/${ebook.id}`} 
-                          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm transition-colors group"
-                        >
-                          Read ebook
-                          <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

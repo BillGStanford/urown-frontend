@@ -1,4 +1,4 @@
-// src/App.js - UPDATED EBOOK ROUTES
+// src/App.js - UPDATED WITH SEARCH RESULTS ROUTE
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
@@ -47,6 +47,9 @@ import EbookPage from './pages/ebooks/EbookPage';
 import ReadEbookChapterPage from './pages/ebooks/ReadEbookChapterPage';
 import EditEbookPage from './pages/ebooks/EditEbookPage';
 
+// SEARCH IMPORTS
+import SearchResultsPage from './pages/search/SearchResultsPage';
+
 import GlobalError from './components/GlobalError';
 
 const API_URL = process.env.NODE_ENV === 'production' 
@@ -91,6 +94,9 @@ function AppRoutes() {
           <Route path="/debate/:id" element={<DebateCategoryPage />} />
           <Route path="/debate/:id/write" element={<WriteDebateOpinion />} />
           <Route path="/user/:display_name" element={<UserProfile />} />
+          
+          {/* Search Results Route */}
+          <Route path="/search/results" element={<SearchResultsPage />} />
 
           {/* EBOOK ROUTES - Simplified and Fixed */}
           {/* Public browsing */}
