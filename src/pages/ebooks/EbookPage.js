@@ -1,7 +1,7 @@
 // src/pages/ebooks/EbookPage.js
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { axios } from '../../utils/apiUtils';
 import { useUser } from '../../context/UserContext';
 
 const EbookPage = () => {
@@ -16,29 +16,36 @@ const EbookPage = () => {
   const [expandedChapter, setExpandedChapter] = useState(null);
 
   useEffect(() => {
-    fetchEbookDetails();
-    if (user) {
-      fetchReadingProgress();
-    }
-  }, [id, user]);
+  if (!id || isNaN(parseInt(id))) {
+    alert('Invalid book ID');
+    navigate('/ebooks');
+    return;
+  }
+  
+  fetchEbookDetails();
+  if (user) {
+    fetchReadingProgress();
+  }
+}, [id, user]);
 
-  const fetchEbookDetails = async () => {
-    try {
-      const [ebookRes, chaptersRes] = await Promise.all([
-        axios.get(`/ebooks/${id}`),
-        axios.get(`/ebooks/${id}/chapters`)
-      ]);
-      
-      setEbook(ebookRes.data.ebook);
-      setChapters(chaptersRes.data.chapters);
-    } catch (error) {
-      console.error('Error fetching ebook:', error);
-      alert('Book not found');
-      navigate('/ebooks');
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchEbookDetails = async () => {
+  try {
+    const [ebookRes, chaptersRes] = await Promise.all([
+      axios.get(`/ebooks/${id}`),
+      axios.get(`/ebooks/${id}/chapters`)
+    ]);
+    
+    setEbook(ebookRes.data.ebook);
+    setChapters(chaptersRes.data.chapters);
+  } catch (error) {
+    console.error('Error fetching ebook:', error);
+    console.error('Error response:', error.response);
+    alert(`Book not found: ${error.response?.data?.error || 'Unknown error'}`);
+    navigate('/ebooks');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchReadingProgress = async () => {
     try {
