@@ -3,10 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://urown-backend.onrender.com/api'  
-  : 'http://localhost:5000/api';
-
 const BrowseEbooksPage = () => {
   const navigate = useNavigate();
   const [ebooks, setEbooks] = useState([]);
@@ -32,8 +28,7 @@ const BrowseEbooksPage = () => {
       if (filters.sort) params.append('sort', filters.sort);
       if (filters.search) params.append('search', filters.search);
 
-      // Fix: Use the full API URL
-      const response = await axios.get(`${API_URL}/ebooks?${params}`);
+      const response = await axios.get(`/ebooks?${params}`);
       setEbooks(response.data.ebooks);
     } catch (error) {
       console.error('Error fetching ebooks:', error);
