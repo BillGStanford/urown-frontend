@@ -1,4 +1,3 @@
-// src/components/Header.js - UPDATED WITH SEARCH ICON
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
@@ -38,7 +37,6 @@ function Header({ user, onLogout }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const dropdownRef = useRef(null);
   const sidebarRef = useRef(null);
 
@@ -70,10 +68,6 @@ function Header({ user, onLogout }) {
 
   const toggleMobileMenu = useCallback(() => {
     setIsMobileMenuOpen(prev => !prev);
-  }, []);
-
-  const toggleSearch = useCallback(() => {
-    setIsSearchOpen(prev => !prev);
   }, []);
 
   const fetchUnreadCount = useCallback(async () => {
@@ -225,42 +219,6 @@ function Header({ user, onLogout }) {
 
   return (
     <>
-      {/* Search Page */}
-      {isSearchOpen && (
-        <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsSearchOpen(false)}></div>
-          <div className="absolute top-0 left-0 right-0 bg-white shadow-2xl transform transition-transform duration-300 ease-out translate-y-0">
-            <div className="max-w-4xl mx-auto p-4">
-              <form className="relative" onSubmit={(e) => {
-                e.preventDefault();
-                const query = e.target.elements.search.value;
-                if (query.trim()) {
-                  window.location.href = `/search/results?q=${encodeURIComponent(query)}`;
-                }
-              }}>
-                <div className="flex items-center">
-                  <Search className="absolute left-4 h-5 w-5 text-gray-400" />
-                  <input
-                    name="search"
-                    type="text"
-                    placeholder="Search for articles, ebooks, and authors..."
-                    className="w-full pl-12 pr-12 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setIsSearchOpen(false)}
-                    className="absolute right-4 p-1 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
@@ -388,28 +346,10 @@ function Header({ user, onLogout }) {
                 <Library className="h-4 w-4" strokeWidth={2} />
                 <span>Library</span>
               </Link>
-
-              {/* Search Button */}
-              <button
-                onClick={toggleSearch}
-                className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-                aria-label="Search"
-              >
-                <Search className="h-5 w-5" strokeWidth={2} />
-              </button>
             </div>
 
             {/* Right Section */}
             <div className="flex items-center gap-2">
-              {/* Search Button - Mobile */}
-              <button
-                onClick={toggleSearch}
-                className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-                aria-label="Search"
-              >
-                <Search className="h-5 w-5" strokeWidth={2} />
-              </button>
-
               {user ? (
                 <>
                   {/* Settings - Desktop */}

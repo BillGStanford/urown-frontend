@@ -307,20 +307,20 @@ const LeaderboardPage = () => {
                   <span className="text-sm text-gray-700">Reaction</span>
                   <span className="font-bold text-green-600">+1</span>
                 </div>
-<div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-  <span className="text-sm text-gray-700 font-semibold flex items-center gap-1">
-    <BookOpen className="h-4 w-4 text-blue-600" />
-    Posted First Book
-  </span>
-  <span className="font-bold text-blue-600">+20</span>
-</div>
-<div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-  <span className="text-sm text-gray-700 font-semibold flex items-center gap-1">
-    <BookOpen className="h-4 w-4 text-blue-600" />
-    Posted an EBook
-  </span>
-  <span className="font-bold text-blue-600">+50</span>
-</div>
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <span className="text-sm text-gray-700 font-semibold flex items-center gap-1">
+                    <BookOpen className="h-4 w-4 text-blue-600" />
+                    Posted First Book
+                  </span>
+                  <span className="font-bold text-blue-600">+20</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <span className="text-sm text-gray-700 font-semibold flex items-center gap-1">
+                    <BookOpen className="h-4 w-4 text-blue-600" />
+                    Posted an EBook
+                  </span>
+                  <span className="font-bold text-blue-600">+50</span>
+                </div>
               </div>
             </div>
           </div>
