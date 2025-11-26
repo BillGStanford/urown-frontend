@@ -18,7 +18,6 @@ import {
   Info,
   Flame,
   Bell,
-  BookOpen,
   Sparkles,
   Flag,
   Trophy,
@@ -129,7 +128,6 @@ function Header({ user, onLogout }) {
       {
         title: 'Content',
         items: [
-          { to: '/ebooks', icon: BookOpen, label: 'E-Books' },
           { to: '/library', icon: Library, label: 'My Library', requiresAuth: true },
         ]
       },
@@ -193,7 +191,6 @@ function Header({ user, onLogout }) {
   ], [unreadCount]);
 
   const secondaryBottomNavLoggedIn = useMemo(() => [
-    { to: '/ebooks', icon: BookOpen, label: 'E-Books' },
     { to: '/ideology-quiz', icon: Sparkles, label: 'Quiz' },
     { to: '/leaderboard', icon: Trophy, label: 'Ranks' },
     { to: '/about', icon: Info, label: 'About' },
@@ -205,7 +202,6 @@ function Header({ user, onLogout }) {
   const primaryBottomNavLoggedOut = useMemo(() => [
     { to: '/', icon: Home, label: 'Home' },
     { to: '/browse', icon: Compass, label: 'Explore' },
-    { to: '/ebooks', icon: BookOpen, label: 'E-Books' },
     { to: '/ideology-quiz', icon: Sparkles, label: 'Quiz' }
   ], []);
 
@@ -331,14 +327,6 @@ function Header({ user, onLogout }) {
                 <span>Browse</span>
               </Link>
               
-              <Link 
-                to="/ebooks" 
-                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <BookOpen className="h-4 w-4" strokeWidth={2} />
-                <span>E-Books</span>
-              </Link>
-
               <Link 
                 to="/library" 
                 className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"

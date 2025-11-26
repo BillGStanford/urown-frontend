@@ -6,7 +6,7 @@ import { useUser } from '../../context/UserContext';
 import BannerAd from '../../components/ads/BannerAd';
 import SidebarAd from '../../components/ads/SidebarAd';
 import InFeedAd from '../../components/ads/InFeedAd';
-import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Sparkles, Medal, BookOpen } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Flame, Award, Users, TrendingUp, Eye, MessageSquare, Calendar, Star, Zap, ArrowRight, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Sparkles, Medal } from 'lucide-react';
 
 function HomePage() {
   const [activeDebates, setActiveDebates] = useState([]);
@@ -271,8 +271,8 @@ function HomePage() {
           </div>
         )}
 
-        {/* NEW: Leaderboard, Write Ebook, and Ideology Quiz Promotional Banners */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-12 sm:mb-16">
+        {/* NEW: Leaderboard and Ideology Quiz Promotional Banners */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-12 sm:mb-16">
           {/* Leaderboard Promotion */}
           <Link 
             to="/leaderboard"
@@ -289,29 +289,6 @@ function HomePage() {
               <p className="text-white/90 mb-6 max-w-md">Discover top contributors and see who's making the biggest impact in our community.</p>
               <div className="flex items-center gap-2 font-bold text-white group-hover:gap-3 transition-all">
                 View Rankings
-                <ChevronRight className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-            <div className="absolute bottom-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mb-12"></div>
-          </Link>
-
-          {/* Write Ebook Promotion */}
-          <Link 
-            to="/ebooks"
-            className="group relative overflow-hidden bg-gradient-to-br from-green-500 via-teal-500 to-blue-600 rounded-2xl p-6 sm:p-8 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-          >
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
-                  <BookOpen className="w-7 h-7 text-white" strokeWidth={2.5} />
-                </div>
-                <span className="text-white/90 font-bold text-sm uppercase tracking-wider">Publish</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-black mb-3">Write Ebook</h2>
-              <p className="text-white/90 mb-6 max-w-md">Transform your expertise into a published ebook. Share your knowledge with thousands of readers and earn from your insights.</p>
-              <div className="flex items-center gap-2 font-bold text-white group-hover:gap-3 transition-all">
-                Start Writing
                 <ChevronRight className="w-5 h-5" />
               </div>
             </div>
@@ -629,7 +606,6 @@ function HomePage() {
                 <ul className="space-y-2 text-sm">
                   <li><Link to="/browse" className="text-orange-600 hover:underline">Browse Articles</Link></li>
                   <li><Link to="/write" className="text-orange-600 hover:underline">Write Article</Link></li>
-                  <li><Link to="/ebooks" className="text-orange-600 hover:underline">Write Ebook</Link></li>
                   <li><Link to="/leaderboard" className="text-orange-600 hover:underline">Leaderboard</Link></li>
                   <li><Link to="/ideology-quiz" className="text-orange-600 hover:underline">Ideology Quiz</Link></li>
                 </ul>
