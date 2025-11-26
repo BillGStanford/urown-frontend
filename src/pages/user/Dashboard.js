@@ -16,6 +16,30 @@ import {
   ArcElement
 } from 'chart.js';
 import { Bar, Line, Pie } from 'react-chartjs-2';
+import { 
+  FileText, 
+  Eye, 
+  Calendar, 
+  Award, 
+  Users, 
+  TrendingUp, 
+  Settings, 
+  RefreshCw,
+  Edit,
+  Trash2,
+  ExternalLink,
+  BarChart3,
+  PieChart,
+  Activity,
+  Zap,
+  Target,
+  Clock,
+  ChevronRight,
+  PenTool,
+  Trophy,
+  AlertCircle,
+  CheckCircle
+} from 'lucide-react';
 
 // Register Chart.js components
 ChartJS.register(
@@ -63,6 +87,11 @@ function Dashboard() {
     if (!resetDate) return null;
     const reset = new Date(resetDate);
     return new Date(reset.getTime() + (7 * 24 * 60 * 60 * 1000));
+  }, []);
+
+  // Calculate total views from articles if not provided by API
+  const calculateTotalViews = useCallback((articles) => {
+    return articles.reduce((total, article) => total + (article.views || 0), 0);
   }, []);
 
   // Update local state when user changes
@@ -188,6 +217,14 @@ function Dashboard() {
       fetchUserArticles();
     }
   }, [user?.id]);
+
+  // Update views when articles change
+  useEffect(() => {
+    if (userArticles.length > 0) {
+      const totalViews = calculateTotalViews(userArticles);
+      setUserStats(prev => ({ ...prev, views: totalViews }));
+    }
+  }, [userArticles, calculateTotalViews]);
 
   const formatDate = (date) => {
     if (!date) return 'Unknown';
@@ -323,446 +360,509 @@ function Dashboard() {
 
   if (!user) {
     return (
-      <div className="text-center py-16">
-        <div className="text-2xl font-bold">Loading your dashboard...</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-orange-500 mx-auto mb-4"></div>
+          <div className="text-xl font-semibold text-gray-700">Loading your dashboard...</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-16">
+    <div className="min-h-screen bg-gray-50">
       {/* Error Banner */}
       {error && (
-        <div className="bg-red-50 border-2 border-red-500 text-red-700 p-4 mb-8 text-center">
-          <div className="text-xl font-bold">{error}</div>
-          <button 
-            onClick={handleRetry}
-            disabled={isRefreshing}
-            className={`mt-2 px-4 py-2 rounded font-bold ${
-              isRefreshing 
-                ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
-                : 'bg-red-500 text-white hover:bg-red-600'
-            }`}
-          >
-            {isRefreshing ? 'Retrying...' : 'Retry'}
-          </button>
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-red-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-700">{error}</p>
+              <button 
+                onClick={handleRetry}
+                disabled={isRefreshing}
+                className={`mt-2 px-4 py-2 rounded-md text-sm font-medium ${
+                  isRefreshing 
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                    : 'bg-red-100 text-red-700 hover:bg-red-200'
+                }`}
+              >
+                {isRefreshing ? 'Retrying...' : 'Retry'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Welcome Section */}
-      <div className="text-center mb-16">
-        <h1 className="text-7xl font-bold mb-6">
-          WELCOME BACK, {user.display_name.toUpperCase()}!
-        </h1>
-        <p className="text-2xl font-bold text-gray-600">
-          Ready to share your opinions with the world?
-        </p>
-      </div>
-
-      {/* Stats Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-        {/* Tier Status */}
-        <div className="bg-gray-50 p-8 border-2 border-black text-center">
-          <div className="text-5xl font-bold mb-4">🥈</div>
-          <h2 className="text-3xl font-bold mb-2">YOUR TIER</h2>
-          <div className="text-4xl font-bold text-gray-800 mb-2">
-            {user.tier.toUpperCase()}
-          </div>
-          <p className="text-lg font-bold text-gray-600">
-            Premium features coming soon
-          </p>
-        </div>
-
-        {/* Weekly Articles */}
-        <div className="bg-gray-50 p-8 border-2 border-black text-center">
-          <div className="text-5xl font-bold mb-4">📝</div>
-          <h2 className="text-3xl font-bold mb-2">THIS WEEK</h2>
-          <div className="text-4xl font-bold text-gray-800 mb-2">
-            {weeklyRemainingArticles} / 2
-          </div>
-          <p className="text-lg font-bold text-gray-600">
-            Articles remaining
-          </p>
-        </div>
-
-        {/* Reset Timer */}
-        <div className="bg-gray-50 p-8 border-2 border-black text-center">
-          <div className="text-5xl font-bold mb-4">⏰</div>
-          <h2 className="text-3xl font-bold mb-2">RESET IN</h2>
-          <div className="text-2xl font-bold text-gray-800 mb-2">
-            {getTimeUntilReset()}
-          </div>
-          <p className="text-lg font-bold text-gray-600">
-            Weekly limit resets
+      <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-8 mb-8 shadow-lg">
+        <div className="max-w-4xl">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+            Welcome back, {user.display_name}!
+          </h1>
+          <p className="text-orange-100 text-lg">
+            Ready to share your opinions with the world?
           </p>
         </div>
       </div>
 
-      {/* Analytics Tabs */}
-      <div className="mb-8">
-        <div className="flex border-b border-gray-200">
-          <button
-            className={`py-4 px-6 font-bold text-lg ${activeTab === 'overview' ? 'border-b-4 border-black' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            Overview
-          </button>
-          <button
-            className={`py-4 px-6 font-bold text-lg ${activeTab === 'analytics' ? 'border-b-4 border-black' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('analytics')}
-          >
-            Analytics
-          </button>
-          <button
-            className={`py-4 px-6 font-bold text-lg ${activeTab === 'articles' ? 'border-b-4 border-black' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('articles')}
-          >
-            My Articles
-          </button>
-        </div>
-      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        {/* Stats Dashboard */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Tier Status */}
+          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-3 rounded-full bg-orange-100 mr-4">
+                <Trophy className="h-8 w-8 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Your Tier</p>
+                <p className="text-2xl font-bold text-gray-900">{user.tier.toUpperCase()}</p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="flex items-center text-sm text-gray-600">
+                <Info className="h-4 w-4 mr-1" />
+                Premium features coming soon
+              </div>
+            </div>
+          </div>
 
-      {/* Tab Content */}
-      {activeTab === 'overview' && (
-        <>
-          {/* Action Sections */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-            {/* Write New Article */}
-            <div className="bg-black text-white p-12 text-center">
-              <div className="text-6xl font-bold mb-6">✍️</div>
-              <h2 className="text-4xl font-bold mb-6">WRITE NEW ARTICLE</h2>
-              {weeklyRemainingArticles > 0 ? (
-                <>
-                  <p className="text-xl font-bold mb-8">
-                    You have {weeklyRemainingArticles} article{weeklyRemainingArticles !== 1 ? 's' : ''} remaining this week
-                  </p>
-                  <Link to="/write" className="bg-white text-black px-12 py-6 text-2xl font-bold border-2 border-white hover:bg-black hover:text-white hover:border-white transition-colors duration-200">
-                    START WRITING
+          {/* Weekly Articles */}
+          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-3 rounded-full bg-blue-100 mr-4">
+                <FileText className="h-8 w-8 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">This Week</p>
+                <p className="text-2xl font-bold text-gray-900">{weeklyRemainingArticles} / 2</p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="flex items-center text-sm text-gray-600">
+                <Clock className="h-4 w-4 mr-1" />
+                Articles remaining
+              </div>
+            </div>
+          </div>
+
+          {/* Reset Timer */}
+          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-3 rounded-full bg-green-100 mr-4">
+                <RefreshCw className="h-8 w-8 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Reset In</p>
+                <p className="text-2xl font-bold text-gray-900">{getTimeUntilReset()}</p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="flex items-center text-sm text-gray-600">
+                <Activity className="h-4 w-4 mr-1" />
+                Weekly limit resets
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Analytics Tabs */}
+        <div className="bg-white rounded-xl shadow-md mb-8">
+          <div className="border-b border-gray-200">
+            <nav className="flex -mb-px">
+              <button
+                className={`py-4 px-6 text-sm font-medium ${
+                  activeTab === 'overview' 
+                    ? 'border-b-2 border-orange-500 text-orange-600' 
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+                onClick={() => setActiveTab('overview')}
+              >
+                Overview
+              </button>
+              <button
+                className={`py-4 px-6 text-sm font-medium ${
+                  activeTab === 'analytics' 
+                    ? 'border-b-2 border-orange-500 text-orange-600' 
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+                onClick={() => setActiveTab('analytics')}
+              >
+                Analytics
+              </button>
+              <button
+                className={`py-4 px-6 text-sm font-medium ${
+                  activeTab === 'articles' 
+                    ? 'border-b-2 border-orange-500 text-orange-600' 
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+                onClick={() => setActiveTab('articles')}
+              >
+                My Articles
+              </button>
+            </nav>
+          </div>
+
+          {/* Tab Content */}
+          <div className="p-6">
+            {activeTab === 'overview' && (
+              <>
+                {/* Action Sections */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                  {/* Write New Article */}
+                  <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-8 text-center text-white">
+                    <div className="flex justify-center mb-4">
+                      <PenTool className="h-16 w-16" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-4">Write New Article</h2>
+                    {weeklyRemainingArticles > 0 ? (
+                      <>
+                        <p className="mb-6">
+                          You have {weeklyRemainingArticles} article{weeklyRemainingArticles !== 1 ? 's' : ''} remaining this week
+                        </p>
+                        <Link to="/write" className="inline-flex items-center px-6 py-3 bg-white text-orange-600 rounded-lg font-medium hover:bg-gray-100 transition-colors">
+                          Start Writing
+                          <ChevronRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <p className="mb-6">
+                          You've reached your weekly limit. Reset in {getTimeUntilReset()}
+                        </p>
+                        <button 
+                          disabled 
+                          className="inline-flex items-center px-6 py-3 bg-gray-300 text-gray-500 rounded-lg font-medium cursor-not-allowed"
+                        >
+                          Limit Reached
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Quick Stats */}
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <div className="text-2xl font-bold text-gray-900">{loading ? '...' : userStats.totalArticles}</div>
+                        <div className="text-sm text-gray-600">Total Articles</div>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <div className="text-2xl font-bold text-gray-900">{loading ? '...' : userStats.publishedArticles}</div>
+                        <div className="text-sm text-gray-600">Published</div>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <div className="text-2xl font-bold text-gray-900">{loading ? '...' : userStats.draftArticles}</div>
+                        <div className="text-sm text-gray-600">Drafts</div>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <div className="text-2xl font-bold text-gray-900">{loading ? '...' : userStats.views}</div>
+                        <div className="text-sm text-gray-600">Views</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'analytics' && (
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">Content Analytics</h2>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                  <div className="bg-white rounded-xl p-6 border border-gray-200">
+                    <div className="h-80">
+                      <Pie data={articleStatusData} options={articleStatusOptions} />
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-xl p-6 border border-gray-200">
+                    <div className="h-80">
+                      <Bar data={viewsPerArticleData} options={viewsPerArticleOptions} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl p-6 border border-gray-200 mb-8">
+                  <div className="h-80">
+                    <Line data={timelineData} options={timelineOptions} />
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Performing Articles</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Article Title
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Views
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Created
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {topArticles.length > 0 ? (
+                          topArticles.map((article) => (
+                            <tr key={article.id}>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {article.title.length > 50 ? article.title.substring(0, 50) + '...' : article.title}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  article.published 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                  {article.published ? 'Published' : 'Draft'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {article.views || 0}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {new Date(article.created_at).toLocaleDateString()}
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">
+                              No articles found
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'articles' && (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">My Articles</h2>
+                  <Link to="/write" className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-md font-medium hover:bg-orange-700 transition-colors">
+                    <PenTool className="h-4 w-4 mr-2" />
+                    Create New Article
                   </Link>
-                </>
-              ) : (
-                <>
-                  <p className="text-xl font-bold mb-8">
-                    You've reached your weekly limit. Reset in {getTimeUntilReset()}
-                  </p>
-                  <button 
-                    disabled 
-                    className="bg-gray-600 text-gray-400 px-12 py-6 text-2xl font-bold border-2 border-gray-600 cursor-not-allowed"
-                  >
-                    LIMIT REACHED
-                  </button>
-                </>
-              )}
-            </div>
+                </div>
+                
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Title
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Views
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Created
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {userArticles.length > 0 ? (
+                          userArticles.map((article) => (
+                            <tr key={article.id}>
+                              <td className="px-6 py-4">
+                                <div className="text-sm font-medium text-gray-900 max-w-xs">
+                                  {article.title.length > 50 ? article.title.substring(0, 50) + '...' : article.title}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {new Date(article.created_at).toLocaleDateString()}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  article.published 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                  {article.published ? 'Published' : 'Draft'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {article.views || 0}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {new Date(article.created_at).toLocaleDateString()}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                {article.published ? (
+                                  <Link 
+                                    to={`/article/${article.id}`}
+                                    className="text-blue-600 hover:text-blue-900 mr-3"
+                                  >
+                                    <ExternalLink className="h-4 w-4" />
+                                  </Link>
+                                ) : (
+                                  <Link 
+                                    to={`/write?edit=${article.id}`}
+                                    className="text-indigo-600 hover:text-indigo-900 mr-3"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Link>
+                                )}
+                                <button
+                                  onClick={() => showDeleteConfirm(article, 'article')}
+                                  className="text-red-600 hover:text-red-900"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
+                              No articles found. <Link to="/write" className="text-blue-600 hover:underline">Write your first article!</Link>
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* Quick Stats */}
-          <div className="mt-16 text-center">
-            <h2 className="text-4xl font-bold mb-8">QUICK STATS</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="bg-white p-6 border-2 border-black">
-                <div className="text-3xl font-bold">{loading ? '...' : userStats.totalArticles}</div>
-                <div className="text-lg font-bold">Total Articles</div>
-              </div>
-              <div className="bg-white p-6 border-2 border-black">
-                <div className="text-3xl font-bold">{loading ? '...' : userStats.publishedArticles}</div>
-                <div className="text-lg font-bold">Published</div>
-              </div>
-              <div className="bg-white p-6 border-2 border-black">
-                <div className="text-3xl font-bold">{loading ? '...' : userStats.draftArticles}</div>
-                <div className="text-lg font-bold">Drafts</div>
-              </div>
-              <div className="bg-white p-6 border-2 border-black">
-                <div className="text-3xl font-bold">{loading ? '...' : userStats.views}</div>
-                <div className="text-lg font-bold">Views</div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {activeTab === 'analytics' && (
-        <div className="mb-16">
-          <h2 className="text-4xl font-bold mb-8 text-center">CONTENT ANALYTICS</h2>
+        {/* Profile Section */}
+        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Profile Information</h2>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-            <div className="bg-white p-8 border-2 border-black">
-              <div className="h-80">
-                <Pie data={articleStatusData} options={articleStatusOptions} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Account Details</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-500">Display Name:</span>
+                  <span className="text-sm text-gray-900">{user.display_name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-500">Full Name:</span>
+                  <span className="text-sm text-gray-900">{user.full_name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-500">Email:</span>
+                  <span className="text-sm text-gray-900">{user.email || 'Not provided'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-500">Phone:</span>
+                  <span className="text-sm text-gray-900">{user.phone || 'Not provided'}</span>
+                </div>
               </div>
             </div>
 
-            <div className="bg-white p-8 border-2 border-black">
-              <div className="h-80">
-                <Bar data={viewsPerArticleData} options={viewsPerArticleOptions} />
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Membership</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-500">Member Since:</span>
+                  <span className="text-sm text-gray-900">
+                    {new Date(user.created_at).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-500">Current Tier:</span>
+                  <span className="text-sm text-gray-900">{user.tier}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-500">Articles This Week:</span>
+                  <span className="text-sm text-gray-900">{user.weekly_articles_count} / 2</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-500">Next Reset:</span>
+                  <span className="text-sm text-gray-900">{formatDate(nextResetDate)}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-8 border-2 border-black mb-16">
-            <div className="h-80">
-              <Line data={timelineData} options={timelineOptions} />
-            </div>
+          <div className="flex justify-center mt-6 space-x-4">
+            <button 
+              onClick={handleRetry}
+              disabled={isRefreshing}
+              className={`inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${
+                isRefreshing ? 'opacity-50 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+            </button>
+            <Link to="/settings" className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium bg-white text-gray-700 hover:bg-gray-50">
+              <Settings className="h-4 w-4 mr-2" />
+              Account Settings
+            </Link>
           </div>
-
-          <div className="bg-white p-8 border-2 border-black">
-            <h3 className="text-2xl font-bold mb-6">Top Performing Articles</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Article Title
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Views
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Created
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {topArticles.length > 0 ? (
-                    topArticles.map((article) => (
-                      <tr key={article.id}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-bold text-gray-900">
-                            {article.title.length > 50 ? article.title.substring(0, 50) + '...' : article.title}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            article.published 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {article.published ? 'Published' : 'Draft'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {article.views || 0}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(article.created_at).toLocaleDateString()}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">
-                        No articles found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'articles' && (
-        <div className="mb-16">
-          <h2 className="text-4xl font-bold mb-8 text-center">MY ARTICLES</h2>
-          
-          <div className="bg-white p-8 border-2 border-black mb-8">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold">All Articles ({userArticles.length})</h3>
-              <Link to="/write" className="btn-primary">
-                CREATE NEW ARTICLE
-              </Link>
-            </div>
-            
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Title
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Views
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Created
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {userArticles.length > 0 ? (
-                    userArticles.map((article) => (
-                      <tr key={article.id}>
-                        <td className="px-6 py-4">
-                          <div className="text-sm font-bold text-gray-900 max-w-xs">
-                            {article.title.length > 50 ? article.title.substring(0, 50) + '...' : article.title}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {new Date(article.created_at).toLocaleDateString()}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            article.published 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {article.published ? 'Published' : 'Draft'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {article.views || 0}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(article.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          {article.published ? (
-                            <Link 
-                              to={`/article/${article.id}`}
-                              className="text-blue-600 hover:text-blue-900 mr-3"
-                            >
-                              View
-                            </Link>
-                          ) : (
-                            <Link 
-                              to={`/write?edit=${article.id}`}
-                              className="text-indigo-600 hover:text-indigo-900 mr-3"
-                            >
-                              Edit
-                            </Link>
-                          )}
-                          <button
-                            onClick={() => showDeleteConfirm(article, 'article')}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
-                        No articles found. <Link to="/write" className="text-blue-600 hover:underline">Write your first article!</Link>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Profile Section */}
-      <div className="bg-gray-50 p-12 border-2 border-black">
-        <h2 className="text-4xl font-bold mb-8 text-center">PROFILE INFORMATION</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <h3 className="text-2xl font-bold mb-4">ACCOUNT DETAILS</h3>
-            <div className="space-y-4">
-              <div>
-                <span className="text-lg font-bold">Display Name: </span>
-                <span className="text-lg">{user.display_name}</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold">Full Name: </span>
-                <span className="text-lg">{user.full_name}</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold">Email: </span>
-                <span className="text-lg">{user.email || 'Not provided'}</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold">Phone: </span>
-                <span className="text-lg">{user.phone || 'Not provided'}</span>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-2xl font-bold mb-4">MEMBERSHIP</h3>
-            <div className="space-y-4">
-              <div>
-                <span className="text-lg font-bold">Member Since: </span>
-                <span className="text-lg">
-                  {new Date(user.created_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </span>
-              </div>
-              <div>
-                <span className="text-lg font-bold">Current Tier: </span>
-                <span className="text-lg">{user.tier}</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold">Articles This Week: </span>
-                <span className="text-lg">{user.weekly_articles_count} / 2</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold">Next Reset: </span>
-                <span className="text-lg">{formatDate(nextResetDate)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="text-center mt-8">
-          <button 
-            onClick={handleRetry}
-            disabled={isRefreshing}
-            className={`btn-secondary mr-4 ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {isRefreshing ? 'REFRESHING...' : 'REFRESH DATA'}
-          </button>
-          <Link to="/settings" className="btn-secondary">
-            ACCOUNT SETTINGS
-          </Link>
         </div>
       </div>
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-8 rounded-lg max-w-md w-full">
-            <h3 className="text-2xl font-bold mb-4">Confirm Deletion</h3>
-            <p className="mb-6">
-              Are you sure you want to delete this article? This action cannot be undone.
-              {deleteConfirm.article && (
-                <div className="mt-2 p-3 bg-gray-100 rounded">
-                  <strong>{deleteConfirm.article.title}</strong>
-                </div>
-              )}
-            </p>
-            
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => setDeleteConfirm({ show: false, article: null })}
-                className="px-4 py-2 border border-gray-300 rounded font-bold hover:bg-gray-100"
-                disabled={isDeleting}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="px-4 py-2 bg-red-600 text-white rounded font-bold hover:bg-red-700 disabled:opacity-50"
-              >
-                {isDeleting ? 'Deleting...' : 'Delete'}
-              </button>
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3 text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-lg leading-6 font-medium text-gray-900 mt-4">Delete Article</h3>
+              <div className="mt-2 px-7 py-3">
+                <p className="text-sm text-gray-500">
+                  Are you sure you want to delete this article? This action cannot be undone.
+                  {deleteConfirm.article && (
+                    <div className="mt-2 p-2 bg-gray-100 rounded">
+                      <strong>{deleteConfirm.article.title}</strong>
+                    </div>
+                  )}
+                </p>
+              </div>
+              <div className="flex justify-center mt-4 space-x-4">
+                <button
+                  onClick={() => setDeleteConfirm({ show: false, article: null })}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none"
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none"
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
