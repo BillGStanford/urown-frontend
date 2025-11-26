@@ -38,7 +38,8 @@ import {
   PenTool,
   Trophy,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Info
 } from 'lucide-react';
 
 // Register Chart.js components
