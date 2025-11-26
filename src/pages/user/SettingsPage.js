@@ -1,7 +1,7 @@
-// pages/SettingsPage.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { useUser } from '../../context/UserContext';
 import { createApiRequest } from '../../utils/apiUtils';
+import AboutMe from '../../components/AboutMe';
 
 function SettingsPage() {
   const { user, updateUser } = useUser();
@@ -77,17 +77,11 @@ function SettingsPage() {
         data: { display_name: displayName.trim() }
       })();
       
-      // Debug: log the response structure
-      console.log('API Response:', response.data);
-      
-      // Check if response has the expected structure
       if (response.data && response.data.user) {
         updateUser(response.data.user);
         setSuccess('Display name updated successfully');
-        setDisplayNameCooldown(14); // Reset cooldown to 14 days
+        setDisplayNameCooldown(14);
       } else {
-        // Fallback: if the response doesn't have the expected structure
-        // Fetch the updated user profile
         const profileResponse = await createApiRequest('/user/profile', { method: 'GET' })();
         if (profileResponse.data && profileResponse.data.user) {
           updateUser(profileResponse.data.user);
@@ -125,13 +119,11 @@ function SettingsPage() {
         data: { email: email.trim() }
       })();
       
-      // Check if response has the expected structure
       if (response.data && response.data.user) {
         updateUser(response.data.user);
         setSuccess('Email updated successfully');
-        setEmailCooldown(14); // Reset cooldown to 14 days
+        setEmailCooldown(14);
       } else {
-        // Fallback: fetch the updated user profile
         const profileResponse = await createApiRequest('/user/profile', { method: 'GET' })();
         if (profileResponse.data && profileResponse.data.user) {
           updateUser(profileResponse.data.user);
@@ -164,13 +156,11 @@ function SettingsPage() {
         data: { phone: phone.trim() || null }
       })();
       
-      // Check if response has the expected structure
       if (response.data && response.data.user) {
         updateUser(response.data.user);
         setSuccess('Phone updated successfully');
-        setPhoneCooldown(14); // Reset cooldown to 14 days
+        setPhoneCooldown(14);
       } else {
-        // Fallback: fetch the updated user profile
         const profileResponse = await createApiRequest('/user/profile', { method: 'GET' })();
         if (profileResponse.data && profileResponse.data.user) {
           updateUser(profileResponse.data.user);
@@ -222,14 +212,12 @@ function SettingsPage() {
       })();
       
       setSuccess('Password updated successfully');
-      setPasswordCooldown(14); // Reset cooldown to 14 days
+      setPasswordCooldown(14);
       
-      // Clear form
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       
-      // Fetch updated user data to get new password_updated_at timestamp
       try {
         const profileResponse = await createApiRequest('/user/profile', { method: 'GET' })();
         if (profileResponse.data && profileResponse.data.user) {
@@ -263,7 +251,6 @@ function SettingsPage() {
         data: { confirmation: deleteConfirmation }
       })();
       
-      // Redirect to home page after deletion
       window.location.href = '/';
       
     } catch (error) {
@@ -272,6 +259,11 @@ function SettingsPage() {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleAboutMeUpdate = (updatedUser) => {
+    updateUser(updatedUser);
+    setSuccess('About me updated successfully');
   };
 
   if (!user) {
@@ -299,6 +291,17 @@ function SettingsPage() {
       )}
       
       <div className="space-y-12">
+        {/* About Me Section */}
+        <div className="bg-white p-8 border-2 border-black">
+          <h2 className="text-2xl font-bold mb-6">About Me</h2>
+          <AboutMe 
+            userId={user.id}
+            displayName={user.display_name}
+            isOwnProfile={true}
+            onUpdate={handleAboutMeUpdate}
+          />
+        </div>
+
         {/* Display Name Section */}
         <div className="bg-white p-8 border-2 border-black">
           <h2 className="text-2xl font-bold mb-6">Display Name</h2>
