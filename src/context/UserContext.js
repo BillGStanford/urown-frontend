@@ -1,4 +1,4 @@
-// context/UserContext.js - Improved version with better error recovery
+// context/UserContext.js - Updated version
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { fetchWithRetry, handleUnauthorized } from '../utils/apiUtils';
@@ -9,6 +9,7 @@ export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -22,12 +23,13 @@ export const UserProvider = ({ children }) => {
                 Authorization: `Bearer ${token}`
               }
             }),
-            3, // maxRetries (reduced from 5)
-            1000 // initialDelay (reduced from 2000)
+            5, // maxRetries - increased for better reliability
+            2000 // initialDelay
           );
           console.log('Token verified successfully:', response.data.user);
           setUser(response.data.user);
           setAuthError(null);
+          setRetryCount(0); // Reset retry count on success
         } catch (error) {
           console.error('Error verifying token:', error);
           console.error('Error response:', error.response);
@@ -52,20 +54,50 @@ export const UserProvider = ({ children }) => {
               setUser(null);
               setAuthError('Account not found. Please contact support.');
             } else if (status === 500 || status === 503) {
-              // Server error - keep token, show error but don't log out
-              console.log('Server error, keeping token and showing error');
-              setAuthError('Server error. Your session is still valid. Please refresh the page.');
-              // Don't clear user/token on server errors
+              // Server/Database error - keep token, try to recover
+              console.log('Server/DB error, keeping token');
+              
+              // Try to get user from localStorage as fallback
+              const cachedUser = localStorage.getItem('user');
+              if (cachedUser) {
+                try {
+                  const parsedUser = JSON.parse(cachedUser);
+                  setUser(parsedUser);
+                  setAuthError('Temporary server issue. Using cached data. Please refresh in a moment.');
+                } catch (e) {
+                  setAuthError('Server temporarily unavailable. Please refresh the page.');
+                }
+              } else {
+                setAuthError('Server temporarily unavailable. Please refresh the page.');
+              }
+              
+              // Retry after a delay if we haven't exceeded max retries
+              if (retryCount < 3) {
+                setTimeout(() => {
+                  setRetryCount(prev => prev + 1);
+                  verifyToken();
+                }, 5000); // Retry after 5 seconds
+              }
             } else {
               // Other errors - keep token
               console.log('Unknown error, keeping token');
               setAuthError('Unable to verify your session. Please refresh the page.');
             }
           } else if (error.request) {
-            // Network error - keep token
-            console.log('Network error, keeping token');
-            setAuthError('Network error. Please check your connection and refresh the page.');
-            // Don't clear user/token on network errors
+            // Network error - keep token and use cached data
+            console.log('Network error, using cached data');
+            const cachedUser = localStorage.getItem('user');
+            if (cachedUser) {
+              try {
+                const parsedUser = JSON.parse(cachedUser);
+                setUser(parsedUser);
+                setAuthError('Network error. Using cached data. Please check your connection.');
+              } catch (e) {
+                setAuthError('Network error. Please check your connection and refresh.');
+              }
+            } else {
+              setAuthError('Network error. Please check your connection and refresh the page.');
+            }
           } else {
             // Other errors
             console.log('Unexpected error:', error.message);
@@ -81,45 +113,11 @@ export const UserProvider = ({ children }) => {
       console.log('No token found');
       setLoading(false);
     }
-  }, []);
-
-  // Add a function to check if user is banned
-  const checkBanStatus = async () => {
-    if (!user || !localStorage.getItem('token')) return;
-    
-    try {
-      const response = await axios.get('/user/profile', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      return response.data.user;
-    } catch (error) {
-      // Only handle auth errors
-      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-        handleUnauthorized(error);
-      }
-      // Don't throw on other errors - just log them
-      console.error('Ban status check error:', error);
-      return null;
-    }
-  };
-
-  // Check ban status periodically (every 5 minutes)
-  useEffect(() => {
-    if (user && localStorage.getItem('token')) {
-      const interval = setInterval(() => {
-        checkBanStatus().catch(error => {
-          console.error('Error checking ban status:', error);
-        });
-      }, 5 * 60 * 1000); // 5 minutes
-      
-      return () => clearInterval(interval);
-    }
-  }, [user]);
+  }, [retryCount]);
 
   const updateUser = (userData) => {
     setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData)); // Cache user data
     setAuthError(null);
   };
 
@@ -144,8 +142,7 @@ export const UserProvider = ({ children }) => {
       logout, 
       login, 
       loading, 
-      authError,
-      checkBanStatus 
+      authError
     }}>
       {children}
     </UserContext.Provider>
