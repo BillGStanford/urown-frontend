@@ -1,7 +1,9 @@
+// UserProfile.js (Complete Updated Version)
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
+import AboutMe from '../../components/AboutMe';
 import { 
   User, 
   FileText, 
@@ -446,6 +448,27 @@ const UserProfile = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - About & Connect */}
           <div className="lg:col-span-1 space-y-6">
+            {/* About Section */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <User className="h-5 w-5 text-orange-600" />
+                About
+              </h3>
+              
+              {/* About Me Component */}
+              <AboutMe 
+                userId={user.id}
+                displayName={user.display_name}
+                isOwnProfile={isOwnProfile}
+                onUpdate={(updatedUser) => {
+                  setUser(updatedUser);
+                  if (isOwnProfile) {
+                    setCurrentUser(updatedUser);
+                  }
+                }}
+              />
+            </div>
+
             {/* UROWN Score Card */}
             <URownScoreCard user={user} userRank={userRank} stats={stats} />
 
