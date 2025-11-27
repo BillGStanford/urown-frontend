@@ -1,9 +1,7 @@
-// UserProfile.js (Complete Updated Version)
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
-import AboutMe from '../../components/AboutMe';
 import { 
   User, 
   FileText, 
@@ -446,7 +444,7 @@ const UserProfile = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Stats & Info */}
+          {/* Left Column - About & Connect */}
           <div className="lg:col-span-1 space-y-6">
             {/* UROWN Score Card */}
             <URownScoreCard user={user} userRank={userRank} stats={stats} />
@@ -641,23 +639,10 @@ const UserProfile = () => {
             )}
           </div>
 
-          {/* Right Column - About Me & Articles */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* About Me Section */}
-            <AboutMe 
-              userId={user.id}
-              displayName={user.display_name}
-              isOwnProfile={isOwnProfile}
-              onUpdate={(updatedUser) => {
-                setUser(updatedUser);
-                if (isOwnProfile) {
-                  setCurrentUser(updatedUser);
-                }
-              }}
-            />
-
+          {/* Right Column - Articles Feed */}
+          <div className="lg:col-span-2">
             {/* Tab Navigation */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-2">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-2 mb-6">
               <div className="flex space-x-1">
                 <button
                   className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 ${

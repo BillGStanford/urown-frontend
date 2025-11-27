@@ -1,3 +1,4 @@
+// utils/apiUtils.js
 import axios from 'axios';
 
 // Set base URL for all API requests based on environment
@@ -80,46 +81,6 @@ export const setCachedData = (key, data) => {
 
 // Request deduplication - prevents multiple identical requests
 const pendingRequests = {};
-
-// Token validation function
-export const validateToken = (token) => {
-  if (!token) return false;
-  
-  try {
-    // Check if token has three parts separated by dots
-    const parts = token.split('.');
-    if (parts.length !== 3) return false;
-    
-    // Try to decode payload (not verifying signature)
-    const payload = JSON.parse(atob(parts[1]));
-    
-    // Check if token has expired
-    if (payload.exp && Date.now() >= payload.exp * 1000) {
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Token validation error:', error);
-    return false;
-  }
-};
-
-// Token refresh function
-export const refreshToken = async () => {
-  try {
-    const response = await axios.post('/auth/refresh', {
-      token: localStorage.getItem('token')
-    });
-    
-    const { token } = response.data;
-    localStorage.setItem('token', token);
-    return token;
-  } catch (error) {
-    console.error('Token refresh error:', error);
-    throw error;
-  }
-};
 
 // Function to handle 401 and 403 responses
 export const handleUnauthorized = (error) => {
@@ -233,16 +194,5 @@ export const validateUserSession = async () => {
   } catch (error) {
     console.error('Session validation error:', error);
     return false;
-  }
-};
-
-// Health check function to verify API is working
-export const checkApiHealth = async () => {
-  try {
-    const response = await axios.get('/health');
-    return response.data;
-  } catch (error) {
-    console.error('API health check error:', error);
-    throw error;
   }
 };

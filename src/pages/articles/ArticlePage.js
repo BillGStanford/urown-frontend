@@ -2,7 +2,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import AboutMe from '../../components/AboutMe';
 import { useUser } from '../../context/UserContext';
 import { 
   Flag, 
@@ -918,21 +917,6 @@ const ArticlePage = () => {
         >
           {formatContent(article.content)}
         </div>
-
-        {/* About Me Section */}
-        {article && !focusMode && (
-          <div className="mt-12 mb-8">
-            <AboutMe 
-              userId={article.user_id}
-              displayName={article.display_name}
-              isOwnProfile={user?.id === article.user_id}
-              onUpdate={(updatedUser) => {
-                // Optional: handle updates if needed
-                console.log('User profile updated:', updatedUser);
-              }}
-            />
-          </div>
-        )}
 
         {/* Engagement Section */}
         {!focusMode && (
