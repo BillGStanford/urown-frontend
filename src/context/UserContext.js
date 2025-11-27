@@ -1,4 +1,4 @@
-// context/UserContext.js
+// context/UserContext.js - Improved version with better error recovery
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { fetchWithRetry, handleUnauthorized } from '../utils/apiUtils';
@@ -15,39 +15,61 @@ export const UserProvider = ({ children }) => {
     if (token) {
       const verifyToken = async () => {
         try {
+          console.log('Verifying token...');
           const response = await fetchWithRetry(() => 
             axios.get('/user/profile', {
               headers: {
                 Authorization: `Bearer ${token}`
               }
             }),
-            5, // maxRetries
-            2000 // initialDelay
+            3, // maxRetries (reduced from 5)
+            1000 // initialDelay (reduced from 2000)
           );
+          console.log('Token verified successfully:', response.data.user);
           setUser(response.data.user);
           setAuthError(null);
         } catch (error) {
           console.error('Error verifying token:', error);
+          console.error('Error response:', error.response);
           
-          // Handle 401 Unauthorized and 403 Forbidden errors
+          // Handle different error scenarios
           if (error.response) {
-            if (error.response.status === 401) {
-              console.log('Token is invalid, removing from localStorage');
+            const status = error.response.status;
+            const errorMessage = error.response.data?.error;
+            
+            if (status === 401 || status === 403) {
+              // Authentication/authorization error - clear token
+              console.log('Auth error, clearing token');
               localStorage.removeItem('token');
-              setAuthError(error.response.data.error || 'Your session has expired. Please log in again.');
-            } else if (error.response.status === 403) {
-              console.log('Access forbidden, removing from localStorage');
+              localStorage.removeItem('user');
+              setUser(null);
+              setAuthError(errorMessage || 'Your session has expired. Please log in again.');
+            } else if (status === 404) {
+              // User not found - clear token
+              console.log('User not found, clearing token');
               localStorage.removeItem('token');
-              setAuthError(error.response.data.error || 'You do not have permission to access this resource.');
+              localStorage.removeItem('user');
+              setUser(null);
+              setAuthError('Account not found. Please contact support.');
+            } else if (status === 500 || status === 503) {
+              // Server error - keep token, show error but don't log out
+              console.log('Server error, keeping token and showing error');
+              setAuthError('Server error. Your session is still valid. Please refresh the page.');
+              // Don't clear user/token on server errors
             } else {
-              // For other errors, keep token and show error
-              console.log('Network or server error, keeping token');
-              setAuthError('Unable to verify your session. Please try again later.');
+              // Other errors - keep token
+              console.log('Unknown error, keeping token');
+              setAuthError('Unable to verify your session. Please refresh the page.');
             }
-          } else {
-            // For network errors, keep token and show error
+          } else if (error.request) {
+            // Network error - keep token
             console.log('Network error, keeping token');
-            setAuthError('Network error. Please check your connection and try again.');
+            setAuthError('Network error. Please check your connection and refresh the page.');
+            // Don't clear user/token on network errors
+          } else {
+            // Other errors
+            console.log('Unexpected error:', error.message);
+            setAuthError('An unexpected error occurred. Please refresh the page.');
           }
         } finally {
           setLoading(false);
@@ -56,6 +78,7 @@ export const UserProvider = ({ children }) => {
       
       verifyToken();
     } else {
+      console.log('No token found');
       setLoading(false);
     }
   }, []);
@@ -65,23 +88,20 @@ export const UserProvider = ({ children }) => {
     if (!user || !localStorage.getItem('token')) return;
     
     try {
-      // Make a simple API call to check if user is banned
       const response = await axios.get('/user/profile', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
-      // If we get a successful response, the user is not banned
       return response.data.user;
     } catch (error) {
-      // Handle 401 Unauthorized and 403 Forbidden errors (which could be due to a ban)
-      if (error.response) {
-        if (error.response.status === 401 || error.response.status === 403) {
-          handleUnauthorized(error);
-        }
+      // Only handle auth errors
+      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+        handleUnauthorized(error);
       }
-      throw error;
+      // Don't throw on other errors - just log them
+      console.error('Ban status check error:', error);
+      return null;
     }
   };
 
