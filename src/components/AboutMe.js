@@ -1,8 +1,11 @@
+// components/AboutMe.js
 import React, { useState, useEffect } from 'react';
-import { User, Edit2, Save, X } from 'lucide-react';
+import { User, Edit2, Save, X, Shield } from 'lucide-react';
 import { createApiRequest } from '../utils/apiUtils';
+import { useUser } from '../context/UserContext';
 
 const AboutMe = ({ userId, displayName, isOwnProfile = false, onUpdate }) => {
+  const { user: currentUser } = useUser();
   const [aboutMe, setAboutMe] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState('');
@@ -31,6 +34,12 @@ const AboutMe = ({ userId, displayName, isOwnProfile = false, onUpdate }) => {
   };
 
   const handleSave = async () => {
+    // Security check: Only allow the owner to edit their profile
+    if (!currentUser || currentUser.id !== userId) {
+      setError('You are not authorized to edit this profile');
+      return;
+    }
+
     try {
       setSaving(true);
       setError(null);
@@ -60,12 +69,23 @@ const AboutMe = ({ userId, displayName, isOwnProfile = false, onUpdate }) => {
     setError(null);
   };
 
+  const handleEdit = () => {
+    // Security check: Only allow the owner to edit their profile
+    if (!currentUser || currentUser.id !== userId) {
+      setError('You are not authorized to edit this profile');
+      return;
+    }
+    
+    setIsEditing(true);
+  };
+
   if (loading) {
     return (
       <div className="animate-pulse bg-gray-100 rounded-xl p-6 h-32"></div>
     );
   }
 
+  // Don't show the component at all if it's not the user's own profile and there's no about me content
   if (!isOwnProfile && !aboutMe) {
     return null;
   }
@@ -76,10 +96,13 @@ const AboutMe = ({ userId, displayName, isOwnProfile = false, onUpdate }) => {
         <div className="flex items-center gap-2">
           <User size={20} className="text-gray-600" />
           <h3 className="text-lg font-bold text-gray-900">About Me</h3>
+          {isOwnProfile && (
+            <Shield size={16} className="text-blue-500" title="Only you can edit this section" />
+          )}
         </div>
         {isOwnProfile && !isEditing && (
           <button
-            onClick={() => setIsEditing(true)}
+            onClick={handleEdit}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             title="Edit About Me"
           >

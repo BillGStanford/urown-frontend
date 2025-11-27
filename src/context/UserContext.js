@@ -1,7 +1,6 @@
-// context/UserContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
-import { fetchWithRetry, handleUnauthorized } from '../utils/apiUtils';
+import { fetchWithRetry, handleUnauthorized, validateToken, refreshToken } from '../utils/apiUtils';
 
 const UserContext = createContext();
 
@@ -13,6 +12,15 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
+      // First validate the token format and expiration
+      if (!validateToken(token)) {
+        console.log('Token is invalid or expired, removing from localStorage');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setLoading(false);
+        return;
+      }
+      
       const verifyToken = async () => {
         try {
           const response = await fetchWithRetry(() => 
@@ -29,16 +37,21 @@ export const UserProvider = ({ children }) => {
         } catch (error) {
           console.error('Error verifying token:', error);
           
-          // Handle 401 Unauthorized and 403 Forbidden errors
+          // Handle specific error cases
           if (error.response) {
             if (error.response.status === 401) {
               console.log('Token is invalid, removing from localStorage');
               localStorage.removeItem('token');
+              localStorage.removeItem('user');
               setAuthError(error.response.data.error || 'Your session has expired. Please log in again.');
             } else if (error.response.status === 403) {
               console.log('Access forbidden, removing from localStorage');
               localStorage.removeItem('token');
+              localStorage.removeItem('user');
               setAuthError(error.response.data.error || 'You do not have permission to access this resource.');
+            } else if (error.response.status === 500) {
+              console.log('Server error, keeping token');
+              setAuthError('Server error. Please try again later.');
             } else {
               // For other errors, keep token and show error
               console.log('Network or server error, keeping token');
@@ -117,6 +130,32 @@ export const UserProvider = ({ children }) => {
     setAuthError(null);
   };
 
+  // Function to refresh token if it's about to expire
+  const ensureValidToken = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    
+    try {
+      // Check if token is valid
+      if (!validateToken(token)) {
+        try {
+          // Try to refresh the token
+          const newToken = await refreshToken();
+          return newToken;
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError);
+          logout();
+          return false;
+        }
+      }
+      return token;
+    } catch (error) {
+      console.error('Token validation error:', error);
+      logout();
+      return false;
+    }
+  };
+
   return (
     <UserContext.Provider value={{ 
       user, 
@@ -125,7 +164,8 @@ export const UserProvider = ({ children }) => {
       login, 
       loading, 
       authError,
-      checkBanStatus 
+      checkBanStatus,
+      ensureValidToken
     }}>
       {children}
     </UserContext.Provider>
