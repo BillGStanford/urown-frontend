@@ -6,10 +6,11 @@ import { fetchWithRetry, getCachedData, setCachedData } from '../../utils/apiUti
 import TrendingOpinions from '../../components/TrendingOpinions';
 import SidebarAd from '../../components/ads/SidebarAd';
 import InFeedAd from '../../components/ads/InFeedAd';
-import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown, Sparkles, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Flame, Eye, MessageCircle } from 'lucide-react';
+import { Shuffle, RefreshCw, Search, Filter, TrendingUp, Zap, Grid, List, X, ChevronDown, Sparkles, Briefcase, DollarSign, Trophy, Pizza, Plane, Laptop, Heart, Film, Microscope, Globe, Flame, Eye, MessageCircle, BookOpen } from 'lucide-react';
 
 function BrowseArticles() {
   const [articles, setArticles] = useState([]);
+  const [ebooks, setEbooks] = useState([]);
   const [counterCounts, setCounterCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -23,6 +24,7 @@ function BrowseArticles() {
   const [isTopicFilterOpen, setIsTopicFilterOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [totalArticleCount, setTotalArticleCount] = useState(0);
+  const [totalEbookCount, setTotalEbookCount] = useState(0);
   const articlesPerPage = 12;
   const navigate = useNavigate();
   const location = useLocation();
@@ -55,27 +57,33 @@ function BrowseArticles() {
       if (newTopicId !== selectedTopic) {
         setSelectedTopic(newTopicId);
         setArticles([]);
+        setEbooks([]);
         setCurrentPage(1);
         setTotalArticleCount(0);
+        setTotalEbookCount(0);
       }
     } else if (selectedTopic !== null) {
       setSelectedTopic(null);
       setArticles([]);
+      setEbooks([]);
       setCurrentPage(1);
       setTotalArticleCount(0);
+      setTotalEbookCount(0);
     }
   }, [location.search, topics]);
 
   useEffect(() => {
     setArticles([]);
+    setEbooks([]);
     setCurrentPage(1);
     setTotalArticleCount(0);
-    fetchArticles(true);
+    setTotalEbookCount(0);
+    fetchContent(true);
   }, [selectedTopic]);
 
   useEffect(() => {
     if (currentPage > 1) {
-      fetchArticles();
+      fetchContent();
     }
   }, [currentPage]);
 
@@ -98,64 +106,93 @@ function BrowseArticles() {
     }
   };
 
-  const fetchArticles = async (reset = false) => {
+  const fetchContent = async (reset = false) => {
     try {
       setLoading(true);
       setRefreshing(true);
       const offset = reset ? 0 : (currentPage - 1) * articlesPerPage;
       
-      const cacheKey = `articles-${articlesPerPage}-${offset}-false-${selectedTopic || 'all'}`;
-      let cachedData = reset ? null : getCachedData(cacheKey);
+      // Always fetch both articles and ebooks
+      const [articlesResponse, ebooksResponse] = await Promise.allSettled([
+        fetchWithRetry(() => {
+          const params = {
+            limit: articlesPerPage,
+            offset: offset,
+            featured: 'false'
+          };
+          
+          if (selectedTopic) {
+            params.topicId = selectedTopic;
+          }
+          
+          return axios.get('/articles', { params });
+        }),
+        fetchWithRetry(() => {
+          const params = {
+            limit: articlesPerPage,
+            offset: offset
+          };
+          
+          if (selectedTopic) {
+            params.topicId = selectedTopic;
+          }
+          
+          return axios.get('/ebooks', { params });
+        })
+      ]);
       
-      if (!cachedData) {
-        const params = {
-          limit: articlesPerPage,
-          offset: offset,
-          featured: 'false'
-        };
+      // Handle articles
+      if (articlesResponse.status === 'fulfilled') {
+        let newArticles = articlesResponse.value.data.articles || [];
         
-        if (selectedTopic) {
-          params.topicId = selectedTopic;
-        }
-        
-        const response = await fetchWithRetry(() => 
-          axios.get('/articles', { params })
-        );
-        cachedData = response.data.articles;
-        
-        if (!reset) {
-          setCachedData(cacheKey, cachedData);
-        }
-      }
-      
-      let newArticles = cachedData;
-      
-      newArticles = [...newArticles].sort((a, b) => {
-        if (a.certified && !b.certified) return -1;
-        if (!a.certified && b.certified) return 1;
-        return (b.views || 0) - (a.views || 0);
-      });
-      
-      if (reset) {
-        setArticles(newArticles);
-        setTotalArticleCount(newArticles.length);
-      } else {
-        setArticles(prev => {
-          const existingIds = new Set(prev.map(article => article.id));
-          const uniqueNewArticles = newArticles.filter(article => !existingIds.has(article.id));
-          const combined = [...prev, ...uniqueNewArticles];
-          setTotalArticleCount(combined.length);
-          return combined;
+        newArticles = [...newArticles].sort((a, b) => {
+          if (a.certified && !b.certified) return -1;
+          if (!a.certified && b.certified) return 1;
+          return (b.views || 0) - (a.views || 0);
         });
+        
+        if (reset) {
+          setArticles(newArticles);
+          setTotalArticleCount(newArticles.length);
+        } else {
+          setArticles(prev => {
+            const existingIds = new Set(prev.map(article => article.id));
+            const uniqueNewArticles = newArticles.filter(article => !existingIds.has(article.id));
+            const combined = [...prev, ...uniqueNewArticles];
+            setTotalArticleCount(combined.length);
+            return combined;
+          });
+        }
+
+        const articleIds = newArticles.map(article => article.id);
+        fetchCounterCounts(articleIds);
       }
-
-      const articleIds = newArticles.map(article => article.id);
-      fetchCounterCounts(articleIds);
-
-      setHasMore(newArticles.length === articlesPerPage);
+      
+      // Handle ebooks
+      if (ebooksResponse.status === 'fulfilled') {
+        const newEbooks = ebooksResponse.value.data.ebooks || [];
+        
+        if (reset) {
+          setEbooks(newEbooks);
+          setTotalEbookCount(newEbooks.length);
+        } else {
+          setEbooks(prev => {
+            const existingIds = new Set(prev.map(ebook => ebook.id));
+            const uniqueNewEbooks = newEbooks.filter(ebook => !existingIds.has(ebook.id));
+            const combined = [...prev, ...uniqueNewEbooks];
+            setTotalEbookCount(combined.length);
+            return combined;
+          });
+        }
+      }
+      
+      // Check if there's more content
+      const totalItems = (articlesResponse.status === 'fulfilled' ? articlesResponse.value.data.articles?.length || 0 : 0) + 
+                        (ebooksResponse.status === 'fulfilled' ? ebooksResponse.value.data.ebooks?.length || 0 : 0);
+      setHasMore(totalItems === articlesPerPage);
     } catch (error) {
-      console.error('Error fetching articles:', error);
-      setError('Failed to load articles');
+      console.error('Error fetching content:', error);
+      setError('Failed to load content');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -163,7 +200,7 @@ function BrowseArticles() {
   };
 
   const openRandomArticle = () => {
-    const availableArticles = filteredArticles.length > 0 ? filteredArticles : articles;
+    const availableArticles = articles.filter(article => article.parent_article_id === null);
     
     if (availableArticles.length === 0) {
       setError('No articles available to select from');
@@ -241,6 +278,12 @@ function BrowseArticles() {
     return matchesSearch && matchesType;
   });
 
+  const filteredEbooks = ebooks.filter(ebook => {
+    return ebook.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           ebook.author?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           ebook.description?.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
   const handleLoadMore = () => {
     setCurrentPage(prev => prev + 1);
   };
@@ -249,123 +292,132 @@ function BrowseArticles() {
     console.log('Navigate to article:', article.id);
   };
 
+  const handleEbookClick = (ebook) => {
+    navigate(`/ebook/${ebook.id}`);
+  };
+
   const handleRefresh = () => {
     setCurrentPage(1);
     setArticles([]);
+    setEbooks([]);
     setTotalArticleCount(0);
-    fetchArticles(true);
+    setTotalEbookCount(0);
+    fetchContent(true);
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/30">
-      {/* Floating Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-orange-200/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-        <div className="absolute top-40 right-10 w-72 h-72 bg-yellow-200/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-700"></div>
-        <div className="absolute -bottom-32 left-1/2 w-96 h-96 bg-red-200/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000"></div>
-      </div>
+  const totalItems = totalArticleCount + totalEbookCount;
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Compact Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-black text-gray-900 mb-1 flex items-center gap-3">
-                <Flame className="w-8 h-8 text-orange-500" />
-                Explore
-              </h1>
-              <p className="text-sm text-gray-600">
-                {searchTerm ? filteredArticles.length : totalArticleCount} articles • {topics.length} topics
-              </p>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Explore Content</h1>
+          <p className="text-gray-600">Discover articles and ebooks from our community</p>
+        </div>
+
+        {/* Search and Controls */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            {/* Search Bar */}
+            <div className="relative flex-grow">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder="Search articles and ebooks..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+              />
             </div>
             
-            <div className="flex items-center gap-2">
+            {/* Action Buttons */}
+            <div className="flex gap-2">
               <button 
                 onClick={handleRefresh}
-                className="p-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl transition-all shadow-sm"
+                className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 disabled={loading || refreshing}
               >
-                <RefreshCw size={18} className={loading || refreshing ? 'animate-spin text-orange-500' : 'text-gray-700'} />
+                <RefreshCw size={20} className={loading || refreshing ? 'animate-spin text-yellow-600' : 'text-gray-700'} />
               </button>
               
               <button 
                 onClick={openRandomArticle}
-                className="p-2.5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl transition-all shadow-sm"
+                className="p-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
                 disabled={filteredArticles.length === 0 && articles.length === 0}
               >
-                <Shuffle size={18} />
+                <Shuffle size={20} />
               </button>
             </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              placeholder="Search articles..."
-              value={searchTerm}
-              onChange={handleSearch}
-              className="w-full pl-11 pr-4 py-3 text-sm border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all rounded-xl bg-white/80 backdrop-blur-sm shadow-sm"
-            />
+          {/* Content Type Tabs */}
+          <div className="flex border-b border-gray-200">
+            <button
+              className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                true
+                  ? 'border-yellow-500 text-yellow-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              All Content ({totalItems})
+            </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
-          <aside className="lg:col-span-1 space-y-4">
-            {/* Topics Filter Card */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-gray-100">
-                <h3 className="font-bold text-gray-900 flex items-center gap-2 text-sm">
-                  <Filter size={16} className="text-orange-500" />
-                  Topics
-                </h3>
-              </div>
+          <aside className="lg:col-span-1">
+            {/* Topics Filter */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Filter size={16} className="text-yellow-500" />
+                Topics
+              </h3>
               
-              <div className="p-3">
-                <div className="space-y-1.5">
+              <div className="space-y-2">
+                <button
+                  onClick={() => handleTopicSelect(null)}
+                  className={`w-full px-3 py-2 rounded-md text-sm font-medium text-left transition-colors ${
+                    !selectedTopic 
+                      ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' 
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  All Topics
+                </button>
+                
+                {topics.map(topic => (
                   <button
-                    onClick={() => handleTopicSelect(null)}
-                    className={`w-full px-3 py-2 rounded-lg text-xs font-semibold transition-all text-left ${
-                      !selectedTopic 
-                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md' 
-                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                    key={topic.id}
+                    onClick={() => handleTopicSelect(topic.id)}
+                    className={`w-full px-3 py-2 rounded-md text-sm font-medium text-left transition-colors flex items-center gap-2 ${
+                      selectedTopic === topic.id 
+                        ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' 
+                        : 'text-gray-700 hover:bg-gray-50'
                     }`}
                   >
-                    All Topics
+                    {getTopicIcon(topic.name)}
+                    {topic.name}
                   </button>
-                  
-                  {topics.map(topic => (
-                    <button
-                      key={topic.id}
-                      onClick={() => handleTopicSelect(topic.id)}
-                      className={`w-full px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
-                        selectedTopic === topic.id 
-                          ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md' 
-                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      {getTopicIcon(topic.name)}
-                      {topic.name}
-                    </button>
-                  ))}
-                </div>
+                ))}
               </div>
             </div>
 
-            {/* View Options Card */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm p-4 space-y-4">
+            {/* View Options */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+              <h3 className="font-semibold text-gray-900 mb-4">View Options</h3>
+              
               {/* View Mode */}
-              <div>
-                <label className="text-xs font-semibold text-gray-600 mb-2 block">View</label>
-                <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg">
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Display Mode</label>
+                <div className="flex gap-2">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`flex-1 p-2 rounded-md transition-all flex items-center justify-center gap-1.5 text-xs font-semibold ${
+                    className={`flex-1 p-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
                       viewMode === 'grid' 
-                        ? 'bg-white shadow-sm text-orange-600' 
-                        : 'text-gray-600 hover:text-gray-900'
+                        ? 'bg-yellow-500 text-white' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     <Grid size={14} />
@@ -373,10 +425,10 @@ function BrowseArticles() {
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`flex-1 p-2 rounded-md transition-all flex items-center justify-center gap-1.5 text-xs font-semibold ${
+                    className={`flex-1 p-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
                       viewMode === 'list' 
-                        ? 'bg-white shadow-sm text-orange-600' 
-                        : 'text-gray-600 hover:text-gray-900'
+                        ? 'bg-yellow-500 text-white' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     <List size={14} />
@@ -386,9 +438,9 @@ function BrowseArticles() {
               </div>
 
               {/* Counter Toggle */}
-              <div className="pt-4 border-t border-gray-100">
+              <div className="pt-4 border-t border-gray-200">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-gray-600">Counter Opinions</span>
+                  <span className="text-sm font-medium text-gray-700">Show Counter Opinions</span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -396,25 +448,22 @@ function BrowseArticles() {
                       checked={showCounters}
                       onChange={handleToggleCounters}
                     />
-                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-orange-500 peer-checked:to-red-500"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
                   </label>
                 </div>
               </div>
             </div>
 
-            {/* Trending Card */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-orange-500 to-red-500 p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp className="w-5 h-5 text-white" />
-                  <h3 className="text-base font-black text-white">Trending</h3>
-                </div>
-                <p className="text-xs text-orange-100">Most debated today</p>
-              </div>
+            {/* Trending */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <TrendingUp size={16} className="text-yellow-500" />
+                Trending
+              </h3>
               <TrendingOpinions />
             </div>
 
-            {/* NEW: Add Advertisement Here */}
+            {/* Advertisement */}
             <SidebarAd />
           </aside>
 
@@ -423,12 +472,12 @@ function BrowseArticles() {
             {/* Active Filters */}
             {selectedTopic && (
               <div className="mb-4 flex items-center gap-2">
-                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-md">
+                <div className="inline-flex items-center gap-2 bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-full text-sm font-medium">
                   {getTopicIcon(getSelectedTopicName())}
                   {getSelectedTopicName()}
                   <button
                     onClick={clearTopicFilter}
-                    className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                    className="hover:bg-yellow-200 rounded-full p-0.5 transition-colors"
                   >
                     <X size={12} />
                   </button>
@@ -438,11 +487,11 @@ function BrowseArticles() {
 
             {/* Error State */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-6">
-                <div className="text-base font-bold text-red-900 mb-3">{error}</div>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+                <div className="text-lg font-medium text-red-900 mb-3">{error}</div>
                 <button 
                   onClick={handleRefresh}
-                  className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 font-semibold transition-all rounded-lg text-sm"
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 font-medium transition-colors rounded-md text-sm"
                 >
                   Try Again
                 </button>
@@ -450,24 +499,24 @@ function BrowseArticles() {
             )}
 
             {/* Loading State */}
-            {loading && articles.length === 0 && (
+            {loading && articles.length === 0 && ebooks.length === 0 && (
               <div className="text-center py-20">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r from-orange-500 to-red-500 mb-4 shadow-lg">
-                  <RefreshCw className="h-7 w-7 text-white animate-spin" />
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-yellow-500 mb-4">
+                  <RefreshCw className="h-6 w-6 text-white animate-spin" />
                 </div>
-                <div className="text-lg font-bold text-gray-900">Loading articles...</div>
+                <div className="text-lg font-medium text-gray-900">Loading content...</div>
               </div>
             )}
 
-            {/* No Articles */}
-            {!loading && articles.length === 0 && !error && (
-              <div className="text-center py-16 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200 p-12">
-                <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-orange-100 to-red-100 rounded-2xl flex items-center justify-center">
-                  <Sparkles className="w-8 h-8 text-orange-600" />
+            {/* No Content */}
+            {!loading && articles.length === 0 && ebooks.length === 0 && !error && (
+              <div className="text-center py-16 bg-white rounded-lg border border-gray-200 p-12">
+                <div className="w-16 h-16 mx-auto mb-6 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-8 h-8 text-yellow-600" />
                 </div>
-                <div className="text-2xl font-black mb-3 text-gray-900">No Articles Yet</div>
-                <div className="text-sm text-gray-600 mb-6">Be the first to share your opinion!</div>
-                <Link to="/write" className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-3 text-sm font-bold transition-all rounded-xl shadow-lg">
+                <div className="text-xl font-medium text-gray-900 mb-3">No Content Yet</div>
+                <div className="text-gray-600 mb-6">Be the first to share your perspective!</div>
+                <Link to="/write" className="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 font-medium transition-colors rounded-md">
                   Start Writing
                   <Zap className="h-4 w-4" />
                 </Link>
@@ -475,22 +524,23 @@ function BrowseArticles() {
             )}
 
             {/* No Results */}
-            {!loading && articles.length > 0 && filteredArticles.length === 0 && (
-              <div className="text-center py-16 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200 p-12">
+            {!loading && (articles.length > 0 || ebooks.length > 0) && 
+             filteredArticles.length === 0 && filteredEbooks.length === 0 && (
+              <div className="text-center py-16 bg-white rounded-lg border border-gray-200 p-12">
                 <Search className="mx-auto mb-6 text-gray-400" size={48} />
-                <div className="text-2xl font-black mb-3 text-gray-900">
+                <div className="text-xl font-medium text-gray-900 mb-3">
                   {searchTerm ? 'No Results Found' : "Doesn't Exist Yet"}
                 </div>
-                <div className="text-sm text-gray-600 mb-6">
+                <div className="text-gray-600 mb-6">
                   {searchTerm 
                     ? 'Try different keywords or clear your search' 
-                    : `No articles found for "${getSelectedTopicName()}"`}
+                    : `No content found for "${getSelectedTopicName()}"`}
                 </div>
                 <div className="flex items-center justify-center gap-3">
                   {searchTerm ? (
                     <button 
                       onClick={() => setSearchTerm('')}
-                      className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2.5 font-semibold transition-all rounded-lg text-sm"
+                      className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2.5 font-medium transition-colors rounded-md"
                     >
                       Clear Search
                     </button>
@@ -498,14 +548,14 @@ function BrowseArticles() {
                     <>
                       <Link 
                         to="/write" 
-                        className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-2.5 font-semibold transition-all rounded-lg text-sm"
+                        className="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2.5 font-medium transition-colors rounded-md"
                       >
                         <Zap className="h-4 w-4" />
                         Write Article
                       </Link>
                       <button 
                         onClick={clearTopicFilter}
-                        className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2.5 font-semibold transition-all rounded-lg text-sm"
+                        className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2.5 font-medium transition-colors rounded-md"
                       >
                         Clear Filter
                       </button>
@@ -515,13 +565,14 @@ function BrowseArticles() {
               </div>
             )}
 
-            {/* Articles Feed */}
-            {!loading && filteredArticles.length > 0 && (
+            {/* Content Feed */}
+            {((filteredArticles.length > 0 || filteredEbooks.length > 0) && !loading) && (
               <>
                 <div className={viewMode === 'grid' 
-                  ? 'grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6' 
-                  : 'flex flex-col gap-4 mb-6'
+                  ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6' 
+                  : 'flex flex-col gap-6 mb-6'
                 }>
+                  {/* Articles */}
                   {filteredArticles.map((article, index) => (
                     <React.Fragment key={article.id}>
                       <ArticleCard
@@ -530,11 +581,88 @@ function BrowseArticles() {
                         onClick={handleArticleClick}
                         viewMode={viewMode}
                       />
-                      {/* NEW: Add In-Feed Ad every 6 articles */}
+                      {/* Add In-Feed Ad every 6 articles */}
                       {(index + 1) % 6 === 0 && index !== filteredArticles.length - 1 && (
-                        <InFeedAd className={viewMode === 'grid' ? 'sm:col-span-2' : ''} />
+                        <InFeedAd className={viewMode === 'grid' ? 'sm:col-span-2 lg:col-span-3' : ''} />
                       )}
                     </React.Fragment>
+                  ))}
+                  
+                  {/* Ebooks */}
+                  {filteredEbooks.map((ebook) => (
+                    <div key={ebook.id} className={viewMode === 'grid' ? '' : 'flex gap-4 bg-white rounded-lg border border-gray-200 p-4'}>
+                      {viewMode === 'grid' ? (
+                        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                          <div className="aspect-w-16 aspect-h-9 bg-yellow-50 h-48 flex items-center justify-center">
+                            <BookOpen className="w-16 h-16 text-yellow-600" />
+                          </div>
+                          <div className="p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs font-medium text-yellow-600 uppercase tracking-wider">Ebook</span>
+                              {ebook.price && (
+                                <span className="text-xs font-medium text-green-600">
+                                  {ebook.price === '0' ? 'Free' : `$${ebook.price}`}
+                                </span>
+                              )}
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                              {ebook.title}
+                            </h3>
+                            <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                              <span>by {ebook.author}</span>
+                              <span className="flex items-center gap-1">
+                                <Eye className="w-4 h-4" />
+                                {ebook.views || 0}
+                              </span>
+                            </div>
+                            <p className="text-gray-600 text-sm line-clamp-3 mb-4">
+                              {ebook.description?.substring(0, 150) || 'No description available'}
+                            </p>
+                            <button
+                              onClick={() => handleEbookClick(ebook)}
+                              className="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-md transition-colors"
+                            >
+                              Read Ebook
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="w-24 h-32 bg-yellow-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <BookOpen className="w-12 h-12 text-yellow-600" />
+                          </div>
+                          <div className="flex-grow">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs font-medium text-yellow-600 uppercase tracking-wider">Ebook</span>
+                              {ebook.price && (
+                                <span className="text-xs font-medium text-green-600">
+                                  {ebook.price === '0' ? 'Free' : `$${ebook.price}`}
+                                </span>
+                              )}
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                              {ebook.title}
+                            </h3>
+                            <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                              <span>by {ebook.author}</span>
+                              <span className="flex items-center gap-1">
+                                <Eye className="w-4 h-4" />
+                                {ebook.views || 0}
+                              </span>
+                            </div>
+                            <p className="text-gray-600 text-sm line-clamp-2 mb-4">
+                              {ebook.description?.substring(0, 150) || 'No description available'}
+                            </p>
+                            <button
+                              onClick={() => handleEbookClick(ebook)}
+                              className="py-2 px-4 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-md transition-colors"
+                            >
+                              Read Ebook
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   ))}
                 </div>
 
@@ -544,7 +672,7 @@ function BrowseArticles() {
                     <button
                       onClick={handleLoadMore}
                       disabled={loading}
-                      className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-900 px-8 py-3 font-semibold transition-all disabled:opacity-50 rounded-xl border border-gray-200 shadow-sm"
+                      className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-900 px-8 py-3 font-medium transition-colors rounded-md border border-gray-300"
                     >
                       {loading ? (
                         <>
@@ -559,9 +687,9 @@ function BrowseArticles() {
                 )}
 
                 {/* End Message */}
-                {!searchTerm && !hasMore && articles.length > 0 && (
+                {!searchTerm && !hasMore && (articles.length > 0 || ebooks.length > 0) && (
                   <div className="text-center py-6">
-                    <span className="inline-flex items-center gap-2 text-xs font-semibold text-gray-500 bg-gray-100 px-4 py-2 rounded-full">
+                    <span className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 bg-gray-100 px-4 py-2 rounded-full">
                       <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
                       You've seen it all
                     </span>
@@ -571,24 +699,21 @@ function BrowseArticles() {
             )}
 
             {/* CTA Banner */}
-            {!loading && filteredArticles.length > 0 && (
-              <div className="mt-8 bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 rounded-2xl p-8 text-center relative overflow-hidden shadow-xl">
-                <div className="absolute inset-0 bg-black/10"></div>
-                <div className="relative z-10">
-                  <h2 className="text-2xl sm:text-3xl font-black mb-2 text-white">
-                    Share Your Voice
-                  </h2>
-                  <p className="text-sm text-orange-100 mb-6 max-w-md mx-auto">
-                    Join thousands of writers sharing their perspectives
-                  </p>
-                  <Link 
-                    to="/write" 
-                    className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-orange-600 px-6 py-3 font-bold transition-all rounded-xl shadow-lg"
-                  >
-                    Start Writing
-                    <Zap className="h-4 w-4" />
-                  </Link>
-                </div>
+            {!loading && (filteredArticles.length > 0 || filteredEbooks.length > 0) && (
+              <div className="mt-8 bg-yellow-50 rounded-lg p-8 text-center">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-3">
+                  Share Your Voice
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Join thousands of writers sharing their perspectives on topics that matter
+                </p>
+                <Link 
+                  to="/write" 
+                  className="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 font-medium transition-colors rounded-md"
+                >
+                  Start Writing
+                  <Zap className="h-4 w-4" />
+                </Link>
               </div>
             )}
           </div>

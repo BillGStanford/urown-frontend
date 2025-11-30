@@ -25,7 +25,9 @@ import {
   Compass,
   Library,
   Grid3X3,
-  X
+  X,
+  BookOpen,
+  Bookmark
 } from 'lucide-react';
 
 function Header({ user, onLogout }) {
@@ -34,10 +36,12 @@ function Header({ user, onLogout }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isWriteDropdownOpen, setIsWriteDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
   const sidebarRef = useRef(null);
+  const writeDropdownRef = useRef(null);
 
   const isAdmin = useMemo(() => 
     user && (user.role === 'admin' || user.role === 'super-admin'), [user]);
@@ -65,6 +69,10 @@ function Header({ user, onLogout }) {
     setIsUserDropdownOpen(prev => !prev);
   }, []);
 
+  const toggleWriteDropdown = useCallback(() => {
+    setIsWriteDropdownOpen(prev => !prev);
+  }, []);
+
   const toggleMobileMenu = useCallback(() => {
     setIsMobileMenuOpen(prev => !prev);
   }, []);
@@ -90,6 +98,9 @@ function Header({ user, onLogout }) {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsUserDropdownOpen(false);
+      }
+      if (writeDropdownRef.current && !writeDropdownRef.current.contains(event.target)) {
+        setIsWriteDropdownOpen(false);
       }
       if (sidebarRef.current && !sidebarRef.current.contains(event.target) && 
           !event.target.closest('[data-sidebar-toggle]')) {
@@ -122,6 +133,7 @@ function Header({ user, onLogout }) {
         items: [
           { to: '/', icon: Home, label: 'Home' },
           { to: '/browse', icon: Compass, label: 'Browse Articles' },
+          { to: '/ebooks', icon: BookOpen, label: 'Browse Ebooks' },
           { to: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
         ]
       },
@@ -184,13 +196,14 @@ function Header({ user, onLogout }) {
 
   const primaryBottomNavLoggedIn = useMemo(() => [
     { to: '/', icon: Home, label: 'Home' },
-    { to: '/browse', icon: Compass, label: 'Explore' },
+    { to: '/browse', icon: Compass, label: 'Articles' },
     { to: '/write', icon: PenTool, label: 'Write', isPrimary: true },
     { to: '/notifications', icon: Bell, label: 'Alerts', badge: unreadCount },
     { to: '/library', icon: Library, label: 'Library' }
   ], [unreadCount]);
 
   const secondaryBottomNavLoggedIn = useMemo(() => [
+    { to: '/ebooks', icon: BookOpen, label: 'Ebooks' },
     { to: '/ideology-quiz', icon: Sparkles, label: 'Quiz' },
     { to: '/leaderboard', icon: Trophy, label: 'Ranks' },
     { to: '/about', icon: Info, label: 'About' },
@@ -201,11 +214,12 @@ function Header({ user, onLogout }) {
 
   const primaryBottomNavLoggedOut = useMemo(() => [
     { to: '/', icon: Home, label: 'Home' },
-    { to: '/browse', icon: Compass, label: 'Explore' },
+    { to: '/browse', icon: Compass, label: 'Articles' },
     { to: '/ideology-quiz', icon: Sparkles, label: 'Quiz' }
   ], []);
 
   const secondaryBottomNavLoggedOut = useMemo(() => [
+    { to: '/ebooks', icon: BookOpen, label: 'Ebooks' },
     { to: '/leaderboard', icon: Trophy, label: 'Ranks' },
     { to: '/about', icon: Info, label: 'About' },
     { to: '/contact', icon: Mail, label: 'Contact' },
@@ -218,7 +232,7 @@ function Header({ user, onLogout }) {
       {/* Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/30 z-40 hidden md:block backdrop-blur-sm"
+          className="fixed inset-0 bg-black/20 z-40 hidden md:block backdrop-blur-sm"
           onClick={closeSidebar}
         />
       )}
@@ -226,20 +240,19 @@ function Header({ user, onLogout }) {
       {/* Sidebar */}
       <aside 
         ref={sidebarRef}
-        className={`fixed left-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 ease-in-out z-50 w-80 hidden md:block shadow-xl ${
+        className={`fixed left-0 h-screen bg-white border-r border-gray-100 transition-all duration-300 ease-in-out z-50 w-72 hidden md:block shadow-lg ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{ top: '64px' }}
       >
         <div className="flex flex-col h-full overflow-y-auto">
-
-          <nav className="flex-1 py-4 px-4">
+          <nav className="flex-1 py-6 px-4">
             {sidebarCategories.map((category, idx) => (
-              <div key={category.title} className={idx > 0 ? 'mt-6' : ''}>
-                <h3 className="px-3 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <div key={category.title} className={idx > 0 ? 'mt-8' : ''}>
+                <h3 className="px-3 mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   {category.title}
                 </h3>
-                <div className="space-y-0.5">
+                <div className="space-y-1">
                   {category.items.map((item) => {
                     if (item.requiresAuth && !user) return null;
                     
@@ -252,7 +265,7 @@ function Header({ user, onLogout }) {
                         to={item.to} 
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
                           active 
-                            ? 'bg-orange-50 text-orange-600 font-semibold' 
+                            ? 'bg-yellow-50 text-yellow-700 font-semibold' 
                             : 'text-gray-700 hover:bg-gray-50 font-medium'
                         }`}
                         onClick={closeSidebar}
@@ -260,7 +273,7 @@ function Header({ user, onLogout }) {
                         <Icon className="h-5 w-5 flex-shrink-0" strokeWidth={active ? 2.5 : 2} />
                         <span className="text-sm">{item.label}</span>
                         {item.isNew && (
-                          <span className="ml-auto px-2 py-0.5 text-[10px] font-bold bg-orange-500 text-white rounded uppercase tracking-wide">
+                          <span className="ml-auto px-2 py-0.5 text-[10px] font-bold bg-yellow-600 text-white rounded uppercase tracking-wide">
                             New
                           </span>
                         )}
@@ -273,10 +286,10 @@ function Header({ user, onLogout }) {
           </nav>
 
           {user && (
-            <div className="border-t border-gray-200 p-4">
+            <div className="border-t border-gray-100 p-4">
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 w-full px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-all font-medium"
+                className="flex items-center gap-3 w-full px-3 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg transition-all font-medium"
               >
                 <LogOut className="h-5 w-5" strokeWidth={2} />
                 <span className="text-sm">Sign Out</span>
@@ -289,8 +302,8 @@ function Header({ user, onLogout }) {
       {/* Top Header */}
       <header className={`sticky top-0 z-40 transition-all duration-200 ${
         scrolled 
-          ? 'bg-white/95 backdrop-blur-md shadow-md border-b border-gray-200' 
-          : 'bg-white border-b border-gray-200'
+          ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100' 
+          : 'bg-white border-b border-gray-100'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -306,33 +319,49 @@ function Header({ user, onLogout }) {
                 <Menu className="h-5 w-5" strokeWidth={2} />
               </button>
 
-              <Link to="/" className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md">
-                  <Flame className="h-5 w-5 text-white" strokeWidth={2.5} />
-                </div>
+              <Link to="/" className="flex items-center">
                 <div className="hidden sm:block">
-                  <div className="text-xl font-black text-gray-900 tracking-tight">UROWN</div>
+                  <div className="text-2xl font-extrabold text-gray-900 tracking-tight">UROWN</div>
                   <div className="text-[10px] text-gray-500 font-semibold -mt-1 tracking-wide uppercase">Your Voice Matters</div>
                 </div>
+                {/* Mobile logo without tagline */}
+                <div className="sm:hidden text-xl font-bold text-gray-900 tracking-tight">UROWN</div>
               </Link>
             </div>
 
             {/* Center Section - Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-2">
+            <div className="hidden lg:flex items-center gap-1">
               <Link 
                 to="/browse" 
-                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  isActive('/browse') 
+                    ? 'text-yellow-700 bg-yellow-50' 
+                    : 'text-gray-700 hover:text-yellow-700 hover:bg-yellow-50'
+                }`}
               >
-                <Compass className="h-4 w-4" strokeWidth={2} />
-                <span>Browse</span>
+                Articles
+              </Link>
+              
+              <Link 
+                to="/ebooks" 
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  isActive('/ebooks') 
+                    ? 'text-yellow-700 bg-yellow-50' 
+                    : 'text-gray-700 hover:text-yellow-700 hover:bg-yellow-50'
+                }`}
+              >
+                Ebooks
               </Link>
               
               <Link 
                 to="/library" 
-                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  isActive('/library') 
+                    ? 'text-yellow-700 bg-yellow-50' 
+                    : 'text-gray-700 hover:text-yellow-700 hover:bg-yellow-50'
+                }`}
               >
-                <Library className="h-4 w-4" strokeWidth={2} />
-                <span>Library</span>
+                Library
               </Link>
             </div>
 
@@ -343,48 +372,85 @@ function Header({ user, onLogout }) {
                   {/* Settings - Desktop */}
                   <Link 
                     to="/settings" 
-                    className="hidden md:flex p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="hidden md:flex p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
                     title="Settings"
                   >
-                    <Settings className="h-5 w-5 text-gray-600" strokeWidth={2} />
+                    <Settings className="h-5 w-5" strokeWidth={2} />
                   </Link>
 
                   {/* Notifications */}
                   <Link 
                     to="/notifications" 
-                    className="hidden sm:flex relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="hidden sm:flex relative p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
                     title="Notifications"
                   >
-                    <Bell className="h-5 w-5 text-gray-600" strokeWidth={2} />
+                    <Bell className="h-5 w-5" strokeWidth={2} />
                     {unreadCount > 0 && (
-                      <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                      <span className="absolute top-1 right-1 bg-yellow-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold">
                         {unreadCount > 9 ? '9+' : unreadCount}
                       </span>
                     )}
                   </Link>
 
-                  {/* Write Button */}
-                  <Link 
-                    to="/write" 
-                    className="hidden sm:flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 rounded-lg transition-all shadow-md hover:shadow-lg"
-                  >
-                    <PenTool className="h-4 w-4" strokeWidth={2.5} />
-                    <span>Write</span>
-                  </Link>
+                  {/* Write Dropdown - Desktop Only */}
+                  <div className="relative hidden sm:block" ref={writeDropdownRef}>
+                    <button
+                      onClick={toggleWriteDropdown}
+                      className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-all shadow-sm hover:shadow-md"
+                      aria-expanded={isWriteDropdownOpen}
+                      aria-haspopup="true"
+                    >
+                      <PenTool className="h-4 w-4" strokeWidth={2} />
+                      <span>Create</span>
+                      <ChevronDown className={`h-4 w-4 transition-transform ${
+                        isWriteDropdownOpen ? 'rotate-180' : ''
+                      }`} strokeWidth={2} />
+                    </button>
+
+                    {isWriteDropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+                        <div className="py-1">
+                          <Link
+                            to="/write"
+                            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                            onClick={() => setIsWriteDropdownOpen(false)}
+                          >
+                            <PenTool className="h-4 w-4" strokeWidth={2} />
+                            <div>
+                              <div className="font-semibold">Write Article</div>
+                              <div className="text-xs text-gray-500">Create a new article</div>
+                            </div>
+                          </Link>
+                          
+                          <Link
+                            to="/write-ebook"
+                            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                            onClick={() => setIsWriteDropdownOpen(false)}
+                          >
+                            <BookOpen className="h-4 w-4" strokeWidth={2} />
+                            <div>
+                              <div className="font-semibold">Write Ebook</div>
+                              <div className="text-xs text-gray-500">Create a longer-form ebook</div>
+                            </div>
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   {/* User Menu */}
                   <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={toggleUserDropdown}
-                      className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                       aria-expanded={isUserDropdownOpen}
                       aria-haspopup="true"
                       aria-label="User menu"
                     >
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center text-white text-sm font-bold">
                         {user.display_name.charAt(0).toUpperCase()}
                       </div>
-                      <span className="hidden lg:block max-w-[120px] truncate font-semibold text-gray-900 text-sm">
+                      <span className="hidden lg:block max-w-[120px] truncate font-medium text-gray-900 text-sm">
                         {user.display_name}
                       </span>
                       <ChevronDown className={`hidden lg:block h-4 w-4 text-gray-500 transition-transform ${
@@ -393,11 +459,11 @@ function Header({ user, onLogout }) {
                     </button>
 
                     {isUserDropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
+                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
                         {/* User Info Header */}
-                        <div className="px-4 py-3 bg-gradient-to-r from-orange-50 to-red-50 border-b border-gray-100">
-                          <p className="text-sm font-bold text-gray-900 truncate">{user.display_name}</p>
-                          <p className="text-xs text-gray-600 truncate">{user.email}</p>
+                        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+                          <p className="text-sm font-semibold text-gray-900 truncate">{user.display_name}</p>
+                          <p className="text-xs text-gray-500 truncate">{user.email}</p>
                         </div>
 
                         <div className="py-1">
@@ -430,7 +496,7 @@ function Header({ user, onLogout }) {
 
                           {isEditorialOrAdmin && (
                             <>
-                              <div className="my-1 h-px bg-gray-200 mx-2" />
+                              <div className="my-1 h-px bg-gray-100 mx-2" />
                               <Link
                                 to="/editorial"
                                 className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
@@ -453,11 +519,11 @@ function Header({ user, onLogout }) {
                             </Link>
                           )}
 
-                          <div className="my-1 h-px bg-gray-200 mx-2" />
+                          <div className="my-1 h-px bg-gray-100 mx-2" />
 
                           <button
                             onClick={handleLogout}
-                            className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 text-left transition-colors"
+                            className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 text-left transition-colors"
                           >
                             <LogOut className="h-4 w-4" strokeWidth={2} />
                             <span>Sign Out</span>
@@ -471,13 +537,13 @@ function Header({ user, onLogout }) {
                 <>
                   <Link 
                     to="/login" 
-                    className="px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-yellow-700 transition-colors"
                   >
                     Sign In
                   </Link>
                   <Link 
                     to="/signup" 
-                    className="px-5 py-2 text-sm font-bold text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 rounded-lg transition-all shadow-md hover:shadow-lg"
+                    className="px-5 py-2 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-all shadow-sm hover:shadow-md"
                   >
                     Get Started
                   </Link>
@@ -489,7 +555,7 @@ function Header({ user, onLogout }) {
       </header>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-gray-200 shadow-2xl">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-gray-100 shadow-lg">
         <div className="flex items-center justify-around h-16 px-2">
           {(user ? primaryBottomNavLoggedIn : primaryBottomNavLoggedOut).map((item) => {
             const Icon = item.icon;
@@ -503,22 +569,22 @@ function Header({ user, onLogout }) {
               >
                 {item.isPrimary ? (
                   <div className="flex flex-col items-center -mt-4">
-                    <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-2xl shadow-lg">
-                      <Icon className="h-6 w-6 text-white" strokeWidth={2.5} />
+                    <div className="bg-yellow-600 p-3 rounded-2xl shadow-md">
+                      <Icon className="h-6 w-6 text-white" strokeWidth={2} />
                     </div>
-                    <span className="text-xs font-bold mt-1.5 text-gray-700">Write</span>
+                    <span className="text-xs font-medium mt-1.5 text-gray-700">Create</span>
                   </div>
                 ) : (
                   <>
                     <div className="relative">
-                      <Icon className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} strokeWidth={2} />
+                      <Icon className={`h-6 w-6 ${active ? 'text-yellow-600' : 'text-gray-500'}`} strokeWidth={2} />
                       {item.badge && item.badge > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                        <span className="absolute -top-1 -right-1 bg-yellow-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold">
                           {item.badge > 9 ? '9+' : item.badge}
                         </span>
                       )}
                     </div>
-                    <span className={`text-xs font-semibold mt-1 ${active ? 'text-orange-500' : 'text-gray-600'}`}>
+                    <span className={`text-xs font-medium mt-1 ${active ? 'text-yellow-600' : 'text-gray-600'}`}>
                       {item.label}
                     </span>
                   </>
@@ -532,7 +598,7 @@ function Header({ user, onLogout }) {
             className="flex flex-col items-center justify-center flex-1 h-full"
           >
             <Grid3X3 className="h-6 w-6 text-gray-500" strokeWidth={2} />
-            <span className="text-xs font-semibold mt-1 text-gray-600">More</span>
+            <span className="text-xs font-medium mt-1 text-gray-600">More</span>
           </button>
         </div>
       </nav>
@@ -541,16 +607,16 @@ function Header({ user, onLogout }) {
       {isMobileMenuOpen && (
         <>
           <div 
-            className="fixed inset-0 bg-black/40 z-40 md:hidden backdrop-blur-sm"
+            className="fixed inset-0 bg-black/20 z-40 md:hidden backdrop-blur-sm"
             onClick={() => setIsMobileMenuOpen(false)}
           />
-          <div className="fixed bottom-16 left-0 right-0 bg-white z-50 md:hidden rounded-t-3xl shadow-2xl max-h-[70vh] overflow-y-auto">
+          <div className="fixed bottom-16 left-0 right-0 bg-white z-50 md:hidden rounded-t-3xl shadow-xl max-h-[70vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-gray-900">More Options</h3>
+                <h3 className="text-lg font-semibold text-gray-900">More Options</h3>
                 <button 
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <X className="h-5 w-5 text-gray-500" />
                 </button>
@@ -567,11 +633,11 @@ function Header({ user, onLogout }) {
                       to={item.to}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`flex flex-col items-center justify-center p-4 rounded-xl transition-all ${
-                        active ? 'bg-orange-50 shadow-sm' : 'hover:bg-gray-50'
+                        active ? 'bg-yellow-50 shadow-sm' : 'hover:bg-gray-50'
                       }`}
                     >
-                      <Icon className={`h-7 w-7 ${active ? 'text-orange-500' : 'text-gray-600'}`} strokeWidth={2} />
-                      <span className={`text-xs font-semibold mt-2 text-center ${active ? 'text-orange-500' : 'text-gray-700'}`}>
+                      <Icon className={`h-7 w-7 ${active ? 'text-yellow-600' : 'text-gray-600'}`} strokeWidth={2} />
+                      <span className={`text-xs font-medium mt-2 text-center ${active ? 'text-yellow-600' : 'text-gray-700'}`}>
                         {item.label}
                       </span>
                     </Link>
@@ -581,14 +647,14 @@ function Header({ user, onLogout }) {
 
               {user && (
                 <>
-                  <div className="my-6 h-px bg-gray-200" />
+                  <div className="my-6 h-px bg-gray-100" />
                   <Link
                     to="/settings"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center gap-3 p-4 rounded-xl hover:bg-gray-50 transition-colors"
                   >
                     <Settings className="h-6 w-6 text-gray-600" strokeWidth={2} />
-                    <span className="text-sm font-semibold text-gray-700">Settings</span>
+                    <span className="text-sm font-medium text-gray-700">Settings</span>
                   </Link>
                 </>
               )}

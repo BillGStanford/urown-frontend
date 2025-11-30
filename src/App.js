@@ -1,3 +1,4 @@
+// App.js
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
@@ -38,6 +39,15 @@ import LibraryPage from './pages/misc/LibraryPage';
 import CareerPage from './pages/info/CareersPage';
 import LeaderboardPage from './pages/misc/LeaderboardPage';
 import GlobalError from './components/GlobalError';
+
+// Import ebook-related pages
+import BrowseEbookPage from './pages/ebooks/BrowseEbookPage';
+import EbookInformationPage from './pages/ebooks/EbookInformationPage';
+import BookChaptersInfoPage from './pages/ebooks/BookChaptersInfoPage';
+import ReadEbookPage from './pages/ebooks/ReadEbookPage';
+import WriteEbookPage from './pages/ebooks/WriteEbookPage';
+import EditEbookPage from './pages/ebooks/EditEbookPage';
+import AdminWriteEbook from './pages/admin/AdminWriteEbook';
 
 const API_URL = process.env.NODE_ENV === 'production' 
   ? process.env.REACT_APP_API_URL_PROD
@@ -89,11 +99,21 @@ function AppRoutes() {
           <Route path="/write" element={user ? <WriteArticle /> : <Navigate to="/login" />} />
           <Route path="/write-counter" element={user ? <WriteCounterPage /> : <Navigate to="/login" />} />
 
+          {/* Ebook Routes */}
+          <Route path="/ebooks" element={<BrowseEbookPage />} />
+          <Route path="/ebooks/:slug" element={<EbookInformationPage />} />
+          <Route path="/ebooks/:slug/chapters" element={<BookChaptersInfoPage />} />
+          <Route path="/ebooks/:slug/read" element={<ReadEbookPage />} />
+          <Route path="/ebooks/:slug/read/:chapterId" element={<ReadEbookPage />} />
+          <Route path="/write-ebook" element={user ? <WriteEbookPage /> : <Navigate to="/login" />} />
+          <Route path="/edit-ebook/:id" element={user ? <EditEbookPage /> : <Navigate to="/login" />} />
+
           {/* Admin Routes */}
           <Route path="/admin" element={user && (user.role === 'admin' || user.role === 'super-admin') ? <AdminDashboard /> : <Navigate to="/" />} />
           <Route path="/admin/contacts" element={user && user.role === 'super-admin' ? <ContactDashboard /> : <Navigate to="/" />} />
           <Route path="/admin/reported-articles" element={user && (user.role === 'admin' || user.role === 'super-admin') ? <ReportedArticlesDashboard /> : <Navigate to="/" />} />
           <Route path="/admin/write-article" element={user && (user.role === 'admin' || user.role === 'super-admin') ? <AdminWriteArticle /> : <Navigate to="/" />} />
+          <Route path="/admin/write-ebook" element={user && (user.role === 'admin' || user.role === 'super-admin') ? <AdminWriteEbook /> : <Navigate to="/" />} />
 
           {/* Editorial Routes */}
           <Route path="/editorial" element={user && (user.role === 'editorial-board' || user.role === 'admin' || user.role === 'super-admin') ? <EditorialBoard /> : <Navigate to="/" />} />

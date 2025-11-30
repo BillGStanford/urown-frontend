@@ -84,9 +84,9 @@ const CommunityGuidelines = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Progress Bar */}
-      <div className="fixed top-0 left-0 right-0 h-1 bg-gray-200 z-50">
+      <div className="fixed top-0 left-0 right-0 h-1 bg-gray-800 z-50">
         <div
-          className="h-full bg-gray-800 transition-all duration-300"
+          className="h-full bg-yellow-500 transition-all duration-300"
           style={{ width: `${scrollProgress}%` }}
         />
       </div>
@@ -95,8 +95,8 @@ const CommunityGuidelines = () => {
         <div className="lg:grid lg:grid-cols-12 lg:gap-8">
           {/* Sidebar Navigation */}
           <aside className="hidden lg:block lg:col-span-3">
-            <div className="sticky top-24 space-y-1">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="sticky top-8 space-y-1">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="bg-gray-800 px-4 py-3">
                   <h3 className="text-white font-semibold text-sm">Navigation</h3>
                 </div>
@@ -109,13 +109,13 @@ const CommunityGuidelines = () => {
                         onClick={() => scrollToSection(section.id)}
                         className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all flex items-center gap-3 ${
                           activeSection === section.id
-                            ? 'bg-gray-800 text-white'
+                            ? 'bg-yellow-500 text-white'
                             : 'text-gray-700 hover:bg-gray-100'
                         }`}
                       >
-                        <Icon className="h-4 w-4 flex-shrink-0" />
+                        <Icon className="h-5 w-5 flex-shrink-0" />
                         <span className="flex-1 truncate">
-                          {section.number && <span className="font-mono mr-2">{section.number}.</span>}
+                          {section.number && <span className="font-mono mr-2 text-yellow-600">{section.number}.</span>}
                           {section.title}
                         </span>
                       </button>
@@ -129,64 +129,40 @@ const CommunityGuidelines = () => {
           {/* Main Content */}
           <main className="lg:col-span-9">
             {/* Hero Section */}
-            <div className="text-center mb-12 lg:mb-16">
+            <div className="text-center mb-12">
               <div className="inline-block mb-6">
-                <div className="w-20 h-20 bg-gray-800 rounded-lg flex items-center justify-center text-white shadow-lg">
-                  <BookOpen className="h-10 w-10" />
+                <div className="w-20 h-20 bg-yellow-500 rounded-xl flex items-center justify-center text-white shadow-lg">
+                  <BookOpen className="w-10 h-10" />
                 </div>
               </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 text-gray-900">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
                 Community Guidelines
               </h1>
-              <p className="text-gray-600 text-lg mb-2">Building a safer, more inclusive platform</p>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Building a safer, more inclusive platform for meaningful discourse
+              </p>
               <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
                 <span className="flex items-center gap-2">
                   Last Updated: November 2025
                 </span>
                 <span className="hidden sm:inline">•</span>
                 <Link to="/contact" className="text-gray-800 hover:text-gray-900 font-medium flex items-center gap-1">
-                  <Phone className="h-4 w-4" />
+                  <Phone className="w-4 h-4" />
                   Questions? Contact us
                 </Link>
-              </div>
-            </div>
-
-            {/* Mobile TOC */}
-            <div className="lg:hidden bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Table of Contents
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {sections.map((section) => {
-                  const Icon = section.icon;
-                  return (
-                    <button
-                      key={section.id}
-                      onClick={() => scrollToSection(section.id)}
-                      className="text-left px-3 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded-lg transition-all flex items-center gap-2"
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span className="truncate">
-                        {section.number && <span className="font-mono mr-1">{section.number}.</span>}
-                        {section.title}
-                      </span>
-                    </button>
-                  );
-                })}
               </div>
             </div>
 
             {/* Guidelines Content */}
             <div className="space-y-8">
               {/* Introduction */}
-              <section id="introduction" className="scroll-mt-24 bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 lg:p-10">
+              <section id="introduction" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center text-white flex-shrink-0">
                     <BookOpen className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Introduction</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Introduction</h2>
                     <div className="h-1 w-20 bg-gray-800 rounded-full"></div>
                   </div>
                 </div>
@@ -201,14 +177,14 @@ const CommunityGuidelines = () => {
               </section>
 
               {/* Section 1 */}
-              <section id="respectful-conduct" className="scroll-mt-24 bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 lg:p-10">
+              <section id="respectful-conduct" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center text-white flex-shrink-0">
                     <Handshake className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                      <span className="text-gray-400 font-mono mr-3">01.</span>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      <span className="text-gray-400 font-mono mr-2">01.</span>
                       Respectful Conduct and Professional Discourse
                     </h2>
                     <div className="h-1 w-20 bg-gray-800 rounded-full"></div>
@@ -239,14 +215,14 @@ const CommunityGuidelines = () => {
               </section>
 
               {/* Section 2 */}
-              <section id="safety-protection" className="scroll-mt-24 bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 lg:p-10">
+              <section id="safety-protection" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center text-white flex-shrink-0">
                     <Shield className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                      <span className="text-gray-400 font-mono mr-3">02.</span>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      <span className="text-gray-400 font-mono mr-2">02.</span>
                       Safety and Protection of Well-Being
                     </h2>
                     <div className="h-1 w-20 bg-gray-800 rounded-full"></div>
@@ -278,14 +254,14 @@ const CommunityGuidelines = () => {
               </section>
 
               {/* Section 3 */}
-              <section id="inclusion" className="scroll-mt-24 bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 lg:p-10">
+              <section id="inclusion" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center text-white flex-shrink-0">
                     <Globe className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                      <span className="text-gray-400 font-mono mr-3">03.</span>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      <span className="text-gray-400 font-mono mr-2">03.</span>
                       Commitment to Inclusion and Non-Discrimination
                     </h2>
                     <div className="h-1 w-20 bg-gray-800 rounded-full"></div>
@@ -297,19 +273,19 @@ const CommunityGuidelines = () => {
                   </p>
                   <ul className="space-y-3 text-gray-700">
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Racial, ethnic, or national identity:</strong> Discrimination, stereotyping, or prejudicial treatment based on race, ethnicity, ancestry, or national origin</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Gender identity and sexual orientation:</strong> Discrimination targeting individuals based on gender expression, gender identity, biological sex, or sexual orientation</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
-                      <span><strong>Religious or philosophical beliefs:</strong> Intolerance, mockery, or discriminatory treatment of individuals based on religious affiliation, spiritual practices, or philosophical worldviews</span>
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                      <span><strong>Religious or philosophical beliefs:</strong> Intolerance, mockery, or discriminatory treatment based on religious affiliation, spiritual practices, or philosophical worldviews</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Age, disability, or socioeconomic status:</strong> Prejudicial treatment, exclusion, or harassment based on chronological age, physical or cognitive disabilities, or economic circumstances</span>
                     </li>
                   </ul>
@@ -320,14 +296,14 @@ const CommunityGuidelines = () => {
               </section>
 
               {/* Section 4 */}
-              <section id="authenticity" className="scroll-mt-24 bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 lg:p-10">
+              <section id="authenticity" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center text-white flex-shrink-0">
                     <Check className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                      <span className="text-gray-400 font-mono mr-3">04.</span>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      <span className="text-gray-400 font-mono mr-2">04.</span>
                       Content Authenticity and Information Integrity
                     </h2>
                     <div className="h-1 w-20 bg-gray-800 rounded-full"></div>
@@ -339,19 +315,19 @@ const CommunityGuidelines = () => {
                   </p>
                   <ul className="space-y-3 text-gray-700">
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Identity misrepresentation prohibition:</strong> Impersonation of individuals, institutional entities, organizational representatives, or public figures through deceptive profile creation, fraudulent credentials, or misleading attribution</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Misinformation and disinformation:</strong> Deliberate fabrication, intentional distortion, or strategic dissemination of demonstrably false, misleading, or deceptive information designed to manipulate perceptions or mislead audiences</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Fraudulent activities:</strong> Engagement in spam operations, confidence schemes, phishing campaigns, social engineering attacks, or any deceptive practices intended to extract personal information, financial resources, or unauthorized access credentials</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Artificial engagement manipulation:</strong> Deployment of automated systems, computational bots, coordinated inauthentic behavior networks, artificial engagement inflation tactics, or any technological manipulation of platform mechanisms, metrics, or algorithmic systems</span>
                     </li>
                   </ul>
@@ -359,14 +335,14 @@ const CommunityGuidelines = () => {
               </section>
 
               {/* Section 5 */}
-              <section id="intellectual-property" className="scroll-mt-24 bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 lg:p-10">
+              <section id="intellectual-property" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center text-white flex-shrink-0">
                     <Copyright className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                      <span className="text-gray-400 font-mono mr-3">05.</span>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      <span className="text-gray-400 font-mono mr-2">05.</span>
                       Intellectual Property Rights
                     </h2>
                     <div className="h-1 w-20 bg-gray-800 rounded-full"></div>
@@ -382,7 +358,7 @@ const CommunityGuidelines = () => {
                       <span><strong>Authorized content sharing:</strong> Publish, distribute, or display exclusively content for which you possess legitimate ownership rights, appropriate licensing agreements, or explicit authorization from rights holders</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Copyright and trademark compliance:</strong> Refrain from unauthorized reproduction, distribution, modification, or commercial exploitation of copyrighted materials, registered trademarks, service marks, or proprietary intellectual property</span>
                     </li>
                     <li className="flex items-start gap-3">
@@ -390,7 +366,7 @@ const CommunityGuidelines = () => {
                       <span><strong>Proper attribution requirements:</strong> Provide comprehensive, accurate attribution and appropriate credit when incorporating, referencing, or building upon creative works, research contributions, or intellectual property of others</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Violation reporting mechanisms:</strong> If you possess reasonable grounds to believe your intellectual property rights have been infringed, please utilize our designated reporting infrastructure and follow established takedown notification procedures</span>
                     </li>
                   </ul>
@@ -398,14 +374,14 @@ const CommunityGuidelines = () => {
               </section>
 
               {/* Section 6 */}
-              <section id="content-standards" className="scroll-mt-24 bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 lg:p-10">
+              <section id="content-standards" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center text-white flex-shrink-0">
                     <FileText className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                      <span className="text-gray-400 font-mono mr-3">06.</span>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      <span className="text-gray-400 font-mono mr-2">06.</span>
                       Content Standards and Responsible Sharing
                     </h2>
                     <div className="h-1 w-20 bg-gray-800 rounded-full"></div>
@@ -417,7 +393,7 @@ const CommunityGuidelines = () => {
                   </p>
                   <ul className="space-y-3 text-gray-700">
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Prohibited graphic content:</strong> Materials depicting extreme violence, graphic sexual activity, non-consensual intimate imagery, or exploitation of vulnerable individuals are categorically prohibited</span>
                     </li>
                     <li className="flex items-start gap-3">
@@ -429,7 +405,7 @@ const CommunityGuidelines = () => {
                       <span><strong>Child safety protections:</strong> Any content that exploits, endangers, sexualizes, or inappropriately depicts minors is absolutely prohibited under all circumstances and will precipitate immediate account termination and mandatory reporting to appropriate law enforcement authorities</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Shock content prohibition:</strong> Content deliberately engineered to terrorize, traumatize, shock, or inflict emotional distress upon viewers for recreational purposes is not permitted</span>
                     </li>
                   </ul>
@@ -437,14 +413,14 @@ const CommunityGuidelines = () => {
               </section>
 
               {/* Section 7 */}
-              <section id="platform-use" className="scroll-mt-24 bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 lg:p-10">
+              <section id="platform-use" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center text-white flex-shrink-0">
                     <Settings className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                      <span className="text-gray-400 font-mono mr-3">07.</span>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      <span className="text-gray-400 font-mono mr-2">07.</span>
                       Appropriate Platform Use
                     </h2>
                     <div className="h-1 w-20 bg-gray-800 rounded-full"></div>
@@ -456,7 +432,7 @@ const CommunityGuidelines = () => {
                   </p>
                   <ul className="space-y-3 text-gray-700">
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                       <span><strong>System integrity protection:</strong> Attempts to disrupt platform services, circumvent security protocols, exploit system vulnerabilities, or gain unauthorized access to restricted infrastructure components are strictly prohibited</span>
                     </li>
                     <li className="flex items-start gap-3">
@@ -464,11 +440,11 @@ const CommunityGuidelines = () => {
                       <span><strong>Commercial activity regulations:</strong> Commercial promotions, advertisement distribution, marketing campaigns, and business solicitations must comply comprehensively with UROWN's established business partnership policies and commercial content guidelines</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Community disruption prevention:</strong> Behaviors that substantially disrupt community spaces, including coordinated flooding, excessive repetitive posting, spam distribution, or orchestrated interference with legitimate discussions are prohibited</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Automated system restrictions:</strong> Deployment of automated posting systems, data scraping infrastructure, content harvesting tools, or unauthorized data mining operations without explicit platform authorization is categorically forbidden</span>
                     </li>
                   </ul>
@@ -476,7 +452,7 @@ const CommunityGuidelines = () => {
               </section>
 
               {/* Section 8 - New E-Book Standards */}
-              <section id="ebook-standards" className="scroll-mt-24 bg-gray-100 rounded-lg shadow-sm border-2 border-gray-300 p-6 sm:p-8 lg:p-10">
+              <section id="ebook-standards" className="bg-yellow-50 rounded-xl shadow-sm border-2 border-yellow-200 p-6 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center text-white flex-shrink-0">
                     <Library className="h-6 w-6" />
@@ -485,7 +461,7 @@ const CommunityGuidelines = () => {
                     <div className="inline-block px-3 py-1 bg-gray-800 text-white text-xs font-semibold rounded-full mb-3">
                       NEW POLICY
                     </div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
                       <span className="text-gray-400 font-mono mr-3">08.</span>
                       E-Book Publishing & Long-Form Writing Standards
                     </h2>
@@ -493,7 +469,7 @@ const CommunityGuidelines = () => {
                   </div>
                 </div>
                 <div className="prose prose-lg max-w-none">
-                  <p className="text-gray-700 leading-relaxed mb-6">
+                  <p className="text-gray-700 leading-relaxed mb-4">
                     UROWN | E-Book represents a strategic extension of platform's mission into long-form content creation and literary publishing. To maintain exceptional quality standards and ensure user safety across extended narrative formats, following specialized guidelines govern e-book publishing:
                   </p>
 
@@ -503,7 +479,7 @@ const CommunityGuidelines = () => {
                     </h3>
                     <ul className="space-y-3 text-gray-700">
                       <li className="flex items-start gap-3">
-                        <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                         <span><strong>Authentic authorship standards:</strong> Published e-books must demonstrate meaningful human authorship, creative contribution, and original intellectual effort. Wholesale plagiarism or predominantly AI-generated content lacking substantive human creative input is prohibited</span>
                       </li>
                       <li className="flex items-start gap-3">
@@ -515,12 +491,12 @@ const CommunityGuidelines = () => {
                         <span><strong>Explicit sexual content restrictions:</strong> E-books containing explicit sexual content, graphic intimate descriptions, or erotic fiction are not permitted on platform</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                         <span><strong>Graphic violence limitations:</strong> Gratuitous depictions of extreme violence, torture, mutilation, or gore intended primarily for shock value rather than legitimate narrative purposes are prohibited</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-                        <span><strong>Harassment documentation prohibition:</strong> Personal revenge narratives, targeted harassment compilations, defamatory exposés, or "call-out books" designed to systematically harm, humiliate, or destroy the reputation of specific individuals are not permitted</span>
+                        <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                        <span><strong>Harassment documentation prohibition:</strong> Personal revenge narratives, targeted harassment compilations, defamatory exposés, or "call-out books" designed to systematically harm, humiliate, or destroy reputation of specific individuals are not permitted</span>
                       </li>
                     </ul>
                   </div>
@@ -535,7 +511,7 @@ const CommunityGuidelines = () => {
                         <span><strong>Chapter organization requirements:</strong> All published e-books must utilize UROWN's integrated chapter management system, maintaining logical structural organization and reader-friendly navigation</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                         <span><strong>Formatting compliance:</strong> Content must adhere to established formatting protocols, excluding embedded imagery, external media embeds, or non-standard formatting that disrupts platform functionality</span>
                       </li>
                       <li className="flex items-start gap-3">
@@ -565,60 +541,44 @@ const CommunityGuidelines = () => {
                     </ul>
                   </div>
 
-                  <div className="bg-white rounded-lg p-6 mb-6 border border-gray-300">
+                  <div className="bg-red-50 rounded-lg p-6 mb-6 border-2 border-red-200">
                     <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <span className="text-gray-800">D.</span> Minor Protection Protocols
-                    </h3>
-                    <ul className="space-y-3 text-gray-700">
-                      <li className="flex items-start gap-3">
-                        <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-                        <span><strong>Absolute prohibition on minor sexualization:</strong> Any depictions, references, implications, or fictional narratives that sexualize, romanticize inappropriate relationships with, or exploit minors in any capacity are absolutely forbidden</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-                        <span><strong>Minor safety endangerment:</strong> Content encouraging minors to engage in dangerous activities, self-harm, substance abuse, or other behaviors harmful to their physical or psychological well-being is prohibited</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="bg-red-50 rounded-lg p-6 border-2 border-red-200">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <span className="text-red-600">E.</span> E-Book Enforcement Mechanisms
+                      <span className="text-red-600">D.</span> E-Book Enforcement Mechanisms
                     </h3>
                     <p className="text-gray-700 mb-4">Violations of e-book publishing standards may result in progressive enforcement actions:</p>
                     <ul className="space-y-2 text-gray-700">
-                      <li className="flex items-start gap-3">
+                      <li className="flex items-start gap-2">
                         <ChevronRight className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                         <span>Removal of individual chapters containing policy violations</span>
                       </li>
-                      <li className="flex items-start gap-3">
+                      <li className="flex items-start gap-2">
                         <ChevronRight className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                         <span>Complete book unpublishing and removal from platform discovery</span>
                       </li>
-                      <li className="flex items-start gap-3">
+                      <li className="flex items-start gap-2">
                         <ChevronRight className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                         <span>Restriction or permanent revocation of e-book publishing privileges</span>
                       </li>
-                      <li className="flex items-start gap-3">
+                      <li className="flex items-start gap-2">
                         <ChevronRight className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                         <span>Temporary account suspension or permanent termination for severe violations</span>
                       </li>
                     </ul>
                     <p className="text-gray-700 mt-4 font-semibold">
-                      Systematic abuse of UROWN | E-Book publishing features will result in permanent loss of all writing and publishing privileges across the platform.
+                      Systematic abuse of UROWN | E-Book publishing features will result in permanent loss of all writing and publishing privileges across platform.
                     </p>
                   </div>
                 </div>
               </section>
 
               {/* Section 9 */}
-              <section id="reporting" className="scroll-mt-24 bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 lg:p-10">
+              <section id="reporting" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center text-white flex-shrink-0">
                     <Scale className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
                       <span className="text-gray-400 font-mono mr-3">09.</span>
                       Reporting and Enforcement Procedures
                     </h2>
@@ -632,18 +592,18 @@ const CommunityGuidelines = () => {
                   <ul className="space-y-3 text-gray-700">
                     <li className="flex items-start gap-3">
                       <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
-                      <span><strong>Violation reporting mechanisms:</strong> Platform participants are actively encouraged to report content, conduct, or coordinated activities that violate these guidelines through designated reporting tools integrated throughout the platform interface</span>
+                      <span><strong>Violation reporting mechanisms:</strong> Platform participants are actively encouraged to report content, conduct, or coordinated activities that violate these guidelines through designated reporting tools integrated throughout platform interface</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Proportionate enforcement framework:</strong> Enforcement determinations are calibrated based on comprehensive assessment of violation severity, contextual circumstances, historical user conduct patterns, and frequency of infractions. Potential actions include content removal, temporary feature restrictions, account suspension, or permanent account termination</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Emergency response protocols:</strong> UROWN reserves unequivocal authority to implement immediate enforcement action in circumstances involving imminent physical danger, severe psychological harm, child safety concerns, or egregious policy violations requiring urgent intervention</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
                       <span><strong>Law enforcement cooperation:</strong> In situations involving illegal activity, credible threats to public safety, or content exploiting minors, UROWN will cooperate fully with appropriate law enforcement authorities and regulatory agencies</span>
                     </li>
                   </ul>
@@ -651,13 +611,13 @@ const CommunityGuidelines = () => {
               </section>
 
               {/* Section 10 */}
-              <section id="accountability" className="scroll-mt-24 bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 lg:p-10">
+              <section id="accountability" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center text-white flex-shrink-0">
                     <User className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
                       <span className="text-gray-400 font-mono mr-3">10.</span>
                       User Accountability
                     </h2>
@@ -686,13 +646,13 @@ const CommunityGuidelines = () => {
               </section>
 
               {/* Section 11 */}
-              <section id="evolution" className="scroll-mt-24 bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 lg:p-10">
+              <section id="evolution" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center text-white flex-shrink-0">
                     <RefreshCw className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
                       <span className="text-gray-400 font-mono mr-3">11.</span>
                       Continuous Evolution of Guidelines
                     </h2>
@@ -724,37 +684,37 @@ const CommunityGuidelines = () => {
                 </div>
               </section>
 
-              {/* Conclusion */}
-              <section id="conclusion" className="scroll-mt-24 bg-gray-800 text-white rounded-lg shadow-xl border border-gray-700 p-6 sm:p-8 lg:p-10">
+              {/* Section 12 - Conclusion */}
+              <section id="conclusion" className="bg-gray-800 text-white rounded-xl shadow-xl border border-gray-700 p-6 sm:p-8">
                 <div className="flex items-start gap-4 mb-6">
-                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center text-white flex-shrink-0">
+                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center text-gray-800 flex-shrink-0">
                     <Check className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold mb-2">Conclusion</h2>
+                    <h2 className="text-2xl font-bold text-white mb-2">Conclusion</h2>
                     <div className="h-1 w-20 bg-white/50 rounded-full"></div>
                   </div>
                 </div>
-                <div className="prose prose-lg max-w-none text-white">
+                <div className="prose prose-lg max-w-none">
                   <p className="leading-relaxed mb-4 text-white/95">
                     The fundamental strength and enduring success of UROWN reside inextricably within its community—the collective intelligence, creative energy, and collaborative spirit of its participants. These Community Guidelines exist to safeguard that community's integrity and ensure UROWN remains an environment where meaningful intellectual engagement, authentic creative expression, and productive collaborative innovation can flourish within an atmosphere characterized by mutual respect, personal safety, and inclusive participation.
                   </p>
-                  <p className="leading-relaxed text-white/95">
-                    We extend our sincere appreciation for your commitment to maintaining integrity, values, and exceptional quality standards that define the UROWN community experience.
+                  <p className="leading-relaxed mt-4 text-white/95">
+                    We extend our sincere appreciation for your commitment to maintaining integrity, values, and exceptional quality standards that define UROWN community experience.
                   </p>
                 </div>
               </section>
             </div>
 
             {/* Contact CTA */}
-            <div className="mt-12 bg-gray-800 rounded-lg shadow-lg p-8 text-center text-white">
-              <h3 className="text-2xl font-bold mb-3">Questions About Our Guidelines?</h3>
-              <p className="mb-6 text-gray-300">
+            <div className="mt-12 bg-gray-800 rounded-xl shadow-xl border border-gray-700 p-8 text-center">
+              <h3 className="text-xl font-bold text-white mb-4">Questions About Our Guidelines?</h3>
+              <p className="mb-6 text-white/80">
                 Our team is here to help clarify any questions or concerns you may have.
               </p>
               <Link
                 to="/contact"
-                className="inline-block px-8 py-3 bg-white text-gray-800 rounded-lg hover:bg-gray-100 transition-all font-semibold"
+                className="inline-flex items-center gap-2 px-8 py-3 bg-white text-gray-800 rounded-lg hover:bg-gray-700 transition-all font-semibold"
               >
                 Contact Support Team
               </Link>
@@ -764,7 +724,7 @@ const CommunityGuidelines = () => {
             <div className="mt-8 text-center">
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-all text-gray-700 font-medium border border-gray-200"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-800 rounded-lg hover:bg-gray-700 transition-all font-semibold border border-gray-600"
               >
                 <ChevronRight className="h-4 w-4 rotate-270" />
                 <span>Back to Top</span>

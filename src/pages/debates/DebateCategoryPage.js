@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import ArticleCard from '../../components/ArticleCard';
 import { useUser } from '../../context/UserContext';
-import { ArrowLeft, Clock, Users, Edit, Trophy, MessageSquare, Flame, Award, AlertCircle, Shield } from 'lucide-react';
+import { ArrowLeft, Clock, Users, Edit, Trophy, MessageSquare, Flame, Award, AlertCircle, Shield, CheckCircle, Crown } from 'lucide-react';
 
 function DebateCategoryPage() {
   const { id } = useParams();
@@ -104,17 +104,10 @@ function DebateCategoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 py-12 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-12 bg-gray-200 rounded-lg w-1/3 mb-8"></div>
-            <div className="h-64 bg-gray-200 rounded-xl mb-10"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-gray-100 rounded-xl p-6 h-80"></div>
-              ))}
-            </div>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-lg font-semibold text-gray-700">Loading debate...</div>
         </div>
       </div>
     );
@@ -122,12 +115,12 @@ function DebateCategoryPage() {
 
   if (!debateTopic) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 py-12 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <MessageSquare className="mx-auto mb-6 text-gray-400" size={80} />
-          <h1 className="text-5xl font-black mb-6 text-gray-900">Debate Not Found</h1>
-          <p className="text-xl text-gray-600 mb-8">This debate topic may have expired or been removed.</p>
-          <Link to="/" className="inline-block bg-black text-white px-8 py-4 text-lg font-bold hover:bg-gray-800 transition-colors">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12">
+        <div className="max-w-md w-full mx-auto text-center">
+          <MessageSquare className="mx-auto mb-6 text-gray-400" size={64} />
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Debate Not Found</h1>
+          <p className="text-gray-600 mb-8">This debate topic may have expired or been removed.</p>
+          <Link to="/" className="inline-block bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 font-medium rounded-lg transition-colors">
             Return to Home
           </Link>
         </div>
@@ -142,21 +135,21 @@ function DebateCategoryPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 py-12 px-6">
-      <div className="max-w-7xl mx-auto">
-        <Link to="/" className="inline-flex items-center text-gray-700 mb-8 hover:text-black transition-colors font-semibold group">
-          <ArrowLeft className="mr-2 group-hover:-translate-x-1 transition-transform" size={20} />
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Link to="/" className="inline-flex items-center text-gray-700 mb-8 hover:text-gray-900 transition-colors">
+          <ArrowLeft className="mr-2" size={20} />
           Back to Home
         </Link>
 
         {/* Anonymous Posting Notice */}
         {!user && (
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-8">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
             <div className="flex items-start gap-4">
               <AlertCircle className="text-blue-600 flex-shrink-0 mt-1" size={24} />
               <div>
-                <h3 className="text-gray-900 font-bold text-lg mb-2">Posting Anonymously?</h3>
-                <p className="text-gray-700 mb-3">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Posting Anonymously?</h3>
+                <p className="text-gray-700 mb-4">
                   You can share your opinion without an account, but consider creating one for a better experience:
                 </p>
                 <ul className="text-gray-700 space-y-1 mb-4 ml-4">
@@ -167,7 +160,7 @@ function DebateCategoryPage() {
                 </ul>
                 <Link 
                   to="/signup" 
-                  className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg font-bold hover:bg-gray-800 transition-colors"
+                  className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
                 >
                   <Shield size={18} />
                   Create Free Account
@@ -178,9 +171,9 @@ function DebateCategoryPage() {
         )}
         
         {/* Debate Topic Header Card */}
-        <div className="bg-white border-2 border-black rounded-xl shadow-xl overflow-hidden mb-12">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
           {/* Header Banner */}
-          <div className="bg-gradient-to-r from-red-600 to-orange-600 px-8 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 px-8 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3 text-white">
               <Flame size={32} fill="currentColor" />
               <div>
@@ -188,53 +181,53 @@ function DebateCategoryPage() {
                 <div className="text-xs opacity-90">Share your perspective</div>
               </div>
             </div>
-            <div className="inline-flex items-center gap-2 bg-black bg-opacity-30 text-white px-4 py-2 rounded-lg text-sm font-bold">
-              <Clock size={18} />
+            <div className="bg-black bg-opacity-20 text-white px-4 py-2 rounded-lg text-sm font-bold">
+              <Clock size={18} className="inline mr-2" />
               {getTimeRemaining(debateTopic.expires_at)}
             </div>
           </div>
           
           {/* Content */}
           <div className="p-8">
-            <h1 className="text-4xl md:text-5xl font-black mb-6 text-gray-900 leading-tight">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
               {debateTopic.title}
             </h1>
             
-            {/* Fixed description with line breaks */}
-            <p className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed whitespace-pre-line">
+            {/* Fixed description with proper line breaks */}
+            <p className="text-lg text-gray-700 mb-8 leading-relaxed whitespace-pre-line">
               {debateTopic.description}
             </p>
             
             {/* Stats and Actions Bar */}
-            <div className="flex flex-wrap gap-4 pt-6 border-t-2 border-gray-200">
-              <div className="inline-flex items-center gap-2 bg-gray-100 px-4 py-2.5 rounded-lg">
-                <Users className="text-gray-600" size={22} />
+            <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
+              <div className="inline-flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg">
+                <Users className="text-gray-600" size={20} />
                 <span className="font-bold text-gray-900">{opinions.length}</span>
                 <span className="text-gray-600 font-medium">Opinions</span>
               </div>
               
               {winners.length > 0 && (
-                <div className="inline-flex items-center gap-2 bg-yellow-100 px-4 py-2.5 rounded-lg">
-                  <Trophy className="text-yellow-600" size={22} />
+                <div className="inline-flex items-center gap-2 bg-yellow-100 px-4 py-2 rounded-lg">
+                  <Trophy className="text-yellow-600" size={20} />
                   <span className="font-bold text-gray-900">{winners.length}</span>
-                  <span className="text-gray-700 font-medium">Winner{winners.length !== 1 ? 's' : ''}</span>
+                  <span className="text-yellow-700 font-medium">Winner{winners.length !== 1 ? 's' : ''}</span>
                 </div>
               )}
               
               {!userHasOpinion && (
                 <Link 
                   to={`/debate/${id}/write`}
-                  className="inline-flex items-center gap-2 bg-black text-white px-6 py-2.5 rounded-lg font-bold hover:bg-gray-800 transition-all duration-200 ml-auto"
+                  className="inline-flex items-center gap-2 bg-black hover:bg-gray-800 text-white px-6 py-2.5 rounded-lg font-medium transition-colors ml-auto"
                 >
-                  <Edit size={20} />
+                  <Edit size={18} />
                   Write Your Opinion
                 </Link>
               )}
               
               {userHasOpinion && (
-                <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2.5 rounded-lg ml-auto">
-                  <MessageSquare size={20} />
-                  <span className="font-bold">You've Contributed</span>
+                <div className="inline-flex items-center gap-2 bg-green-100 px-4 py-2 rounded-lg ml-auto">
+                  <CheckCircle className="text-green-600" size={18} />
+                  <span className="font-bold text-green-800">You've Contributed</span>
                 </div>
               )}
             </div>
@@ -245,7 +238,7 @@ function DebateCategoryPage() {
         <div className="mb-12">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
             <div>
-              <h2 className="text-4xl font-black text-gray-900 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 All Opinions
               </h2>
               <p className="text-gray-600">
@@ -253,26 +246,26 @@ function DebateCategoryPage() {
               </p>
             </div>
             {winners.length > 0 && (
-              <div className="inline-flex items-center gap-2 bg-yellow-50 border-2 border-yellow-400 text-yellow-800 px-4 py-2 rounded-lg">
-                <Award size={20} />
-                <span className="text-sm font-bold">Winning articles appear in Browse</span>
+              <div className="inline-flex items-center gap-2 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-2 rounded-lg">
+                <Crown size={18} />
+                <span className="text-sm font-medium">Winning articles appear in Browse</span>
               </div>
             )}
           </div>
           
           {opinions.length === 0 ? (
-            <div className="bg-white border-2 border-gray-200 rounded-xl p-16 text-center">
-              <MessageSquare className="mx-auto text-gray-300 mb-6" size={64} strokeWidth={1.5} />
-              <h3 className="text-3xl font-black text-gray-900 mb-3">No Opinions Yet</h3>
-              <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-16 text-center">
+              <MessageSquare className="mx-auto mb-6 text-gray-300" size={64} />
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">No Opinions Yet</h3>
+              <p className="text-gray-600 mb-8 max-w-md mx-auto">
                 Be the first to share your thoughts on this debate topic!
               </p>
               {!userHasOpinion && (
                 <Link 
                   to={`/debate/${id}/write`}
-                  className="inline-flex items-center gap-2 bg-black text-white px-8 py-4 text-lg font-bold hover:bg-gray-800 transition-colors rounded-lg"
+                  className="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
                 >
-                  <Edit size={22} />
+                  <Edit size={20} />
                   Write Your Opinion
                 </Link>
               )}
@@ -282,9 +275,9 @@ function DebateCategoryPage() {
               {opinions.map((opinion) => (
                 <div key={opinion.id} className="relative group">
                   {isWinner(opinion.id) && (
-                    <div className="absolute -top-3 -right-3 z-20">
-                      <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-3 py-2 rounded-full text-sm font-black flex items-center shadow-lg border-2 border-yellow-600">
-                        <Trophy className="mr-1.5" size={16} fill="currentColor" />
+                    <div className="absolute -top-3 -right-3 z-10">
+                      <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-1 shadow-lg">
+                        <Trophy size={16} fill="currentColor" />
                         WINNER
                       </div>
                     </div>
@@ -301,7 +294,7 @@ function DebateCategoryPage() {
                         <button
                           onClick={() => removeWinnerStatus(opinion.id)}
                           disabled={markingWinner.loading && markingWinner.articleId === opinion.id}
-                          className="w-full bg-white border-2 border-gray-300 text-gray-700 py-2.5 px-4 rounded-lg font-bold hover:bg-gray-50 transition-all duration-200 disabled:opacity-50"
+                          className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
                         >
                           {markingWinner.loading && markingWinner.articleId === opinion.id ? 'Removing...' : 'Remove Winner Status'}
                         </button>
@@ -309,7 +302,7 @@ function DebateCategoryPage() {
                         <button
                           onClick={() => markAsWinner(opinion.id)}
                           disabled={markingWinner.loading && markingWinner.articleId === opinion.id}
-                          className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black py-2.5 px-4 rounded-lg font-black transition-all duration-200 disabled:opacity-50 shadow-lg"
+                          className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black py-2 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 shadow-md"
                         >
                           {markingWinner.loading && markingWinner.articleId === opinion.id ? 'Marking...' : 'Crown as Winner'}
                         </button>

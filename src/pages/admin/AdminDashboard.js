@@ -32,7 +32,8 @@ import {
   Clock,
   Award,
   PenTool,
-  X
+  X,
+  Book
 } from 'lucide-react';
 
 // Register Chart.js components
@@ -52,11 +53,13 @@ function AdminDashboard() {
   const [adminStats, setAdminStats] = useState({
     userCounts: [],
     articleStats: {},
+    ebookStats: {},
     totalViews: 0,
     recentActivity: []
   });
   const [users, setUsers] = useState([]);
   const [articles, setArticles] = useState([]);
+  const [ebooks, setEbooks] = useState([]);
   const [auditLog, setAuditLog] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -136,6 +139,23 @@ function AdminDashboard() {
     }
   }, []);
 
+  // Fetch ebooks
+  const fetchEbooks = useCallback(async () => {
+    try {
+      const response = await fetchWithDeduplication(
+        'admin-ebooks',
+        createApiRequest('/admin/ebooks', { method: 'GET' })
+      );
+      setEbooks(response.data.ebooks);
+      setError(null);
+    } catch (error) {
+      console.error('Error fetching ebooks:', error);
+      if (error.response?.status !== 429) {
+        setError('Failed to load ebooks. Please try again later.');
+      }
+    }
+  }, []);
+
   // Fetch audit log
   const fetchAuditLog = useCallback(async () => {
     try {
@@ -161,12 +181,13 @@ function AdminDashboard() {
         fetchAdminStats(),
         new Promise(resolve => setTimeout(resolve, 300)).then(() => fetchUsers()),
         new Promise(resolve => setTimeout(resolve, 600)).then(() => fetchArticles()),
-        new Promise(resolve => setTimeout(resolve, 900)).then(() => fetchAuditLog())
+        new Promise(resolve => setTimeout(resolve, 900)).then(() => fetchEbooks()),
+        new Promise(resolve => setTimeout(resolve, 1200)).then(() => fetchAuditLog())
       ]);
     } finally {
       setIsRefreshing(false);
     }
-  }, [fetchAdminStats, fetchUsers, fetchArticles, fetchAuditLog]);
+  }, [fetchAdminStats, fetchUsers, fetchArticles, fetchEbooks, fetchAuditLog]);
 
   // Initial data loading
   useEffect(() => {
@@ -237,10 +258,39 @@ function AdminDashboard() {
     }
   };
 
+
+// Handle ebook publish/unpublish
+// Handle ebook publish/unpublish
+const handlePublishEbook = async (ebookId, published) => {
+  try {
+    await fetchWithDeduplication(
+      `publish-ebook-${ebookId}`,
+      createApiRequest(`/admin/ebooks/${ebookId}/publish`, {
+        method: 'PUT',
+        data: { published }
+      })
+    );
+    await refreshData();
+  } catch (error) {
+    console.error('Error updating ebook publish status:', error);
+    
+    // Provide specific error messages based on the error response
+    if (error.response?.status === 400) {
+      if (error.response.data?.error) {
+        setError(error.response.data.error);
+      } else {
+        setError('Failed to update ebook publish status. Please check the ebook requirements.');
+      }
+    } else {
+      setError('Failed to update ebook publish status. Please try again later.');
+    }
+  }
+};
+
   // Handle add warning
   const handleAddWarning = async () => {
     if (!warningReason.trim()) {
-      alert('Please enter a reason for the warning');
+      alert('Please enter a reason for warning');
       return;
     }
     try {
@@ -264,7 +314,7 @@ function AdminDashboard() {
   // Handle ban user
   const handleBanUser = async () => {
     if (!banReason.trim()) {
-      alert('Please enter a reason for the ban');
+      alert('Please enter a reason for ban');
       return;
     }
     const banEnd = new Date();
@@ -391,6 +441,25 @@ function AdminDashboard() {
     ],
   };
 
+  const ebookStatusData = {
+    labels: ['Published', 'Drafts'],
+    datasets: [
+      {
+        label: 'Ebooks',
+        data: [
+          adminStats.ebookStats.published_ebooks || 0,
+          adminStats.ebookStats.draft_ebooks || 0
+        ],
+        backgroundColor: [
+          'rgba(147, 51, 234, 0.8)',   // purple-600
+          'rgba(251, 191, 36, 0.8)',  // amber-400
+        ],
+        borderWidth: 1,
+        borderColor: '#fff',
+      },
+    ],
+  };
+
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -451,7 +520,7 @@ function AdminDashboard() {
         <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
           <Shield className="mx-auto mb-4 text-red-600" size={64} />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Restricted</h1>
-          <p className="text-gray-600 mb-6">You do not have permission to access the admin dashboard.</p>
+          <p className="text-gray-600 mb-6">You do not have permission to access admin dashboard.</p>
           <Link to="/" className="inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">
             Return to Home
           </Link>
@@ -545,6 +614,7 @@ function AdminDashboard() {
               { id: 'overview', label: 'Overview', icon: TrendingUp },
               { id: 'users', label: 'Users', icon: Users },
               { id: 'articles', label: 'Articles', icon: FileText },
+              { id: 'ebooks', label: 'Ebooks', icon: Book },
               ...(user.role === 'super-admin' ? [
                 { id: 'warnings', label: 'Warnings', icon: AlertTriangle },
                 { id: 'audit-log', label: 'Audit Log', icon: Shield }
@@ -573,8 +643,8 @@ function AdminDashboard() {
               {[
                 { label: 'Total Users', value: adminStats.userCounts.reduce((s, i) => s + parseInt(i.count), 0), icon: Users, color: 'bg-blue-600' },
                 { label: 'Total Articles', value: adminStats.articleStats.total_articles || 0, icon: FileText, color: 'bg-green-600' },
-                { label: 'Total Views', value: adminStats.totalViews.toLocaleString(), icon: Eye, color: 'bg-purple-600' },
-                { label: 'Certified', value: adminStats.articleStats.certified_articles || 0, icon: Award, color: 'bg-amber-600' },
+                { label: 'Total Ebooks', value: adminStats.ebookStats.total_ebooks || 0, icon: Book, color: 'bg-purple-600' },
+                { label: 'Total Views', value: adminStats.totalViews.toLocaleString(), icon: Eye, color: 'bg-indigo-600' },
               ].map((stat, i) => (
                 <div key={i} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <div className="flex items-center justify-between">
@@ -590,7 +660,7 @@ function AdminDashboard() {
               ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">User Role Distribution</h3>
                 <div className="h-64"><Pie data={userRoleData} options={chartOptions} /></div>
@@ -598,6 +668,10 @@ function AdminDashboard() {
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Article Status Overview</h3>
                 <div className="h-64"><Pie data={articleStatusData} options={chartOptions} /></div>
+              </div>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Ebook Status Overview</h3>
+                <div className="h-64"><Pie data={ebookStatusData} options={chartOptions} /></div>
               </div>
             </div>
 
@@ -784,6 +858,104 @@ function AdminDashboard() {
                     </tr>
                   )) : (
                     <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-500">No articles found</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Ebooks Tab */}
+        {activeTab === 'ebooks' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Ebook Management</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chapters</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Views</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tags</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {ebooks.length > 0 ? ebooks.map(e => (
+                    <tr key={e.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">#{e.id}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          {e.cover_image && (
+                            <img 
+                              src={e.cover_image} 
+                              alt={e.title} 
+                              className="h-10 w-8 object-cover rounded mr-3"
+                            />
+                          )}
+                          <div>
+                            <div className="text-sm font-medium text-gray-900 max-w-xs truncate">{e.title}</div>
+                            {e.subtitle && (
+                              <div className="text-xs text-gray-500 max-w-xs truncate">{e.subtitle}</div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900">{e.author_name || e.creator_name}</div>
+                        <div className="text-xs text-gray-500">Created {formatDate(e.created_at)}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                          e.published ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                        }`}>
+                          {e.published ? 'Published' : 'Draft'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{e.chapter_count || 0}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{e.views || 0}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1">
+                          {e.tags && e.tags.length > 0 ? (
+                            e.tags.slice(0, 2).map((tag, i) => (
+                              <span key={i} className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                                {tag}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs text-gray-500">No tags</span>
+                          )}
+                          {e.tags && e.tags.length > 2 && (
+                            <span className="text-xs text-gray-500">+{e.tags.length - 2} more</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <div className="flex space-x-1">
+                          <button 
+                            onClick={() => handlePublishEbook(e.id, !e.published)} 
+                            className={`p-1.5 rounded ${e.published ? 'text-yellow-600 hover:bg-yellow-50' : 'text-green-600 hover:bg-green-50'}`}
+                            title={e.published ? 'Unpublish' : 'Publish'}
+                          >
+                            {e.published ? <XCircle size={16} /> : <CheckCircle size={16} />}
+                          </button>
+                          <button 
+                            onClick={() => { setDeleteTarget(e.id); setDeleteType('ebook'); setShowDeleteConfirm(true); }} 
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr><td colSpan="8" className="px-6 py-8 text-center text-gray-500">No ebooks found</td></tr>
                   )}
                 </tbody>
               </table>
