@@ -35,9 +35,12 @@ import {
   Clock,
   Bookmark,
   Search,
-  Filter,
   Grid3X3,
-  List
+  List,
+  PenTool,
+  BarChart3,
+  Brain,
+  FileText
 } from 'lucide-react';
 
 function HomePage() {
@@ -47,8 +50,6 @@ function HomePage() {
   const [topUsers, setTopUsers] = useState([]);
   const [articlesByTopic, setArticlesByTopic] = useState({});
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('grid'); // grid or list
-  const [selectedFilter, setSelectedFilter] = useState('all');
   const { user } = useUser();
   const navigate = useNavigate();
   
@@ -323,76 +324,67 @@ function HomePage() {
           </div>
         )}
 
-        {/* Content Type Tabs */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-12 gap-4">
-          <div className="flex items-center gap-2 sm:gap-4 p-1 bg-white rounded-xl shadow-sm border border-gray-200">
-            <button
-              onClick={() => setSelectedFilter('all')}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                selectedFilter === 'all' 
-                  ? 'bg-yellow-600 text-white' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              All Content
-            </button>
-            <button
-              onClick={() => setSelectedFilter('articles')}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                selectedFilter === 'articles' 
-                  ? 'bg-yellow-600 text-white' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Articles
-            </button>
-            <button
-              onClick={() => setSelectedFilter('ebooks')}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                selectedFilter === 'ebooks' 
-                  ? 'bg-yellow-600 text-white' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Ebooks
-            </button>
-            <button
-              onClick={() => setSelectedFilter('debates')}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                selectedFilter === 'debates' 
-                  ? 'bg-yellow-600 text-white' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Debates
-            </button>
+        {/* Platform Features Section */}
+        <section className="mb-12 sm:mb-16">
+          <div className="flex items-center justify-between mb-6 sm:mb-8">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-2 sm:gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
+                <Sparkles className="w-5 h-5 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
+              </div>
+              Platform Features
+            </h2>
           </div>
           
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg ${
-                viewMode === 'grid' 
-                  ? 'bg-yellow-100 text-yellow-700' 
-                  : 'text-gray-500 hover:bg-gray-100'
-              }`}
-              aria-label="Grid view"
-            >
-              <Grid3X3 className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 rounded-lg ${
-                viewMode === 'list' 
-                  ? 'bg-yellow-100 text-yellow-700' 
-                  : 'text-gray-500 hover:bg-gray-100'
-              }`}
-              aria-label="List view"
-            >
-              <List className="w-5 h-5" />
-            </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {/* Leaderboard Feature */}
+            <Link to="/leaderboard" className="group bg-white rounded-xl sm:rounded-2xl p-6 hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-yellow-500 transform hover:scale-105">
+              <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                <BarChart3 className="w-7 h-7 text-white" strokeWidth={2.5} />
+              </div>
+              <h3 className="text-xl font-black text-gray-900 mb-2 group-hover:text-yellow-600 transition-colors">UROWN | Leaderboard</h3>
+              <p className="text-sm text-gray-600">Discover top contributors and track your ranking among the community's most influential voices.</p>
+              <div className="mt-4 flex items-center text-yellow-600 font-bold text-sm group-hover:gap-2 transition-all">
+                Explore <ArrowRight className="w-4 h-4" />
+              </div>
+            </Link>
+            
+            {/* Ideology Quiz Feature */}
+            <Link to="/ideology-quiz" className="group bg-white rounded-xl sm:rounded-2xl p-6 hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-yellow-500 transform hover:scale-105">
+              <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                <Brain className="w-7 h-7 text-white" strokeWidth={2.5} />
+              </div>
+              <h3 className="text-xl font-black text-gray-900 mb-2 group-hover:text-yellow-600 transition-colors">UROWN | Ideology Quiz</h3>
+              <p className="text-sm text-gray-600">Discover your political and social ideology through our comprehensive assessment tool.</p>
+              <div className="mt-4 flex items-center text-yellow-600 font-bold text-sm group-hover:gap-2 transition-all">
+                Take Quiz <ArrowRight className="w-4 h-4" />
+              </div>
+            </Link>
+            
+            {/* Write eBook Feature */}
+            <Link to="/write-ebook" className="group bg-white rounded-xl sm:rounded-2xl p-6 hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-yellow-500 transform hover:scale-105">
+              <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                <FileText className="w-7 h-7 text-white" strokeWidth={2.5} />
+              </div>
+              <h3 className="text-xl font-black text-gray-900 mb-2 group-hover:text-yellow-600 transition-colors">UROWN | Write eBook</h3>
+              <p className="text-sm text-gray-600">Create and publish your own eBook with our intuitive writing tools and reach a global audience.</p>
+              <div className="mt-4 flex items-center text-yellow-600 font-bold text-sm group-hover:gap-2 transition-all">
+                Start Writing <ArrowRight className="w-4 h-4" />
+              </div>
+            </Link>
+            
+            {/* Write Article Feature */}
+            <Link to="/write" className="group bg-white rounded-xl sm:rounded-2xl p-6 hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-yellow-500 transform hover:scale-105">
+              <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                <PenTool className="w-7 h-7 text-white" strokeWidth={2.5} />
+              </div>
+              <h3 className="text-xl font-black text-gray-900 mb-2 group-hover:text-yellow-600 transition-colors">UROWN | Write Article</h3>
+              <p className="text-sm text-gray-600">Share your expertise and perspectives with our community of engaged readers and thinkers.</p>
+              <div className="mt-4 flex items-center text-yellow-600 font-bold text-sm group-hover:gap-2 transition-all">
+                Create Article <ArrowRight className="w-4 h-4" />
+              </div>
+            </Link>
           </div>
-        </div>
+        </section>
 
         {/* Featured Content Section - Only Certified Articles */}
         <div className="mb-12 sm:mb-16">

@@ -26,8 +26,7 @@ import {
   TrendingUp,
   Trophy,
   Target,
-  Activity,
-  BookOpen
+  Activity
 } from 'lucide-react';
 
 const API_URL = process.env.NODE_ENV === 'production' 
@@ -103,11 +102,9 @@ const UserProfile = () => {
   const { display_name } = useParams();
   const [user, setUser] = useState(null);
   const [articles, setArticles] = useState([]);
-  const [ebooks, setEbooks] = useState([]);
   const [stats, setStats] = useState({ 
     totalArticles: 0, 
-    totalViews: 0,
-    totalEbooks: 0
+    totalViews: 0
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -120,7 +117,6 @@ const UserProfile = () => {
   const [discordLoading, setDiscordLoading] = useState(false);
   const [suggestedUsers, setSuggestedUsers] = useState([]);
   const [userRank, setUserRank] = useState(null);
-  const [activeTab, setActiveTab] = useState('articles');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -139,15 +135,13 @@ const UserProfile = () => {
         
         setUser(response.data.user);
         setArticles(response.data.articles || []);
-        setEbooks(response.data.ebooks || []);
         
         // Calculate total views for articles
         const articleViews = (response.data.articles || []).reduce((sum, article) => sum + (article.views || 0), 0);
         
         setStats({
           totalArticles: response.data.articles?.length || 0,
-          totalViews: articleViews,
-          totalEbooks: response.data.ebooks?.length || 0
+          totalViews: articleViews
         });
         
         setIsFollowing(response.data.user.isFollowing || false);
@@ -175,7 +169,7 @@ const UserProfile = () => {
         }
       } catch (err) {
         console.error('Failed to fetch current user:', err);
-        // Don't set error here as it's not critical for page to function
+        // Don't set error here as it's not critical for the page to function
       }
     };
 
@@ -196,7 +190,7 @@ const UserProfile = () => {
         }
       } catch (err) {
         console.error('Failed to fetch user rank:', err);
-        // Don't set error here as it's not critical for page to function
+        // Don't set error here as it's not critical for the page to function
       }
     };
 
@@ -221,7 +215,7 @@ const UserProfile = () => {
         }
       } catch (err) {
         console.error('Failed to fetch suggested users:', err);
-        // Don't set error here as it's not critical for page to function
+        // Don't set error here as it's not critical for the page to function
       }
     };
 
@@ -419,11 +413,6 @@ const UserProfile = () => {
                   <div>
                     <span className="text-2xl font-bold">{stats.totalArticles}</span>
                     <span className="text-sm text-white/80 ml-2">Articles</span>
-                  </div>
-                  <div className="w-px h-6 bg-white/30"></div>
-                  <div>
-                    <span className="text-2xl font-bold">{stats.totalEbooks}</span>
-                    <span className="text-sm text-white/80 ml-2">Ebooks</span>
                   </div>
                   <div className="w-px h-6 bg-white/30"></div>
                   <div>
@@ -640,7 +629,7 @@ const UserProfile = () => {
                       </div>
                       <div className="flex-grow min-w-0">
                         <div className="font-semibold text-gray-900 truncate">{suggestedUser.display_name}</div>
-                        <div className="text-sm text-gray-500">{suggestedUser.followers || 0} followers</div>
+                        <div className="text-xs text-gray-500">{suggestedUser.followers || 0} followers</div>
                       </div>
                       <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
                     </Link>
@@ -650,210 +639,104 @@ const UserProfile = () => {
             )}
           </div>
 
-          {/* Right Column - Content Feed */}
+          {/* Right Column - Articles Feed */}
           <div className="lg:col-span-2">
             {/* Tab Navigation */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-2 mb-6">
               <div className="flex space-x-1">
                 <button
-                  onClick={() => setActiveTab('articles')}
                   className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                    activeTab === 'articles'
-                      ? 'bg-orange-500 text-white'
-                      : 'text-gray-600 hover:bg-gray-100'
+                    true ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
                   <FileText className="h-5 w-5" />
                   Articles ({articles.length})
                 </button>
-                <button
-                  onClick={() => setActiveTab('ebooks')}
-                  className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                    activeTab === 'ebooks'
-                      ? 'bg-orange-500 text-white'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  <BookOpen className="h-5 w-5" />
-                  Ebooks ({ebooks.length})
-                </button>
               </div>
             </div>
 
             {/* Articles Tab Content */}
-            {activeTab === 'articles' && (
-              <div className="space-y-4">
-                {articles.length === 0 ? (
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-16 text-center">
-                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <FileText className="h-10 w-10 text-gray-400" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">No articles yet</h3>
-                    <p className="text-gray-500">This user hasn't published any articles yet.</p>
+            <div className="space-y-4">
+              {articles.length === 0 ? (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-16 text-center">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <FileText className="h-10 w-10 text-gray-400" />
                   </div>
-                ) : (
-                  articles.map((article) => (
-                    <div key={article.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
-                      <div className="p-6">
-                        {/* Author Info */}
-                        <div className="flex items-start gap-4 mb-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-lg font-bold text-white">
-                              {user.display_name.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                          <div className="flex-grow min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-bold text-gray-900">{user.display_name}</span>
-                              {isCertifiedByFollowers && (
-                                <CheckCircle className="h-5 w-5 text-orange-500 flex-shrink-0" />
-                              )}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {formatDistanceToNow(new Date(article.created_at), { addSuffix: true })}
-                            </div>
-                          </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">No articles yet</h3>
+                  <p className="text-gray-500">This user hasn't published any articles yet.</p>
+                </div>
+              ) : (
+                articles.map((article) => (
+                  <div key={article.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+                    <div className="p-6">
+                      {/* Author Info */}
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-lg font-bold text-white">
+                            {user.display_name.charAt(0).toUpperCase()}
+                          </span>
                         </div>
-
-                        {/* Article Title & Preview */}
-                        <Link to={`/article/${article.id}`} className="block group">
-                          <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
-                            {article.title}
-                          </h3>
-                          <p className="text-gray-600 mb-4 line-clamp-2">
-                            {article.content.substring(0, 200)}...
-                          </p>
-                        </Link>
-
-                        {/* Badges */}
-                        {(article.certified || article.topics?.length > 0) && (
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            {article.certified && (
-                              <span className="bg-green-50 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-200 flex items-center gap-1.5">
-                                <Award className="h-3.5 w-3.5" />
-                                Certified
-                              </span>
+                        <div className="flex-grow min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-bold text-gray-900">{user.display_name}</span>
+                            {isCertifiedByFollowers && (
+                              <CheckCircle className="h-5 w-5 text-orange-500 flex-shrink-0" />
                             )}
-                            {article.topics && article.topics.slice(0, 3).map((topic, idx) => (
-                              <span key={idx} className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-full border border-gray-200">
-                                {topic}
-                              </span>
-                            ))}
                           </div>
-                        )}
-
-                        {/* Footer */}
-                        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <div className="flex items-center gap-2">
-                              <Eye className="h-4 w-4" />
-                              <span className="font-medium">{article.views || 0} views</span>
-                            </div>
+                          <div className="text-sm text-gray-500">
+                            {formatDistanceToNow(new Date(article.created_at), { addSuffix: true })}
                           </div>
-                          <Link 
-                            to={`/article/${article.id}`} 
-                            className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold text-sm transition-colors group"
-                          >
-                            Read article
-                            <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                          </Link>
                         </div>
                       </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
 
-            {/* Ebooks Tab Content */}
-            {activeTab === 'ebooks' && (
-              <div className="space-y-4">
-                {ebooks.length === 0 ? (
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-16 text-center">
-                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <BookOpen className="h-10 w-10 text-gray-400" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">No ebooks yet</h3>
-                    <p className="text-gray-500">This user hasn't published any ebooks yet.</p>
-                  </div>
-                ) : (
-                  ebooks.map((ebook) => (
-                    <div key={ebook.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
-                      <div className="p-6">
-                        {/* Author Info */}
-                        <div className="flex items-start gap-4 mb-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-lg font-bold text-white">
-                              {user.display_name.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                          <div className="flex-grow min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-bold text-gray-900">{user.display_name}</span>
-                              {isCertifiedByFollowers && (
-                                <CheckCircle className="h-5 w-5 text-orange-500 flex-shrink-0" />
-                              )}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {formatDistanceToNow(new Date(ebook.created_at), { addSuffix: true })}
-                            </div>
-                          </div>
-                        </div>
+                      {/* Article Title & Preview */}
+                      <Link to={`/article/${article.id}`} className="block group">
+                        <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
+                          {article.title}
+                        </h3>
+                        <p className="text-gray-600 mb-4 line-clamp-2">
+                          {article.content.substring(0, 200)}...
+                        </p>
+                      </Link>
 
-                        {/* Ebook Title & Preview */}
-                        <Link to={`/ebook/${ebook.id}`} className="block group">
-                          <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
-                            {ebook.title}
-                          </h3>
-                          <p className="text-gray-600 mb-4 line-clamp-2">
-                            {ebook.description?.substring(0, 200) || 'No description available'}...
-                          </p>
-                        </Link>
-
-                        {/* Badges */}
+                      {/* Badges */}
+                      {(article.certified || article.topics?.length > 0) && (
                         <div className="flex flex-wrap gap-2 mb-4">
-                          <span className="bg-yellow-50 text-yellow-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-yellow-200 flex items-center gap-1.5">
-                            <BookOpen className="h-3.5 w-3.5" />
-                            Ebook
-                          </span>
-                          {ebook.price && (
-                            <span className="bg-green-50 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-200">
-                              {ebook.price === '0' ? 'Free' : `$${ebook.price}`}
+                          {article.certified && (
+                            <span className="bg-green-50 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-200 flex items-center gap-1.5">
+                              <Award className="h-3.5 w-3.5" />
+                              Certified
                             </span>
                           )}
-                          {ebook.topics && ebook.topics.slice(0, 2).map((topic, idx) => (
+                          {article.topics && article.topics.slice(0, 3).map((topic, idx) => (
                             <span key={idx} className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-full border border-gray-200">
                               {topic}
                             </span>
                           ))}
                         </div>
+                      )}
 
-                        {/* Footer */}
-                        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <div className="flex items-center gap-2">
-                              <Eye className="h-4 w-4" />
-                              <span className="font-medium">{ebook.views || 0} views</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <BookOpen className="h-4 w-4" />
-                              <span className="font-medium">{ebook.pages || 'N/A'} pages</span>
-                            </div>
+                      {/* Footer */}
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-2">
+                            <Eye className="h-4 w-4" />
+                            <span className="font-medium">{article.views || 0} views</span>
                           </div>
-                          <Link 
-                            to={`/ebook/${ebook.id}`} 
-                            className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold text-sm transition-colors group"
-                          >
-                            Read ebook
-                            <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                          </Link>
                         </div>
+                        <Link 
+                          to={`/article/${article.id}`} 
+                          className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold text-sm transition-colors group"
+                        >
+                          Read article
+                          <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        </Link>
                       </div>
                     </div>
-                  ))
-                )}
-              </div>
-            )}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -870,7 +753,7 @@ const UserProfile = () => {
                 <h3 className="text-xl font-bold text-gray-900">
                   {user.discord_username ? 'Update Discord' : 'Add Discord'}
                 </h3>
-                <p className="text-sm text-gray-500">Connect with community</p>
+                <p className="text-sm text-gray-500">Connect with the community</p>
               </div>
             </div>
             
