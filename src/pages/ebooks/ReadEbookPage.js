@@ -145,7 +145,8 @@ const HighlightToolbar = ({ selectedText, highlightToolbarPosition, currentTheme
         border: `1px solid ${currentTheme.secondary}`,
         left: `${highlightToolbarPosition.x}px`,
         top: `${highlightToolbarPosition.y}px`,
-        transform: 'translateX(-50%) translateY(-110%)',
+        // Mobile adjustment: Move tool tip down a bit to not cover selection
+        transform: 'translateX(-50%) translateY(-150%)', 
       }}
     >
       {['#FFC72C', '#6FCF97', '#56CCF2', '#BB6BD9'].map((color) => (
@@ -167,7 +168,8 @@ const HighlightToolbar = ({ selectedText, highlightToolbarPosition, currentTheme
 const ChapterSidebar = ({ showSidebar, setShowSidebar, chapters, currentChapter, setCurrentChapter, setCurrentPage, currentTheme }) => {
   return (
     <div 
-      className={`fixed top-0 bottom-0 w-80 shadow-2xl overflow-y-auto z-40 transition-transform duration-300 ease-in-out ${showSidebar ? 'translate-x-0' : 'translate-x-full'}`}
+      // FIX: Mobile width adjustment (smaller sidebar)
+      className={`fixed top-0 bottom-0 w-64 md:w-80 shadow-2xl overflow-y-auto z-40 transition-transform duration-300 ease-in-out ${showSidebar ? 'translate-x-0' : 'translate-x-full'}`}
       style={{ 
         backgroundColor: currentTheme.bg, 
         borderLeft: `1px solid ${currentTheme.secondary}`,
@@ -215,7 +217,7 @@ const ChapterSidebar = ({ showSidebar, setShowSidebar, chapters, currentChapter,
   );
 };
 
-const SettingsPanel = ({ showSettings, setShowSettings, settings, updateSetting, toggleDyslexiaMode, currentTheme, fonts, themes }) => {
+const SettingsPanel = ({ showSettings, setShowSettings, settings, updateSetting, toggleDyslexiaMode, currentTheme, fonts, themes, isMobile }) => {
   const [activeTab, setActiveTab] = useState('Display');
 
   const AlignmentButton = ({ icon, alignment }) => (
@@ -237,7 +239,8 @@ const SettingsPanel = ({ showSettings, setShowSettings, settings, updateSetting,
 
   return (
     <div 
-      className={`fixed top-0 bottom-0 w-80 shadow-2xl overflow-y-auto z-40 transition-transform duration-300 ease-in-out ${showSettings ? 'translate-x-0' : '-translate-x-full'}`}
+      // FIX: Mobile width adjustment (smaller sidebar)
+      className={`fixed top-0 bottom-0 w-64 md:w-80 shadow-2xl overflow-y-auto z-40 transition-transform duration-300 ease-in-out ${showSettings ? 'translate-x-0' : '-translate-x-full'}`}
       style={{ 
         backgroundColor: currentTheme.bg, 
         borderRight: `1px solid ${currentTheme.secondary}`,
@@ -317,16 +320,19 @@ const SettingsPanel = ({ showSettings, setShowSettings, settings, updateSetting,
                   >
                     Single Page
                   </button>
+                  {/* FIX: Disable 2-page mode button on mobile */}
                   <button
                     onClick={() => updateSetting('pageMode', '2-page')}
+                    disabled={isMobile} 
                     className={`p-3 rounded-lg text-sm transition-all border ${
                       settings.pageMode === '2-page' ? 'font-bold' : 'hover:bg-opacity-80 opacity-80'
-                    }`}
+                    } ${isMobile ? 'opacity-40 cursor-not-allowed' : ''}`} 
                     style={{ 
-                      backgroundColor: settings.pageMode === '2-page' ? currentTheme.accent + '20' : currentTheme.secondary,
+                      backgroundColor: settings.pageMode === '2-page' && !isMobile ? currentTheme.accent + '20' : currentTheme.secondary,
                       color: currentTheme.text,
-                      borderColor: settings.pageMode === '2-page' ? currentTheme.accent : 'transparent'
+                      borderColor: settings.pageMode === '2-page' && !isMobile ? currentTheme.accent : 'transparent'
                     }}
+                    title={isMobile ? "Book View requires a wider screen" : "Book View"}
                   >
                     Book View
                   </button>
@@ -476,11 +482,13 @@ const ReaderHeader = ({ focusMode, setFocusMode, ebook, currentChapter, progress
         <div className="flex items-center gap-4">
           <Link to={`/ebooks/${slug}`} className="flex items-center gap-1 p-2 rounded-full hover:bg-opacity-10 transition-colors opacity-80 hover:opacity-100" style={{ color: currentTheme.text }}>
             <ChevronLeft size={20} />
-            <span className="font-medium hidden sm:inline text-sm">Library</span>
+            {/* FIX: Hide text on mobile for brevity */}
+            <span className="font-medium hidden md:inline text-sm">Library</span> 
           </Link>
           <div className="hidden sm:block">
-            <h2 className="font-bold text-base truncate max-w-[200px]" style={{ color: currentTheme.text }}>{ebook?.title}</h2>
-            <p className="text-xs opacity-70 truncate max-w-[200px]">Ch. {currentChapter?.chapter_number}: {currentChapter?.chapter_title}</p>
+            {/* FIX: Max width for truncation on smaller screens */}
+            <h2 className="font-bold text-base truncate max-w-[120px] sm:max-w-[200px]" style={{ color: currentTheme.text }}>{ebook?.title}</h2>
+            <p className="text-xs opacity-70 truncate max-w-[120px] sm:max-w-[200px]">Ch. {currentChapter?.chapter_number}: {currentChapter?.chapter_title}</p>
           </div>
         </div>
         
@@ -524,11 +532,14 @@ const ReaderHeader = ({ focusMode, setFocusMode, ebook, currentChapter, progress
 };
 
 // Reader Footer 
-const ReaderFooter = ({ currentPage, totalPages, chapterIndex, chapters, overallProgress, currentTheme, changePage }) => {
+const ReaderFooter = ({ currentPage, totalPages, chapterIndex, chapters, overallProgress, currentTheme, changePage, pageMode }) => {
   const isFirstPage = currentPage === 1 && chapterIndex === 0;
   const isLastPage = currentPage === totalPages && chapterIndex === chapters.length - 1;
 
-  // If in 1-page mode, totalPages will be 1, and the controls will be disabled. This is correct.
+  // FIX: Controls are only visible/active in 2-page (paginated) mode.
+  // In 1-page (scrollable) mode, the footer serves only to show progress.
+  const isPaginated = pageMode === '2-page'; 
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 backdrop-blur-sm" 
       style={{ backgroundColor: currentTheme.bg + 'e6', borderTop: `1px solid ${currentTheme.secondary}` }}>
@@ -536,7 +547,7 @@ const ReaderFooter = ({ currentPage, totalPages, chapterIndex, chapters, overall
         
         <button
           onClick={() => changePage('prev')}
-          disabled={isFirstPage}
+          disabled={isFirstPage || !isPaginated} // Disable if not paginated
           className="flex items-center gap-1 text-sm disabled:opacity-30 transition-opacity p-2 rounded-full hover:bg-opacity-20"
           style={{ color: currentTheme.accent }}
         >
@@ -548,14 +559,15 @@ const ReaderFooter = ({ currentPage, totalPages, chapterIndex, chapters, overall
           <div className="text-sm font-semibold opacity-80">
             {overallProgress.toFixed(0)}% Overall
           </div>
-          <div className="text-sm opacity-60 font-mono">
-            Page {currentPage} / {totalPages}
+          <div className={`text-sm opacity-60 font-mono ${!isPaginated ? 'hidden sm:block' : ''}`}>
+            {/* Display Page only if paginated, otherwise hide on mobile */}
+            {isPaginated ? `Page ${currentPage} / ${totalPages}` : 'Scroll to Read'}
           </div>
         </div>
         
         <button
           onClick={() => changePage('next')}
-          disabled={isLastPage}
+          disabled={isLastPage || !isPaginated} // Disable if not paginated
           className="flex items-center gap-1 text-sm disabled:opacity-30 transition-opacity p-2 rounded-full hover:bg-opacity-20"
           style={{ color: currentTheme.accent }}
         >
@@ -591,10 +603,11 @@ const BookPages = ({ settings, currentTheme, pages, currentPage, totalPages, cur
     transition: 'all 0.3s ease-in-out'
   };
 
+  // FIX: In 1-page mode, pages is [[full_content]] so CurrentPageContent is [full_content]
   const CurrentPageContent = pages[currentPage - 1]; 
   
   return (
-    // FIX: Removed unnecessary flex-1 from the outer container to allow its children to determine height
+    // FIX: Outer container is centered and controls padding for the reader.
     <div className="h-screen w-screen flex items-center justify-center pt-16 pb-16 sm:pt-20 sm:pb-20 overflow-hidden">
       <div className={`mx-auto h-full w-full ${getMarginClass()}`}>
         
@@ -650,9 +663,8 @@ const BookPages = ({ settings, currentTheme, pages, currentPage, totalPages, cur
             ref={contentRef}
             onMouseUp={handleTextSelection}
             onClick={handleContentClick} 
-            // The container needs to be scrollable, so we use max-h-full on its parent 
-            // and overflow-y-auto on the content itself.
-            className="prose prose-lg max-w-none p-6 rounded-xl shadow-2xl mx-4 md:mx-0 w-[90%] md:w-full h-full"
+            // FIX: Removed fixed w-[90%] md:w-full to rely on margins for better mobile look.
+            className="prose prose-lg max-w-none p-6 rounded-xl shadow-2xl mx-4 md:mx-0 w-full h-full"
             style={{
                 ...commonPageStyle, 
                 // FIX: Setting maxHeight to none allows the div to expand based on content
@@ -661,12 +673,11 @@ const BookPages = ({ settings, currentTheme, pages, currentPage, totalPages, cur
                 overflowY: 'auto'
             }}
           >
-            {currentPage === 1 && (
-              <div className="mb-8 border-b pb-4" style={{ borderColor: currentTheme.secondary }}>
-                <h1 className="text-3xl font-serif font-bold" style={{ color: currentTheme.text }}>Chapter {currentChapter.chapter_number}</h1>
-                <h2 className="text-2xl opacity-80" style={{ color: currentTheme.text }}>{currentChapter.chapter_title}</h2>
-              </div>
-            )}
+            {/* FIX: Simplified header for single page view */}
+            <div className="mb-8 border-b pb-4" style={{ borderColor: currentTheme.secondary }}>
+              <h1 className="text-3xl font-serif font-bold" style={{ color: currentTheme.text }}>Chapter {currentChapter.chapter_number}</h1>
+              <h2 className="text-2xl opacity-80" style={{ color: currentTheme.text }}>{currentChapter.chapter_title}</h2>
+            </div>
             <div 
               // Since the content is the whole chapter (Page 1 of 1), we render it all.
               dangerouslySetInnerHTML={{ __html: CurrentPageContent ? CurrentPageContent[0] : '' }}
@@ -702,6 +713,9 @@ const ReadEbookPage = () => {
   const [chapters, setChapters] = useState([]);
   const [currentChapter, setCurrentChapter] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // --- NEW: Responsive State ---
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768); 
   
   // Reader settings 
   const initialSettings = {
@@ -716,8 +730,17 @@ const ReadEbookPage = () => {
     letterSpacing: 'normal',
     dyslexiaMode: false
   };
-  const [settings, setSettings] = useState(initialSettings);
-  
+  // FIX: Load settings from localStorage or use defaults
+  const [settings, setSettings] = useState(() => {
+    const savedSettings = localStorage.getItem('readerSettings');
+    let loadedSettings = savedSettings ? JSON.parse(savedSettings) : initialSettings;
+    // FIX: Override pageMode on mobile
+    if (window.innerWidth < 768) {
+      loadedSettings.pageMode = '1-page';
+    }
+    return loadedSettings;
+  });
+
   // Reader state
   const [currentPage, setLocalCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
   const [totalPages, setTotalPages] = useState(1);
@@ -737,6 +760,24 @@ const ReadEbookPage = () => {
   const overallProgress = chapters.length > 0 ? (((chapterIndex + 1) / chapters.length) * 100) : 0;
   
   // --- UTILITIES ---
+  
+  // NEW: Effect to manage responsive setting
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      // FIX: If transitioning to mobile, force '1-page' mode.
+      setSettings(prev => {
+        if (mobile && prev.pageMode === '2-page') {
+          return { ...prev, pageMode: '1-page' };
+        }
+        return prev;
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []); // Run only on mount and unmount
 
   const setCurrentPage = useCallback((newPage) => {
     setLocalCurrentPage(newPage);
@@ -747,7 +788,12 @@ const ReadEbookPage = () => {
   }, [setSearchParams]);
 
   const updateSetting = (key, value) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+    setSettings(prev => {
+      const newSettings = { ...prev, [key]: value };
+      // Save settings to localStorage
+      localStorage.setItem('readerSettings', JSON.stringify(newSettings));
+      return newSettings;
+    });
   };
 
   const toggleDyslexiaMode = () => {
@@ -804,6 +850,8 @@ const ReadEbookPage = () => {
       if (settings.pageMode === '1-page') {
           setCurrentPage(1);
           setLocalCurrentPage(1);
+          // NEW: In scroll mode, scroll to top on chapter change
+          contentRef.current?.scrollTo(0, 0); 
           return;
       }
       
@@ -860,7 +908,14 @@ const ReadEbookPage = () => {
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
       
-      const readingArea = contentRef.current || leftPageRef.current || rightPageRef.current;
+      // Determine the correct reading area ref
+      let readingArea = contentRef.current;
+      if (settings.pageMode === '2-page') {
+        readingArea = leftPageRef.current && leftPageRef.current.contains(range.startContainer) 
+            ? leftPageRef.current 
+            : rightPageRef.current;
+      }
+
       if (!readingArea || !readingArea.contains(range.startContainer) || !readingArea.contains(range.endContainer)) {
           setSelectedText(null);
           return;
@@ -976,6 +1031,7 @@ const ReadEbookPage = () => {
           overallProgress={overallProgress}
           currentTheme={currentTheme}
           changePage={changePage}
+          pageMode={settings.pageMode} // Pass pageMode to disable navigation in scroll mode
         />
       </div>
       
@@ -1017,6 +1073,7 @@ const ReadEbookPage = () => {
         currentTheme={currentTheme}
         fonts={fonts}
         themes={themes} 
+        isMobile={isMobile} // Pass isMobile to disable the 2-page setting on small screens
       />
 
       {/* Highlighting Toolbar */}
