@@ -32,18 +32,17 @@ const themes = {
 const fonts = ['Georgia', 'Times New Roman', 'Palatino', 'Bookman', 'Garamond', 'Arial', 'Helvetica', 'Verdana', 'OpenDyslexic'];
 
 
-// --- CORE PAGINATION LOGIC (Reverted single-page to scrollable chapter) ---
+// --- CORE PAGINATION LOGIC (Modified for scrollable book view) ---
 const splitContentIntoPages = (content, settings) => {
   const sanitizedContent = DOMPurify.sanitize(content);
 
-  // FIX: If in single-page mode, return the ENTIRE content as one page.
-  // This bypasses the splitting logic and allows the BookPages component 
-  // to expand and become scrollable.
+  // If in single-page mode, return the ENTIRE content as one page.
   if (settings.pageMode === '1-page') {
     return [[sanitizedContent]];
   }
   
-  // --- START OF 2-PAGE (BOOK-VIEW) PAGINATION LOGIC ---
+  // For 2-page (Book View) mode with scrolling enabled, we'll still split content
+  // but we'll make it scrollable in the UI
   const tempDiv = document.createElement('div');
   tempDiv.style.position = 'absolute';
   tempDiv.style.visibility = 'hidden';
@@ -579,7 +578,7 @@ const ReaderFooter = ({ currentPage, totalPages, chapterIndex, chapters, overall
   );
 };
 
-// Book Pages (Reading Area - FIXES APPLIED)
+// Book Pages (Reading Area - MODIFIED for scrollable book view)
 const BookPages = ({ settings, currentTheme, pages, currentPage, totalPages, currentChapter, handleTextSelection, handleContentClick, contentRef, leftPageRef, rightPageRef }) => {
   
   const getMarginClass = () => {
@@ -603,77 +602,91 @@ const BookPages = ({ settings, currentTheme, pages, currentPage, totalPages, cur
     transition: 'all 0.3s ease-in-out'
   };
 
-  // FIX: In 1-page mode, pages is [[full_content]] so CurrentPageContent is [full_content]
+  // In 1-page mode, pages is [[full_content]] so CurrentPageContent is [full_content]
   const CurrentPageContent = pages[currentPage - 1]; 
   
   return (
-    // FIX: Outer container is centered and controls padding for the reader.
+    // Outer container is centered and controls padding for the reader.
     <div className="h-screen w-screen flex items-center justify-center pt-16 pb-16 sm:pt-20 sm:pb-20 overflow-hidden">
       <div className={`mx-auto h-full w-full ${getMarginClass()}`}>
         
         {settings.pageMode === '2-page' && CurrentPageContent ? (
-          // Two-page view (PAGINATED)
-          <div className="grid grid-cols-2 gap-10 h-full px-4 md:px-0">
-            {/* Left Page */}
-            <div
-              ref={leftPageRef}
-              onMouseUp={handleTextSelection}
-              onClick={handleContentClick} 
-              className="prose prose-lg max-w-none p-6 rounded-xl h-full overflow-hidden flex flex-col"
-              style={commonPageStyle}
-            >
-              {currentPage === 1 && (
+          // Two-page view (NOW SCROLLABLE)
+          <div 
+            ref={contentRef}
+            className="h-full overflow-y-auto px-4 md:px-0"
+            style={{ scrollBehavior: 'smooth' }}
+          >
+            <div className="grid grid-cols-2 gap-10 min-h-full">
+              {/* Left Page */}
+              <div
+                ref={leftPageRef}
+                onMouseUp={handleTextSelection}
+                onClick={handleContentClick} 
+                className="prose prose-lg max-w-none p-6 rounded-xl flex flex-col mb-10"
+                style={commonPageStyle}
+              >
                 <div className="mb-8 border-b pb-4" style={{ borderColor: currentTheme.secondary }}>
                   <h1 className="text-3xl font-serif font-bold" style={{ color: currentTheme.text }}>Chapter {currentChapter.chapter_number}</h1>
                   <h2 className="text-xl opacity-80" style={{ color: currentTheme.text }}>{currentChapter.chapter_title}</h2>
                 </div>
-              )}
-              <div 
-                dangerouslySetInnerHTML={{ __html: CurrentPageContent[0] || '' }}
-                style={{ marginBottom: `${settings.paragraphSpacing}rem` }}
-              />
-            </div>
-            
-            {/* Right Page */}
-            <div
-              ref={rightPageRef}
-              onMouseUp={handleTextSelection}
-              onClick={handleContentClick} 
-              className="prose prose-lg max-w-none p-6 rounded-xl h-full overflow-hidden flex flex-col"
-              style={commonPageStyle}
-            >
-              {CurrentPageContent[1] ? (
-                <div 
-                  dangerouslySetInnerHTML={{ __html: CurrentPageContent[1] }}
-                  style={{ marginBottom: `${settings.paragraphSpacing}rem` }}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center opacity-60">
-                    <BookOpen size={48} className="mx-auto" style={{ color: currentTheme.accent }}/>
-                    <p className="mt-4 text-sm font-semibold">End of Chapter {currentChapter.chapter_number}</p>
+                
+                {/* Render all pages content in the left column */}
+                {pages.map((page, index) => (
+                  <div key={index} className="mb-8">
+                    <div 
+                      dangerouslySetInnerHTML={{ __html: page[0] || '' }}
+                      style={{ marginBottom: `${settings.paragraphSpacing}rem` }}
+                    />
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
+              
+              {/* Right Page */}
+              <div
+                ref={rightPageRef}
+                onMouseUp={handleTextSelection}
+                onClick={handleContentClick} 
+                className="prose prose-lg max-w-none p-6 rounded-xl flex flex-col"
+                style={commonPageStyle}
+              >
+                {/* Render all right pages content in the right column */}
+                {pages.map((page, index) => (
+                  <div key={index} className="mb-8">
+                    {page[1] ? (
+                      <div 
+                        dangerouslySetInnerHTML={{ __html: page[1] }}
+                        style={{ marginBottom: `${settings.paragraphSpacing}rem` }}
+                      />
+                    ) : (
+                      index === pages.length - 1 && (
+                        <div className="flex items-center justify-center h-full">
+                          <div className="text-center opacity-60">
+                            <BookOpen size={48} className="mx-auto" style={{ color: currentTheme.accent }}/>
+                            <p className="mt-4 text-sm font-semibold">End of Chapter {currentChapter.chapter_number}</p>
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ) : (
-          // Single page (SCROLLABLE DOCUMENT VIEW - The Fix)
+          // Single page (SCROLLABLE DOCUMENT VIEW)
           <div
             ref={contentRef}
             onMouseUp={handleTextSelection}
             onClick={handleContentClick} 
-            // FIX: Removed fixed w-[90%] md:w-full to rely on margins for better mobile look.
             className="prose prose-lg max-w-none p-6 rounded-xl shadow-2xl mx-4 md:mx-0 w-full h-full"
             style={{
                 ...commonPageStyle, 
-                // FIX: Setting maxHeight to none allows the div to expand based on content
                 maxHeight: 'none', 
-                // FIX: Setting overflowY to auto enables scrolling within this div
                 overflowY: 'auto'
             }}
           >
-            {/* FIX: Simplified header for single page view */}
+            {/* Simplified header for single page view */}
             <div className="mb-8 border-b pb-4" style={{ borderColor: currentTheme.secondary }}>
               <h1 className="text-3xl font-serif font-bold" style={{ color: currentTheme.text }}>Chapter {currentChapter.chapter_number}</h1>
               <h2 className="text-2xl opacity-80" style={{ color: currentTheme.text }}>{currentChapter.chapter_title}</h2>
@@ -730,11 +743,11 @@ const ReadEbookPage = () => {
     letterSpacing: 'normal',
     dyslexiaMode: false
   };
-  // FIX: Load settings from localStorage or use defaults
+  // Load settings from localStorage or use defaults
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem('readerSettings');
     let loadedSettings = savedSettings ? JSON.parse(savedSettings) : initialSettings;
-    // FIX: Override pageMode on mobile
+    // Override pageMode on mobile
     if (window.innerWidth < 768) {
       loadedSettings.pageMode = '1-page';
     }
@@ -766,7 +779,7 @@ const ReadEbookPage = () => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      // FIX: If transitioning to mobile, force '1-page' mode.
+      // If transitioning to mobile, force '1-page' mode.
       setSettings(prev => {
         if (mobile && prev.pageMode === '2-page') {
           return { ...prev, pageMode: '1-page' };
@@ -850,7 +863,7 @@ const ReadEbookPage = () => {
       if (settings.pageMode === '1-page') {
           setCurrentPage(1);
           setLocalCurrentPage(1);
-          // NEW: In scroll mode, scroll to top on chapter change
+          // In scroll mode, scroll to top on chapter change
           contentRef.current?.scrollTo(0, 0); 
           return;
       }
@@ -1036,7 +1049,7 @@ const ReadEbookPage = () => {
       </div>
       
       {/* Main Content Area */}
-      {/* The inner BookPages div now controls the scrolling for 1-page mode */}
+      {/* The inner BookPages div now controls the scrolling for both 1-page and 2-page modes */}
       <div className="h-screen w-screen flex flex-col"> 
         <BookPages 
           settings={settings}
