@@ -37,8 +37,11 @@ const API_URL = process.env.NODE_ENV === 'production'
 const URownScoreCard = ({ user, userRank, stats }) => {
   if (!user.urown_score && user.urown_score !== 0) return null;
 
+  // Calculate progress percentage for articles
+  const progressPercentage = Math.min(((stats?.totalArticles || 0) / 15) * 100, 100);
+
   return (
-    <div className="bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 rounded-2xl shadow-xl border-4 border-white/20 overflow-hidden">
+    <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-2xl shadow-xl border-2 border-yellow-200 overflow-hidden">
       <div className="p-6 text-white">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold flex items-center gap-2">
@@ -53,41 +56,40 @@ const URownScoreCard = ({ user, userRank, stats }) => {
           )}
         </div>
 
-        <div className="mb-6">
-          <div className="text-5xl font-extrabold mb-2">
-            {user.urown_score.toLocaleString()}
-          </div>
-          {userRank && (
-            <div className="flex items-center gap-4 text-white/90">
-              <div className="flex items-center gap-1">
-                <TrendingUp className="h-4 w-4" />
-                <span className="text-sm">Rank #{userRank.rank}</span>
-              </div>
-              <span className="text-white/60">•</span>
-              <div className="text-sm">
-                Top {Math.round((userRank.rank / userRank.total_users) * 100)}%
-              </div>
-            </div>
-          )}
+        <div className="text-5xl font-extrabold mb-2">
+          {user.urown_score.toLocaleString()}
         </div>
+        {userRank && (
+          <div className="flex items-center gap-4 text-white/90 mb-6">
+            <div className="flex items-center gap-1">
+              <TrendingUp className="h-4 w-4" />
+              <span className="text-sm">Rank #{userRank.rank}</span>
+            </div>
+            <span className="text-white/60">•</span>
+            <div className="text-sm">
+              Top {Math.round((userRank.rank / userRank.total_users) * 100)}%
+            </div>
+          </div>
+        )}
 
         <div className="space-y-3">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-white/80">Total Articles</span>
-              <span className="font-bold">{stats?.totalArticles || 0}</span>
-            </div>
-            <div className="w-full bg-white/20 rounded-full h-2">
+          <div className="mb-4">
+            <p className="font-semibold text-sm mb-2">Articles Progress</p>
+            <div className="w-full bg-black/10 rounded-full h-2">
               <div 
-                className="bg-white rounded-full h-2 transition-all duration-500"
-                style={{ width: `${Math.min(((stats?.totalArticles || 0) / 10) * 100, 100)}%` }}
+                className="bg-gray-800 rounded-full h-2 transition-all duration-500"
+                style={{ width: `${progressPercentage}%` }}
               ></div>
+            </div>
+            <div className="flex justify-between text-xs mt-1">
+              <span>{stats?.totalArticles || 0}/15 Articles ({Math.round(progressPercentage)}%)</span>
+              <span className="font-semibold">Goal: 15</span>
             </div>
           </div>
 
           <Link
             to="/leaderboard"
-            className="block w-full py-3 px-4 bg-white text-orange-600 rounded-xl hover:bg-white/90 transition-colors duration-200 font-bold text-center flex items-center justify-center gap-2"
+            className="block w-full py-3 px-4 bg-gray-800 text-white rounded-xl hover:bg-gray-700 transition-colors duration-200 font-bold text-center flex items-center justify-center gap-2"
           >
             <Trophy className="h-5 w-5" />
             View Leaderboard
@@ -319,9 +321,9 @@ const UserProfile = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-20">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-3 border-b-3 border-orange-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-t-3 border-b-3 border-yellow-600 mx-auto"></div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <User className="h-8 w-8 text-orange-600" />
+              <User className="h-8 w-8 text-yellow-600" />
             </div>
           </div>
           <div className="mt-6 text-lg font-semibold text-gray-700">Loading profile...</div>
@@ -343,7 +345,7 @@ const UserProfile = () => {
               <p className="text-gray-600 mb-8">{error}</p>
               <Link 
                 to="/" 
-                className="inline-flex items-center px-6 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors duration-200 shadow-sm"
+                className="inline-flex items-center px-6 py-3 bg-yellow-600 text-white font-semibold rounded-lg hover:bg-yellow-700 transition-colors duration-200 shadow-sm"
               >
                 Return to Home
               </Link>
@@ -357,10 +359,10 @@ const UserProfile = () => {
   return (
     <div className="min-h-screen bg-gray-50 pt-16">
       {/* Hero Header Section */}
-      <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 relative overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-10"></div>
+      <div className="bg-gradient-to-br from-yellow-600 to-yellow-700 relative overflow-hidden">
         <div className="absolute inset-0" style={{
-          backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
+          backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23000000\' fill-opacity=\'0.1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+          opacity: 0.1
         }}></div>
         
         <div className="container mx-auto px-4 py-12 relative z-10">
@@ -368,13 +370,13 @@ const UserProfile = () => {
             <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
               {/* Profile Picture */}
               <div className="relative">
-                <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-2xl border-4 border-white">
-                  <span className="text-5xl font-bold text-orange-600">
+                <div className="w-32 h-32 bg-yellow-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white">
+                  <span className="text-5xl font-bold text-gray-800">
                     {user.display_name.charAt(0).toUpperCase()}
                   </span>
                 </div>
                 {isCertifiedByFollowers && (
-                  <div className="absolute bottom-2 right-2 bg-orange-500 rounded-full p-2 border-3 border-white shadow-lg">
+                  <div className="absolute bottom-2 right-2 bg-yellow-500 rounded-full p-2 border-3 border-white shadow-lg">
                     <Award className="h-5 w-5 text-white" />
                   </div>
                 )}
@@ -429,8 +431,8 @@ const UserProfile = () => {
                   disabled={followLoading}
                   className={`px-8 py-3 rounded-full font-semibold transition-all duration-200 shadow-lg ${
                     isFollowing
-                      ? 'bg-white text-orange-600 hover:bg-gray-100'
-                      : 'bg-white text-orange-600 hover:bg-gray-100'
+                      ? 'bg-white text-yellow-700 hover:bg-gray-100'
+                      : 'bg-white text-yellow-700 hover:bg-gray-100'
                   }`}
                 >
                   {followLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}
@@ -452,17 +454,17 @@ const UserProfile = () => {
             {/* Views Stats Card */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Eye className="h-5 w-5 text-orange-600" />
+                <Eye className="h-5 w-5 text-yellow-600" />
                 View Statistics
               </h3>
               
-              <div className="space-y-4">
-                <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-4 border border-orange-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-gray-700">OPINION VIEWS</span>
-                    <span className="text-2xl font-bold text-orange-600">{stats.totalViews.toLocaleString()}</span>
+              <div className="bg-yellow-50 rounded-xl p-4 border-l-5 border-yellow-500">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-semibold text-gray-500">TOTAL ARTICLE VIEWS</span>
+                    <span className="text-xs text-gray-500 block">Across {stats.totalArticles} articles</span>
                   </div>
-                  <div className="text-xs text-gray-500">Total views on all articles</div>
+                  <span className="text-3xl font-bold text-yellow-700">{stats.totalViews.toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -471,68 +473,25 @@ const UserProfile = () => {
             {certifiedCount > 0 && (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Award className="h-5 w-5 text-orange-600" />
+                  <Award className="h-5 w-5 text-yellow-600" />
                   Achievements
                 </h3>
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                      <Award className="h-6 w-6 text-white" />
+                <div className="bg-green-50 rounded-xl p-4 border-l-5 border-green-500">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Award className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-gray-700">Certified Articles</div>
+                        <div className="text-xs text-gray-500">Articles certified by community</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-2xl font-bold text-gray-900">{certifiedCount}</div>
-                      <div className="text-sm text-gray-600">Certified Articles</div>
-                    </div>
+                    <div className="text-2xl font-bold text-green-600">{certifiedCount}</div>
                   </div>
                 </div>
               </div>
             )}
-
-            {/* Discord Connect Card */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-indigo-600" />
-                Discord
-              </h3>
-              
-              {user.discord_username ? (
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 border border-indigo-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-semibold text-indigo-900">{user.discord_username}</div>
-                    {isOwnProfile && (
-                      <button
-                        onClick={() => setShowDiscordModal(true)}
-                        className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-                      >
-                        Edit
-                      </button>
-                    )}
-                  </div>
-                  {user.discord_username_updated_at && (
-                    <p className="text-xs text-gray-500">
-                      Updated {formatDistanceToNow(new Date(user.discord_username_updated_at), { addSuffix: true })}
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                  {isOwnProfile ? (
-                    <div>
-                      <p className="text-gray-600 text-sm mb-3">Connect with other users on Discord</p>
-                      <button
-                        onClick={() => setShowDiscordModal(true)}
-                        className="w-full py-2.5 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium text-sm flex items-center justify-center gap-2"
-                      >
-                        <MessageSquare className="h-4 w-4" />
-                        Add Username
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-sm text-center italic">No Discord username</p>
-                  )}
-                </div>
-              )}
-            </div>
 
             {/* Political Ideology Card */}
             {shouldShowIdeology && (
@@ -542,8 +501,8 @@ const UserProfile = () => {
                   Political Ideology
                 </h3>
                 
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
-                  <h4 className="font-bold text-purple-900 mb-2 text-lg">{user.ideology}</h4>
+                <div className="bg-purple-50 rounded-xl p-4 border-l-5 border-purple-500">
+                  <h4 className="font-bold text-purple-700 mb-2 text-lg">{user.ideology}</h4>
                   {user.ideology_details?.description && (
                     <p className="text-gray-700 text-sm mb-3">{user.ideology_details.description}</p>
                   )}
@@ -574,7 +533,7 @@ const UserProfile = () => {
                       <button
                         onClick={handleToggleIdeologyVisibility}
                         disabled={ideologyLoading}
-                        className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full py-2.5 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         {ideologyLoading ? 'Updating...' : (
                           <>
@@ -586,7 +545,7 @@ const UserProfile = () => {
                       
                       <Link
                         to="/ideology-quiz"
-                        className="w-full py-2 px-4 bg-white text-purple-600 border border-purple-300 rounded-lg hover:bg-purple-50 transition-colors duration-200 font-medium text-sm flex items-center justify-center gap-2"
+                        className="w-full py-2.5 px-4 bg-white text-purple-600 border border-purple-300 rounded-lg hover:bg-purple-50 transition-colors duration-200 font-medium text-sm flex items-center justify-center gap-2"
                       >
                         <Brain className="h-4 w-4" />
                         Retake Quiz
@@ -610,7 +569,7 @@ const UserProfile = () => {
             {suggestedUsers.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Users className="h-5 w-5 text-orange-600" />
+                  <Users className="h-5 w-5 text-yellow-600" />
                   Similar Users
                 </h3>
                 <p className="text-xs text-gray-500 mb-4">Users with {user.ideology} ideology</p>
@@ -622,7 +581,7 @@ const UserProfile = () => {
                       to={`/user/${suggestedUser.display_name}`}
                       className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                     >
-                      <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 bg-yellow-600 rounded-full flex items-center justify-center flex-shrink-0">
                         <span className="text-sm font-bold text-white">
                           {suggestedUser.display_name.charAt(0).toUpperCase()}
                         </span>
@@ -646,7 +605,7 @@ const UserProfile = () => {
               <div className="flex space-x-1">
                 <button
                   className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                    true ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'
+                    true ? 'bg-yellow-500 text-white' : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
                   <FileText className="h-5 w-5" />
@@ -667,73 +626,54 @@ const UserProfile = () => {
                 </div>
               ) : (
                 articles.map((article) => (
-                  <div key={article.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
-                    <div className="p-6">
-                      {/* Author Info */}
-                      <div className="flex items-start gap-4 mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-lg font-bold text-white">
-                            {user.display_name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="flex-grow min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-bold text-gray-900">{user.display_name}</span>
-                            {isCertifiedByFollowers && (
-                              <CheckCircle className="h-5 w-5 text-orange-500 flex-shrink-0" />
-                            )}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {formatDistanceToNow(new Date(article.created_at), { addSuffix: true })}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Article Title & Preview */}
-                      <Link to={`/article/${article.id}`} className="block group">
-                        <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
+                  <Link key={article.id} to={`/article/${article.id}`} className="block group">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+                      <div className="p-6">
+                        {/* Article Title & Preview */}
+                        <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-yellow-700 transition-colors">
                           {article.title}
                         </h3>
                         <p className="text-gray-600 mb-4 line-clamp-2">
                           {article.content.substring(0, 200)}...
                         </p>
-                      </Link>
 
-                      {/* Badges */}
-                      {(article.certified || article.topics?.length > 0) && (
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {article.certified && (
-                            <span className="bg-green-50 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-200 flex items-center gap-1.5">
-                              <Award className="h-3.5 w-3.5" />
-                              Certified
-                            </span>
-                          )}
-                          {article.topics && article.topics.slice(0, 3).map((topic, idx) => (
-                            <span key={idx} className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-full border border-gray-200">
-                              {topic}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                        {/* Badges */}
+                        {(article.certified || article.topics?.length > 0) && (
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {article.certified && (
+                              <span className="bg-green-50 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-200 flex items-center gap-1.5">
+                                <Award className="h-3.5 w-3.5" />
+                                Certified
+                              </span>
+                            )}
+                            {article.topics && article.topics.slice(0, 3).map((topic, idx) => (
+                              <span key={idx} className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-full border border-gray-200">
+                                {topic}
+                              </span>
+                            ))}
+                          </div>
+                        )}
 
-                      {/* Footer */}
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <div className="flex items-center gap-2">
-                            <Eye className="h-4 w-4" />
-                            <span className="font-medium">{article.views || 0} views</span>
+                        {/* Footer */}
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <div className="flex items-center gap-2">
+                              <Eye className="h-4 w-4" />
+                              <span className="font-medium">{article.views || 0} views</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4" />
+                              <span>{formatDistanceToNow(new Date(article.created_at), { addSuffix: true })}</span>
+                            </div>
+                          </div>
+                          <div className="inline-flex items-center gap-2 text-yellow-700 hover:text-yellow-800 font-semibold text-sm transition-colors group">
+                            Read article
+                            <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                           </div>
                         </div>
-                        <Link 
-                          to={`/article/${article.id}`} 
-                          className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold text-sm transition-colors group"
-                        >
-                          Read article
-                          <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                        </Link>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))
               )}
             </div>
