@@ -6,6 +6,7 @@ import { UserProvider, useUser } from './context/UserContext';
 import './utils/debugApi';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import SelectPages from './components/SelectPages'; // Import the new component
 import HomePage from './pages/misc/HomePage';
 import SignupPage from './pages/auth/SignupPage';
 import LoginPage from './pages/auth/LoginPage';
@@ -83,7 +84,8 @@ function AppRoutes() {
       <main className="flex-grow">
         <Routes>
           {/* Main Routes */}
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<SelectPages />} /> {/* Use SelectPages as default */}
+          <Route path="/homepage" element={<HomePage />} /> {/* Add explicit route for HomePage */}
           <Route path="/browse" element={<BrowseArticles />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/article/:id/:slug?" element={<ArticlePage />} />

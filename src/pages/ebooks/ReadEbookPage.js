@@ -474,7 +474,7 @@ const ReaderHeader = ({ focusMode, setFocusMode, ebook, currentChapter, progress
   if (focusMode) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 backdrop-blur-sm" 
+    <div className="fixed top-0 left-0 right-0 z-[60] transition-all duration-300 backdrop-blur-sm" 
       style={{ backgroundColor: currentTheme.bg + 'e6', borderBottom: `1px solid ${currentTheme.secondary}` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
         
@@ -540,7 +540,7 @@ const ReaderFooter = ({ currentPage, totalPages, chapterIndex, chapters, overall
   const isPaginated = pageMode === '2-page'; 
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 backdrop-blur-sm" 
+    <div className="fixed bottom-0 left-0 right-0 z-[60] transition-all duration-300 backdrop-blur-sm" 
       style={{ backgroundColor: currentTheme.bg + 'e6', borderTop: `1px solid ${currentTheme.secondary}` }}>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between h-12">
         
@@ -1002,7 +1002,7 @@ const ReadEbookPage = () => {
 
   if (loading || !currentChapter) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center transition-colors duration-500" style={{ backgroundColor: currentTheme.bg, color: currentTheme.text }}>
+      <div className="fixed inset-0 z-[70] flex flex-col items-center justify-center transition-colors duration-500" style={{ backgroundColor: currentTheme.bg, color: currentTheme.text }}>
         <div className="animate-spin rounded-full h-16 w-16 border-4" style={{ borderTopColor: currentTheme.accent, borderColor: currentTheme.secondary }}></div>
         <p className="mt-4 text-lg">Loading Book...</p>
       </div>
@@ -1011,7 +1011,7 @@ const ReadEbookPage = () => {
 
   return (
     <div 
-      className="h-screen w-screen overflow-hidden relative transition-colors duration-500"
+      className="fixed inset-0 z-[70] overflow-hidden relative transition-colors duration-500"
       style={{ 
         backgroundColor: currentTheme.bg,
         color: currentTheme.text,

@@ -131,7 +131,7 @@ function Header({ user, onLogout }) {
       {
         title: 'Discover',
         items: [
-          { to: '/', icon: Home, label: 'Home' },
+          { to: '/homepage', icon: Home, label: 'Home' },
           { to: '/browse', icon: Compass, label: 'Browse Articles' },
           { to: '/ebooks', icon: BookOpen, label: 'Browse Ebooks' },
           { to: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
@@ -195,7 +195,7 @@ function Header({ user, onLogout }) {
   }, [user, isEditorialOrAdmin, isAdmin]);
 
   const primaryBottomNavLoggedIn = useMemo(() => [
-    { to: '/', icon: Home, label: 'Home' },
+    { to: '/homepage', icon: Home, label: 'Home' },
     { to: '/browse', icon: Compass, label: 'Articles' },
     { to: '/write', icon: PenTool, label: 'Write', isPrimary: true },
     { to: '/notifications', icon: Bell, label: 'Alerts', badge: unreadCount },
@@ -213,7 +213,7 @@ function Header({ user, onLogout }) {
   ], []);
 
   const primaryBottomNavLoggedOut = useMemo(() => [
-    { to: '/', icon: Home, label: 'Home' },
+    { to: '/homepage', icon: Home, label: 'Home' },
     { to: '/browse', icon: Compass, label: 'Articles' },
     { to: '/ideology-quiz', icon: Sparkles, label: 'Quiz' }
   ], []);
@@ -319,7 +319,7 @@ function Header({ user, onLogout }) {
                 <Menu className="h-5 w-5" strokeWidth={2} />
               </button>
 
-              <Link to="/" className="flex items-center">
+              <Link to="/homepage" className="flex items-center">
                 <div className="hidden sm:block">
                   <div className="text-2xl font-extrabold text-gray-900 tracking-tight">UROWN</div>
                   <div className="text-[10px] text-gray-500 font-semibold -mt-1 tracking-wide uppercase">Your Voice Matters</div>
